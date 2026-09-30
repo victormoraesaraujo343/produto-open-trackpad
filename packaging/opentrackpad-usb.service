@@ -16,7 +16,7 @@
 
 [Unit]
 Description=OpenTrackpad USB bridge
-Documentation=https://github.com/victormoraesaraujo343/open-trackpad
+Documentation=https://github.com/victormoraesaraujo343/produto-open-trackpad
 After=graphical-session.target
 PartOf=graphical-session.target
 

@@ -12,7 +12,7 @@
 
 [Unit]
 Description=OpenTrackpad host daemon
-Documentation=https://github.com/victormoraesaraujo343/open-trackpad
+Documentation=https://github.com/victormoraesaraujo343/produto-open-trackpad
 # The virtual touchpad is only useful once there is a session to inject into.
 After=graphical-session.target
 PartOf=graphical-session.target

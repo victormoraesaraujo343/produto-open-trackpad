@@ -13,7 +13,7 @@
 
 [Unit]
 Description=OpenTrackpad tray indicator
-Documentation=https://github.com/victormoraesaraujo343/open-trackpad
+Documentation=https://github.com/victormoraesaraujo343/produto-open-trackpad
 # Needs a desktop with a system tray to appear in.
 After=graphical-session.target
 PartOf=graphical-session.target
