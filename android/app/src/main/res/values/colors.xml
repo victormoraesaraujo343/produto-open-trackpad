@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The palette from docs/DESIGN.md, lifted from the screens rather than rounded.
+  Nothing in the app may invent a colour: if a state needs one that is not here,
+  the state is wrong or the design system is.
+-->
+<resources>
+    <color name="ground">#FF0E0F10</color>
+    <color name="panel">#FF121314</color>
+    <color name="inset">#FF1B1D1F</color>
+    <color name="hairline">#FF2A2D30</color>
+
+    <color name="ink">#FFE6E8EA</color>
+    <color name="body">#FF8A9099</color>
+    <color name="secondary">#FFC6CBD1</color>
+    <color name="muted">#FF6B7178</color>
+    <color name="faint">#FF4E545B</color>
+
+    <!-- "This one, now", and nothing else. -->
+    <color name="lime">#FFA3E635</color>
+    <!-- Degraded, held, or asking for attention. -->
+    <color name="amber">#FFF5A524</color>
+
+    <!-- rgba(9,10,11,0.74): what a problem in the middle of the screen sits on. -->
+    <color name="scrim">#BD090A0B</color>
+
+    <!--
+      Named late. These were spelled as hex inside six custom views, which is
+      the exact thing the note at the top of this file forbids — and it stayed
+      true for as long as nobody could grep for it.
+    -->
+    <!-- A lime that has been pressed: the same meaning, lit. -->
+    <color name="lime_bright">#FFBBEF6B</color>
+    <!-- What a lime thing sits on when it is the active one. -->
+    <color name="lime_dim">#FF1D2A10</color>
+    <!-- The same, for a state that is degraded rather than chosen. -->
+    <color name="amber_dim">#FF3A3020</color>
+    <!-- A slot with a finger on it. -->
+    <color name="raised">#FF24272A</color>
+    <!-- That slot's edge, which is why it reads as raised. -->
+    <color name="raised_edge">#FF2E3236</color>
+    <!-- A line drawn on top of a panel rather than around it. -->
+    <color name="stroke">#FF3A3F45</color>
+    <!-- rgba(138,144,153,0.16): the grid on the trackpad. -->
+    <color name="dots">#298A9099</color>
+    <!-- rgba(9,10,11,0.45): a panel over the pad, not over the app. -->
+    <color name="veil">#7308090A</color>
+
+    <!-- The dash around "New shortcut": lime, but an outline rather than a fill. -->
+    <color name="lime_edge">#FF6F9C1F</color>
+
+    <!-- Deleting. The only red in the product, and it appears once. -->
+    <color name="warn">#FFFFB4AB</color>
+    <!-- A key cap's edge, which is lighter than a panel's hairline: the cap is
+         raised and the line is the light catching its top. -->
+    <color name="cap_edge">#FF34383D</color>
+</resources>

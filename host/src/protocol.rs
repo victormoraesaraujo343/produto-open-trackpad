@@ -1,0 +1,2180 @@
+//! OTP/4 wire protocol: line parsing plus per-connection validation.
+//!
+//! See `docs/PROTOCOL.md`. Parsing is deliberately free of I/O so the whole
+//! surface is unit-testable.
+
+use std::fmt;
+
+use crate::audio;
+use crate::import;
+use crate::keys::Chord;
+use crate::pointer::Button;
+use crate::shortcuts;
+use crate::text::{escape_text, unescape_text};
+use crate::windows;
+
+/// The protocol version this host speaks, and the one before it.
+///
+/// Version 2 added the physical size of the touch surface to the handshake.
+/// Version 3 added actions. Version 4 opened a channel in the other direction:
+/// the handshake carries what the client wants to be told about, the host
+/// answers with what it can serve, and state travels back.
+///
+/// # Why version 3 is still accepted
+///
+/// Because a client we shipped speaks it and a person uses it every day. The
+/// light client is tagged `v0.1-light`, sends `HELLO OTP/3`, and **cannot fall
+/// back** — nothing existed before it to fall back to. A version-4-only host
+/// refuses its handshake instantly, so installing one would stop a working
+/// trackpad with a phone that has no way to find out why.
+///
+/// The asymmetry is what hides this: the version 4 client copes, because it was
+/// built knowing older hosts exist. The shipped one does not, because when it
+/// was built there was nothing older to cope with.
+///
+/// So one version back is served, and only one. A version 3 session gets a
+/// virtual touchpad and key chords — everything that version ever had — and
+/// nothing that came after it. It is never sent a `WELCOME`, because nothing
+/// has ever answered a version 3 client and it is not listening for one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Version {
+    /// Touch and key chords. Nothing travels back.
+    Three,
+    /// Adds capabilities, the return channel, mouse buttons and the recorder.
+    Four,
+}
+
+impl Version {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Version::Three => "OTP/3",
+            Version::Four => "OTP/4",
+        }
+    }
+
+    fn parse(token: &str) -> Option<Self> {
+        match token {
+            "OTP/3" => Some(Version::Three),
+            "OTP/4" => Some(Version::Four),
+            _ => None,
+        }
+    }
+
+    /// Whether this version has a way to hear an answer.
+    ///
+    /// Only version 4. Writing to a version 3 client would be writing into a
+    /// socket nobody reads, which is at best wasted and at worst a stall when
+    /// its receive buffer fills.
+    pub fn answers(self) -> bool {
+        self >= Version::Four
+    }
+}
+
+impl fmt::Display for Version {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+/// The version this host prefers, and answers a handshake with.
+pub const VERSION: &str = "OTP/4";
+
+/// Hard ceiling on contacts in any message, independent of what a client
+/// declares. Bounds the allocation a single line can trigger.
+pub const MAX_CONTACTS: u8 = 32;
+
+/// Highest pressure value the protocol allows.
+pub const MAX_PROTOCOL_PRESSURE: u16 = 1024;
+
+/// The longest line the host will read.
+///
+/// A frame with thirty-two contacts is under six hundred bytes and the longest
+/// request is a few dozen. This exists so a client that never sends a newline
+/// cannot make the host buffer without limit — the one unbounded allocation a
+/// line-framed protocol otherwise invites.
+pub const MAX_LINE_BYTES: usize = 4096;
+
+/// How many candidates one request may accept.
+///
+/// The same as the most the list can hold, and that is the point rather than a
+/// coincidence: accepting more shortcuts than there is room for is meaningless,
+/// so there is no honest set larger than this and a client never has to split
+/// one.
+///
+/// Splitting would not work anyway. Accepting bumps the import generation,
+/// because the host re-offers immediately with the accepted ones removed — so a
+/// second request carrying the original generation is refused as stale by
+/// construction. A cap a client could legitimately exceed would therefore be a
+/// cap that forced it into a loop that cannot succeed.
+///
+/// Two hundred four-digit ids and their commas is about a kilobyte, well inside
+/// `MAX_LINE_BYTES`.
+pub const MAX_ACCEPTED: usize = crate::shortcuts::MAX_SHORTCUTS;
+
+/// What a client may ask to be kept informed about, and what the host may agree
+/// to serve.
+///
+/// A closed set, like the key vocabulary, but with one deliberate difference:
+/// names in this list that the host does not recognise are *ignored* rather
+/// than refused. That is what lets a later panel be added without another
+/// version bump. Unknown message types stay fatal; only the capability
+/// vocabulary is open-ended, and a capability grants nothing on its own — it
+/// merely says which closed set of requests becomes legal.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Capabilities {
+    pub audio: bool,
+    pub shortcuts: bool,
+    pub import: bool,
+    pub windows: bool,
+}
+
+impl Capabilities {
+    pub const NONE: Self = Self {
+        audio: false,
+        shortcuts: false,
+        import: false,
+        windows: false,
+    };
+
+    /// Reads a comma-separated list, or `-` for none.
+    ///
+    /// Never fails: an unrecognised name is something a newer client wanted and
+    /// this host cannot give, which is answered by leaving it out of the reply,
+    /// not by hanging up.
+    pub fn parse(text: &str) -> Self {
+        let mut capabilities = Self::NONE;
+        for name in text.split(',') {
+            match name {
+                "audio" => capabilities.audio = true,
+                "shortcuts" => capabilities.shortcuts = true,
+                "import" => capabilities.import = true,
+                "windows" => capabilities.windows = true,
+                // Ignored, not refused: that is what lets a later panel be
+                // added without another version bump.
+                _ => {}
+            }
+        }
+        capabilities
+    }
+
+    /// What both sides can do: what the client asked for, kept to what the host
+    /// can actually serve.
+    pub fn intersect(self, other: Self) -> Self {
+        Self {
+            audio: self.audio && other.audio,
+            shortcuts: self.shortcuts && other.shortcuts,
+            import: self.import && other.import,
+            windows: self.windows && other.windows,
+        }
+    }
+
+    pub fn is_empty(self) -> bool {
+        !self.audio && !self.shortcuts && !self.import && !self.windows
+    }
+
+    pub fn allows(self, domain: Domain) -> bool {
+        match domain {
+            Domain::Audio => self.audio,
+            Domain::Shortcuts => self.shortcuts,
+            Domain::Import => self.import,
+            Domain::Windows => self.windows,
+        }
+    }
+}
+
+impl fmt::Display for Capabilities {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut named = Vec::new();
+        if self.audio {
+            named.push("audio");
+        }
+        if self.shortcuts {
+            named.push("shortcuts");
+        }
+        if self.import {
+            named.push("import");
+        }
+        if self.windows {
+            named.push("windows");
+        }
+        if named.is_empty() {
+            return formatter.write_str("-");
+        }
+        formatter.write_str(&named.join(","))
+    }
+}
+
+/// A body of state the host can carry to the client.
+///
+/// One today. The recent-applications rail is the second, and it is why this is
+/// a named domain rather than the messages simply being about audio.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Domain {
+    Audio,
+    /// What is recorded and fireable: the profile editor's library.
+    Shortcuts,
+    /// What this computer has that OpenTrackpad does not — offered, reviewed,
+    /// and accepted or not.
+    ///
+    /// Its own domain rather than a flag on a shortcut, because a candidate is
+    /// a different kind of object with a different life. Folding it in would
+    /// leave `shortcuts` carrying entries that cannot be fired, which is
+    /// exactly how a button that does nothing gets built.
+    Import,
+    /// The windows open on this desktop, most recently used first.
+    ///
+    /// Absent on a desktop this host cannot ask, the same way audio is absent
+    /// with no sound daemon: the capability is never granted and the phone does
+    /// not draw the rail.
+    Windows,
+}
+
+impl Domain {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Domain::Audio => "audio",
+            Domain::Shortcuts => "shortcuts",
+            Domain::Import => "import",
+            Domain::Windows => "windows",
+        }
+    }
+
+    pub fn parse(text: &str) -> Option<Self> {
+        match text {
+            "audio" => Some(Domain::Audio),
+            "shortcuts" => Some(Domain::Shortcuts),
+            "import" => Some(Domain::Import),
+            "windows" => Some(Domain::Windows),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for Domain {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Hello {
+    /// Which version this client speaks. Decides what it may send and whether
+    /// anything is ever written back to it.
+    pub version: Version,
+    pub width: u32,
+    pub height: u32,
+    pub max_contacts: u8,
+    /// Physical size of the touch surface, in micrometres, in the same
+    /// orientation as `width` and `height`.
+    ///
+    /// Sent by the client because only it knows how big its screen is, and
+    /// every phone is different. The host cannot guess this.
+    pub width_um: u32,
+    pub height_um: u32,
+    /// What this client would like to be told about. Absent means none, which
+    /// is what a client that only wants a trackpad sends.
+    pub capabilities: Capabilities,
+}
+
+impl Hello {
+    pub fn geometry(&self) -> crate::pad::PadGeometry {
+        crate::pad::PadGeometry::from_micrometres(self.width_um, self.height_um)
+    }
+
+    /// Millimetres per pixel on the touch surface.
+    ///
+    /// Phone pixels are square to well under a percent, so one figure covers
+    /// both axes.
+    pub fn millimetres_per_pixel(&self) -> f64 {
+        if self.width == 0 {
+            return 0.0;
+        }
+        f64::from(self.width_um) / 1000.0 / f64::from(self.width)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Contact {
+    pub id: u8,
+    pub x: u32,
+    pub y: u32,
+    pub pressure: u16,
+    pub major: u16,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Frame {
+    pub sequence: u64,
+    pub event_time_ns: u64,
+    pub contacts: Vec<Contact>,
+}
+
+impl Frame {
+    /// How far apart the contacts are, when there are exactly two.
+    ///
+    /// Pinch zoom is a ratio of this distance, so it is what decides whether a
+    /// weak zoom is the gesture running out of surface or the application
+    /// converting it timidly.
+    pub fn separation_mm(&self, millimetres_per_pixel: f64) -> Option<f64> {
+        let [first, second] = self.contacts.as_slice() else {
+            return None;
+        };
+        let dx = f64::from(first.x) - f64::from(second.x);
+        let dy = f64::from(first.y) - f64::from(second.y);
+        Some(dx.hypot(dy) * millimetres_per_pixel)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Message {
+    Hello(Hello),
+    Frame(Frame),
+    Action(Action),
+    Request(Request),
+}
+
+/// Something the control surface asked for, as opposed to somewhere a finger is.
+///
+/// Kept apart from touch on purpose: a shortcut going wrong must not be able to
+/// corrupt the trackpad, and the two travel to different virtual devices.
+///
+/// There is no kind that runs a command. The vocabulary is closed by design —
+/// a control surface that can press any key, or run anything, is a remote
+/// shell with buttons.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Action {
+    /// Press a chord and let it go.
+    Key(Chord),
+    /// Open the shortcut recorder on the host.
+    ///
+    /// The client asks; it never authors. What it gets is a window on the
+    /// computer, and the chord is pressed on the keyboard attached to that
+    /// computer — which is the whole design, not a limitation of it.
+    Record,
+    /// Click a mouse button and let it go.
+    ///
+    /// A second kind rather than a key name, because a button is not a key:
+    /// it goes to a different virtual device, for the reasons in
+    /// `crate::pointer`, and it is the one thing here that is not gated by
+    /// what somebody recorded.
+    Button(Button),
+}
+
+/// A change the client would like made to something the host told it about.
+///
+/// The closed vocabulary of the return path, and it is closed the same way and
+/// for the same reason as the key vocabulary. Every verb here names a thing the
+/// host already published, by the number the host gave it, and does one bounded
+/// thing to it. There is no verb that names a device by string, none that names
+/// a command, and none that can reach anything the host did not put in a
+/// snapshot first.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Request {
+    /// The client's own numbering, echoed back when a request is refused so it
+    /// knows which one was turned down.
+    ///
+    /// **Must increase within a session, across every domain.** `REFUSED` names
+    /// a sequence and nothing else, so if two domains could each produce a
+    /// request numbered 1, a refusal would be ambiguous — and the way that
+    /// fails is a refusal landing on the wrong screen, or on none, which looks
+    /// like a button that sometimes does nothing.
+    ///
+    /// One counter for the whole session settles it, so the requirement is
+    /// enforced rather than written down and hoped for.
+    pub sequence: u64,
+    pub domain: Domain,
+    pub verb: Verb,
+}
+
+/// Every verb names *what kind of thing* as well as which one.
+///
+/// Not redundancy: outputs, inputs and streams are numbered independently by
+/// the sound daemon, so sink 53 and source 53 exist at the same time and are
+/// different devices. An id alone would be ambiguous, and the way that failure
+/// shows up is a fader moving the wrong device's volume.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Verb {
+    /// Set one entity's level, nought to `audio::MAX_VOLUME`.
+    Volume {
+        kind: audio::Kind,
+        id: u32,
+        level: u16,
+    },
+    Mute {
+        kind: audio::Kind,
+        id: u32,
+        muted: bool,
+    },
+    /// Make this device the one new sound goes to.
+    MakeDefault { kind: audio::Kind, id: u32 },
+    /// Give a recorded shortcut a different name.
+    ///
+    /// Only a recorded one: a shipped convention and a shortcut read out of
+    /// somebody's desktop configuration are not ours to rename, and a rename
+    /// that quietly reappeared on the next read would be worse than a refusal.
+    Rename { id: u32, name: String },
+    /// Forget a recorded shortcut.
+    Delete { id: u32 },
+    /// Switch to a window.
+    ///
+    /// The only thing the rail may ask for. Not close, not minimise, not move:
+    /// the design is "tap one and switch to it", and anything more would be a
+    /// window manager on a phone, which this is not.
+    Activate { id: u32 },
+    /// Record a set of the candidates last offered.
+    ///
+    /// All or nothing. A partly-applied set leaves somebody looking at a screen
+    /// that half agrees with the machine, and there is no way for them to tell
+    /// which half.
+    Accept { generation: u64, ids: Vec<u32> },
+    /// Send the whole picture again. What the client asks for when it opens the
+    /// panel, and its way out of any disagreement about state.
+    Refresh,
+}
+
+/// Why a request was not carried out.
+///
+/// A closed set rather than free text, for the same reason the request
+/// vocabulary is closed: the client switches on these, and a phone showing a
+/// message needs to be able to translate it. Free text on the wire would make
+/// that impossible and would need escaping besides.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Refusal {
+    /// No such entity. The ordinary case is a device unplugged mid-gesture.
+    UnknownId,
+    /// The entity exists but the verb does not apply to it — asking for a
+    /// stream to become the default output, say.
+    WrongKind,
+    /// The domain cannot be served right now.
+    Unavailable,
+    /// The daemon refused or the command failed.
+    BackendFailed,
+    /// Requests are arriving faster than a hand can produce them.
+    TooFast,
+    /// The list cannot hold everything that was asked for.
+    Full,
+    /// The offer these numbers came from is no longer the current one.
+    Stale,
+}
+
+impl Refusal {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Refusal::UnknownId => "unknown-id",
+            Refusal::WrongKind => "wrong-kind",
+            Refusal::Unavailable => "unavailable",
+            Refusal::BackendFailed => "backend-failed",
+            Refusal::TooFast => "too-fast",
+            Refusal::Full => "full",
+            Refusal::Stale => "stale",
+        }
+    }
+}
+
+/// Why a domain is not on offer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Absence {
+    /// The tool that speaks to the daemon is not installed.
+    NoTool,
+    /// The tool is there but no daemon answered.
+    NoDaemon,
+    /// It was working and stopped. The panel empties rather than freezing on
+    /// stale values.
+    Lost,
+}
+
+impl Absence {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Absence::NoTool => "no-tool",
+            Absence::NoDaemon => "no-daemon",
+            Absence::Lost => "lost",
+        }
+    }
+}
+
+/// A line travelling from the host to the client.
+///
+/// The first messages this protocol has ever sent in this direction.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Outbound {
+    /// The answer to a handshake: what the host will actually serve.
+    Welcome(Capabilities),
+    /// Opens a complete picture of a domain. Exactly `count` `Entry` lines of
+    /// the same generation follow.
+    Snapshot {
+        domain: Domain,
+        generation: u64,
+        count: usize,
+    },
+    /// One entity, as part of the snapshot just opened.
+    Entry {
+        domain: Domain,
+        generation: u64,
+        record: Record,
+    },
+    /// One entity that has appeared or is no longer what it was.
+    Changed {
+        domain: Domain,
+        generation: u64,
+        record: Record,
+    },
+    Removed {
+        domain: Domain,
+        generation: u64,
+        /// The same word the entry used, so the client knows which list to
+        /// take it out of.
+        kind: &'static str,
+        id: u32,
+    },
+    /// This domain has nothing to show. The panel should be absent, not broken.
+    Unavailable { domain: Domain, reason: Absence },
+    /// A request that was understood but not carried out.
+    Refused { sequence: u64, reason: Refusal },
+}
+
+/// One thing a domain has to say, whatever kind of thing it is.
+///
+/// Each renders as `<kind> <id> <fields...>`, which is the shape the audio
+/// domain already established: the kind names what the fields mean, so one line
+/// format serves three domains without any of them having to know about the
+/// others.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Record {
+    Audio(audio::Entity),
+    /// Something recorded and fireable.
+    Shortcut(shortcuts::Shortcut),
+    /// A window open on this desktop.
+    Window(windows::Window),
+    /// Something this computer has that is not recorded yet.
+    ///
+    /// Carries a number of its own so a set of them can be accepted. It is the
+    /// host's, valid for the generation it arrived in, and deliberately not the
+    /// number the shortcut gets if it is accepted — nothing has been recorded
+    /// yet, so there is no shortcut to have a number.
+    Candidate {
+        id: u32,
+        offer: import::Candidate,
+    },
+}
+
+impl Record {
+    fn render(&self) -> String {
+        match self {
+            Record::Audio(entity) => {
+                let target = match entity.target {
+                    Some(id) => id.to_string(),
+                    None => "-".to_owned(),
+                };
+                format!(
+                    "{} {} {} {} {} {} {} {} {}",
+                    entity.kind.as_str(),
+                    entity.id,
+                    entity.volume,
+                    u8::from(entity.muted),
+                    u8::from(entity.default),
+                    target,
+                    entity.port.map_or("-", audio::Port::as_str),
+                    // A device is never paused; the dash says the field does
+                    // not apply rather than that it is false.
+                    if entity.kind == audio::Kind::Stream {
+                        if entity.paused {
+                            "1"
+                        } else {
+                            "0"
+                        }
+                    } else {
+                        "-"
+                    },
+                    escape_text(&entity.name),
+                )
+            }
+            // No recommendation here: that is an import idea, and a shortcut
+            // already recorded is past being recommended.
+            Record::Shortcut(shortcut) => format!(
+                "shortcut {} {} {} {} {}",
+                shortcut.id,
+                shortcut.chord,
+                shortcut.origin.as_str(),
+                shortcut.group.map_or("-", shortcuts::Group::as_str),
+                escape_text(&shortcut.name),
+            ),
+            // The KWin identifier is not here and never is: the client names
+            // a number this host handed out, and nothing else.
+            Record::Window(window) => format!(
+                "window {} {} {}",
+                window.id,
+                escape_text(&window.application),
+                escape_text(&window.title),
+            ),
+            // No origin here: everything offered came from this computer's own
+            // configuration, so the field would say the same thing every time.
+            Record::Candidate { id, offer } => format!(
+                "candidate {} {} {} {} {}",
+                id,
+                offer.chord,
+                offer.group.as_str(),
+                u8::from(offer.recommended),
+                escape_text(&offer.name),
+            ),
+        }
+    }
+}
+
+impl fmt::Display for Outbound {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Outbound::Welcome(capabilities) => {
+                write!(formatter, "WELCOME {VERSION} {capabilities}")
+            }
+            Outbound::Snapshot {
+                domain,
+                generation,
+                count,
+            } => write!(formatter, "SNAPSHOT {domain} {generation} {count}"),
+            Outbound::Entry {
+                domain,
+                generation,
+                record,
+            } => write!(formatter, "ENTRY {domain} {generation} {}", record.render()),
+            Outbound::Changed {
+                domain,
+                generation,
+                record,
+            } => write!(
+                formatter,
+                "CHANGED {domain} {generation} {}",
+                record.render()
+            ),
+            Outbound::Removed {
+                domain,
+                generation,
+                kind,
+                id,
+            } => write!(formatter, "REMOVED {domain} {generation} {kind} {id}"),
+            Outbound::Unavailable { domain, reason } => {
+                write!(formatter, "UNAVAILABLE {domain} {}", reason.as_str())
+            }
+            Outbound::Refused { sequence, reason } => {
+                write!(formatter, "REFUSED {sequence} {}", reason.as_str())
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProtocolError(pub String);
+
+impl fmt::Display for ProtocolError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for ProtocolError {}
+
+fn parse_number<T>(value: Option<&str>, field: &str) -> Result<T, ProtocolError>
+where
+    T: std::str::FromStr,
+{
+    value
+        .ok_or_else(|| ProtocolError(format!("missing {field}")))?
+        .parse::<T>()
+        .map_err(|_| ProtocolError(format!("invalid {field}")))
+}
+
+fn parse_flag(value: Option<&str>, field: &str) -> Result<bool, ProtocolError> {
+    match value {
+        Some("0") => Ok(false),
+        Some("1") => Ok(true),
+        _ => Err(ProtocolError(format!("{field} must be 0 or 1"))),
+    }
+}
+
+/// Reads the `<kind> <id>` pair every request but `REFRESH` begins with.
+fn parse_entity(
+    parts: &mut std::str::SplitWhitespace<'_>,
+) -> Result<(audio::Kind, u32), ProtocolError> {
+    let kind = parts
+        .next()
+        .ok_or_else(|| ProtocolError("missing entity kind".into()))?;
+    let kind = audio::Kind::parse(kind)
+        .ok_or_else(|| ProtocolError(format!("unknown entity kind: {kind}")))?;
+    Ok((kind, parse_number(parts.next(), "entity id")?))
+}
+
+fn ensure_finished(parts: &mut std::str::SplitWhitespace<'_>) -> Result<(), ProtocolError> {
+    if parts.next().is_some() {
+        return Err(ProtocolError("unexpected trailing fields".into()));
+    }
+    Ok(())
+}
+
+pub fn parse_message(line: &str) -> Result<Message, ProtocolError> {
+    if line.len() > MAX_LINE_BYTES {
+        return Err(ProtocolError("line is too long".into()));
+    }
+    let mut parts = line.split_whitespace();
+    match parts.next() {
+        Some("HELLO") => {
+            let token = parts
+                .next()
+                .ok_or_else(|| ProtocolError("missing protocol version".into()))?;
+            let version = Version::parse(token).ok_or_else(|| {
+                ProtocolError(format!(
+                    "unsupported protocol version {token}, expected {VERSION} or OTP/3"
+                ))
+            })?;
+            let mut hello = Hello {
+                version,
+                width: parse_number(parts.next(), "width")?,
+                height: parse_number(parts.next(), "height")?,
+                max_contacts: parse_number(parts.next(), "max_contacts")?,
+                width_um: parse_number(parts.next(), "width_um")?,
+                height_um: parse_number(parts.next(), "height_um")?,
+                capabilities: Capabilities::NONE,
+            };
+            // Optional at version 4: a client that only wants a trackpad sends
+            // the handshake it always sent, one version number higher.
+            if let Some(capabilities) = parts.next() {
+                if version < Version::Four {
+                    return Err(ProtocolError(format!(
+                        "{version} has no capabilities in its handshake"
+                    )));
+                }
+                hello.capabilities = Capabilities::parse(capabilities);
+            }
+            ensure_finished(&mut parts)?;
+            if hello.width == 0 || hello.height == 0 {
+                return Err(ProtocolError("touch dimensions must be positive".into()));
+            }
+            if hello.width_um == 0 || hello.height_um == 0 {
+                return Err(ProtocolError("physical dimensions must be positive".into()));
+            }
+            if hello.max_contacts == 0 || hello.max_contacts > MAX_CONTACTS {
+                return Err(ProtocolError(format!(
+                    "max_contacts must be between 1 and {MAX_CONTACTS}"
+                )));
+            }
+            Ok(Message::Hello(hello))
+        }
+        Some("FRAME") => {
+            let sequence = parse_number(parts.next(), "sequence")?;
+            let event_time_ns = parse_number(parts.next(), "event_time_ns")?;
+            let count: u8 = parse_number(parts.next(), "contact count")?;
+            if count > MAX_CONTACTS {
+                return Err(ProtocolError(format!(
+                    "contact count exceeds {MAX_CONTACTS}"
+                )));
+            }
+
+            let mut contacts = Vec::with_capacity(count as usize);
+            for _ in 0..count {
+                let contact = Contact {
+                    id: parse_number(parts.next(), "contact id")?,
+                    x: parse_number(parts.next(), "contact x")?,
+                    y: parse_number(parts.next(), "contact y")?,
+                    pressure: parse_number(parts.next(), "contact pressure")?,
+                    major: parse_number(parts.next(), "contact major")?,
+                };
+                if contact.pressure > MAX_PROTOCOL_PRESSURE {
+                    return Err(ProtocolError(format!(
+                        "contact pressure exceeds {MAX_PROTOCOL_PRESSURE}"
+                    )));
+                }
+                if contacts
+                    .iter()
+                    .any(|existing: &Contact| existing.id == contact.id)
+                {
+                    return Err(ProtocolError("duplicate contact id".into()));
+                }
+                contacts.push(contact);
+            }
+            ensure_finished(&mut parts)?;
+            Ok(Message::Frame(Frame {
+                sequence,
+                event_time_ns,
+                contacts,
+            }))
+        }
+        Some("ACTION") => {
+            // The sequence is parsed and discarded: actions are independent of
+            // each other and of touch, so there is nothing to order them
+            // against. It is required so a client can log and correlate them.
+            let _sequence: u64 = parse_number(parts.next(), "sequence")?;
+            match parts.next() {
+                Some("KEY") => {
+                    let chord = parts
+                        .next()
+                        .ok_or_else(|| ProtocolError("missing key chord".into()))?;
+                    let chord =
+                        Chord::parse(chord).map_err(|error| ProtocolError(error.to_string()))?;
+                    ensure_finished(&mut parts)?;
+                    Ok(Message::Action(Action::Key(chord)))
+                }
+                Some("RECORD") => {
+                    ensure_finished(&mut parts)?;
+                    Ok(Message::Action(Action::Record))
+                }
+                Some("BUTTON") => {
+                    let name = parts
+                        .next()
+                        .ok_or_else(|| ProtocolError("missing button name".into()))?;
+                    let button = Button::parse(name)
+                        .ok_or_else(|| ProtocolError(format!("unknown button: {name}")))?;
+                    ensure_finished(&mut parts)?;
+                    Ok(Message::Action(Action::Button(button)))
+                }
+                Some(other) => Err(ProtocolError(format!("unknown action kind: {other}"))),
+                None => Err(ProtocolError("missing action kind".into())),
+            }
+        }
+        Some("REQUEST") => {
+            let sequence = parse_number(parts.next(), "sequence")?;
+            let domain = parts
+                .next()
+                .ok_or_else(|| ProtocolError("missing request domain".into()))?;
+            let domain = Domain::parse(domain)
+                .ok_or_else(|| ProtocolError(format!("unknown request domain: {domain}")))?;
+            let kind = parts.next();
+
+            // `REFRESH` means the same thing everywhere: send the whole picture
+            // again. Everything else belongs to exactly one domain, and asking
+            // one domain for another's verb is a protocol error rather than a
+            // refusal — that is a client which is broken or probing.
+            let verb = match (domain, kind) {
+                (_, Some("REFRESH")) => Verb::Refresh,
+
+                (Domain::Audio, Some("VOLUME")) => {
+                    let (kind, id) = parse_entity(&mut parts)?;
+                    let level: u16 = parse_number(parts.next(), "level")?;
+                    // Out of range is refused outright rather than clamped, the
+                    // same way an unknown key name is refused rather than
+                    // guessed at. A client that does not know the scale is a
+                    // client whose next message cannot be trusted either.
+                    if level > audio::MAX_VOLUME {
+                        return Err(ProtocolError(format!(
+                            "level exceeds {}",
+                            audio::MAX_VOLUME
+                        )));
+                    }
+                    Verb::Volume { kind, id, level }
+                }
+                (Domain::Audio, Some("MUTE")) => {
+                    let (kind, id) = parse_entity(&mut parts)?;
+                    Verb::Mute {
+                        kind,
+                        id,
+                        muted: parse_flag(parts.next(), "mute")?,
+                    }
+                }
+                (Domain::Audio, Some("DEFAULT")) => {
+                    let (kind, id) = parse_entity(&mut parts)?;
+                    // Refused here rather than left for the panel to discover:
+                    // there is no default stream to be, and a request that
+                    // cannot mean anything is malformed rather than merely
+                    // unlucky.
+                    if !kind.has_default() {
+                        return Err(ProtocolError(format!(
+                            "a {} cannot be made the default",
+                            kind.as_str()
+                        )));
+                    }
+                    Verb::MakeDefault { kind, id }
+                }
+
+                (Domain::Shortcuts, Some("RENAME")) => {
+                    let id = parse_number(parts.next(), "shortcut id")?;
+                    // The one place a client's own free text crosses into this
+                    // host. It arrives escaped like every other name, and it is
+                    // refused rather than half-read if it is not: a field with
+                    // a raw space in it was not written by anything that knows
+                    // the rules.
+                    let name = parts
+                        .next()
+                        .ok_or_else(|| ProtocolError("missing name".into()))?;
+                    let name = unescape_text(name)
+                        .ok_or_else(|| ProtocolError("name is not escaped".into()))?;
+                    Verb::Rename { id, name }
+                }
+                (Domain::Shortcuts, Some("DELETE")) => Verb::Delete {
+                    id: parse_number(parts.next(), "shortcut id")?,
+                },
+
+                (Domain::Windows, Some("ACTIVATE")) => Verb::Activate {
+                    id: parse_number(parts.next(), "window id")?,
+                },
+
+                (Domain::Import, Some("ACCEPT")) => {
+                    // The generation the offer was made in. A set accepted
+                    // against a stale offer is refused rather than applied to
+                    // whatever those numbers mean now — the numbers are the
+                    // host's, and they are only meaningful within one offer.
+                    let generation = parse_number(parts.next(), "generation")?;
+                    let ids = parts
+                        .next()
+                        .ok_or_else(|| ProtocolError("missing candidate ids".into()))?;
+                    let mut wanted = Vec::new();
+                    for id in ids.split(',') {
+                        let id: u32 = id
+                            .parse()
+                            .map_err(|_| ProtocolError(format!("invalid candidate id: {id}")))?;
+                        if wanted.contains(&id) {
+                            return Err(ProtocolError("candidate id repeated".into()));
+                        }
+                        if wanted.len() >= MAX_ACCEPTED {
+                            return Err(ProtocolError(format!(
+                                "at most {MAX_ACCEPTED} candidates may be accepted at once"
+                            )));
+                        }
+                        wanted.push(id);
+                    }
+                    if wanted.is_empty() {
+                        return Err(ProtocolError("no candidate ids".into()));
+                    }
+                    Verb::Accept {
+                        generation,
+                        ids: wanted,
+                    }
+                }
+
+                (_, Some(other)) => {
+                    return Err(ProtocolError(format!(
+                        "{domain} has no request kind {other}"
+                    )))
+                }
+                (_, None) => return Err(ProtocolError("missing request kind".into())),
+            };
+            ensure_finished(&mut parts)?;
+            Ok(Message::Request(Request {
+                sequence,
+                domain,
+                verb,
+            }))
+        }
+        Some(other) => Err(ProtocolError(format!("unknown message type: {other}"))),
+        None => Err(ProtocolError("empty message".into())),
+    }
+}
+
+/// A validated message, ready to act on.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Accepted {
+    Hello(Hello),
+    Frame(Frame),
+    Action(Action),
+    Request(Request),
+}
+
+/// Per-connection protocol state: enforces the rules a single line cannot
+/// check on its own (handshake order, sequence monotonicity, touch bounds).
+#[derive(Debug, Default)]
+pub struct Session {
+    hello: Option<Hello>,
+    /// The last request number seen, so a refusal always names exactly one.
+    last_request: Option<u64>,
+    /// What the client said it speaks. Nothing introduced after it is accepted
+    /// — a version is a promise about what may arrive, not only about the
+    /// shape of the handshake.
+    version: Option<Version>,
+    last_sequence: Option<u64>,
+    granted: Capabilities,
+}
+
+impl Session {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Records what the host agreed to serve, once it has checked what it can
+    /// actually do. Called between accepting the handshake and answering it.
+    ///
+    /// Until this is called nothing is granted, so a request cannot arrive in
+    /// the gap and find an open door.
+    pub fn grant(&mut self, capabilities: Capabilities) {
+        self.granted = capabilities;
+    }
+
+    /// Validates one protocol line against the session so far.
+    ///
+    /// Every error is fatal for the connection: the caller must release all
+    /// contacts and close, so a hostile or buggy client cannot leave the
+    /// virtual touchpad in a half-pressed state.
+    pub fn accept(&mut self, line: &str) -> Result<Accepted, ProtocolError> {
+        match parse_message(line)? {
+            Message::Hello(hello) => {
+                if self.hello.is_some() {
+                    return Err(ProtocolError("duplicate HELLO".into()));
+                }
+                self.version = Some(hello.version);
+                self.hello = Some(hello);
+                Ok(Accepted::Hello(hello))
+            }
+            Message::Action(action) => {
+                // Actions still need a session: a client that has not said who
+                // it is should not be pressing keys.
+                let Some(version) = self.version else {
+                    return Err(ProtocolError("ACTION before HELLO".into()));
+                };
+                // Mouse buttons and the recorder arrived with version 4. A
+                // version 3 client cannot know about them, so one asking is not
+                // the client it says it is.
+                if version < Version::Four {
+                    let newer = match &action {
+                        Action::Key(_) => None,
+                        Action::Button(_) => Some("BUTTON"),
+                        Action::Record => Some("RECORD"),
+                    };
+                    if let Some(newer) = newer {
+                        return Err(ProtocolError(format!("{newer} is not part of {version}")));
+                    }
+                }
+                Ok(Accepted::Action(action))
+            }
+            Message::Request(request) => {
+                let Some(version) = self.version else {
+                    return Err(ProtocolError("REQUEST before HELLO".into()));
+                };
+                if version < Version::Four {
+                    return Err(ProtocolError(format!("REQUEST is not part of {version}")));
+                }
+                // Asking about something never negotiated is a protocol
+                // violation, not a refusal: the client is either broken or
+                // probing. The refusals are for things that were legal and
+                // could not be done.
+                if !self.granted.allows(request.domain) {
+                    return Err(ProtocolError(format!(
+                        "REQUEST for a domain that was not granted: {}",
+                        request.domain
+                    )));
+                }
+                // Checked last, and recorded only once everything else has
+                // passed: a request turned down for another reason should not
+                // burn its number.
+                //
+                // `REFUSED` names a sequence and nothing else, so two domains
+                // each numbering from one would make a refusal ambiguous — and
+                // that fails as a refusal shown on the wrong screen or on none,
+                // which reads as a button that sometimes does nothing.
+                if self
+                    .last_request
+                    .is_some_and(|previous| request.sequence <= previous)
+                {
+                    return Err(ProtocolError(
+                        "request sequence did not increase; one counter serves every domain".into(),
+                    ));
+                }
+                self.last_request = Some(request.sequence);
+                Ok(Accepted::Request(request))
+            }
+            Message::Frame(frame) => {
+                let hello = self
+                    .hello
+                    .ok_or_else(|| ProtocolError("FRAME before HELLO".into()))?;
+                if frame.contacts.len() > hello.max_contacts as usize {
+                    return Err(ProtocolError("frame exceeds declared max_contacts".into()));
+                }
+                if frame
+                    .contacts
+                    .iter()
+                    .any(|contact| contact.x >= hello.width || contact.y >= hello.height)
+                {
+                    return Err(ProtocolError("contact outside touch bounds".into()));
+                }
+                if self
+                    .last_sequence
+                    .is_some_and(|previous| frame.sequence <= previous)
+                {
+                    return Err(ProtocolError("sequence did not increase".into()));
+                }
+                self.last_sequence = Some(frame.sequence);
+                Ok(Accepted::Frame(frame))
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const HANDSHAKE: &str = "HELLO OTP/4 2400 1080 10 156000 69000";
+
+    fn session_with_audio() -> Session {
+        let mut session = Session::new();
+        session
+            .accept("HELLO OTP/4 2400 1080 10 156000 69000 audio")
+            .unwrap();
+        session.grant(Capabilities {
+            audio: true,
+            shortcuts: true,
+            import: true,
+            windows: true,
+        });
+        session
+    }
+
+    #[test]
+    fn parses_hello() {
+        assert_eq!(
+            parse_message("HELLO OTP/4 1080 2400 10 69000 156000"),
+            Ok(Message::Hello(Hello {
+                version: Version::Four,
+                width: 1080,
+                height: 2400,
+                max_contacts: 10,
+                width_um: 69_000,
+                height_um: 156_000,
+                capabilities: Capabilities::NONE,
+            }))
+        );
+    }
+
+    #[test]
+    fn parses_contact_frame() {
+        assert_eq!(
+            parse_message("FRAME 42 9912345678 2 0 210 780 650 11 1 810 782 620 10"),
+            Ok(Message::Frame(Frame {
+                sequence: 42,
+                event_time_ns: 9_912_345_678,
+                contacts: vec![
+                    Contact {
+                        id: 0,
+                        x: 210,
+                        y: 780,
+                        pressure: 650,
+                        major: 11,
+                    },
+                    Contact {
+                        id: 1,
+                        x: 810,
+                        y: 782,
+                        pressure: 620,
+                        major: 10,
+                    },
+                ],
+            }))
+        );
+    }
+
+    #[test]
+    fn rejects_duplicate_contacts() {
+        let error = parse_message("FRAME 1 1000 2 0 1 2 3 4 0 5 6 7 8")
+            .expect_err("duplicate pointer IDs must fail");
+        assert_eq!(error, ProtocolError("duplicate contact id".into()));
+    }
+
+    #[test]
+    fn rejects_trailing_fields() {
+        let error = parse_message("HELLO OTP/4 1080 2400 10 69000 156000 audio extra")
+            .expect_err("trailing input must fail");
+        assert_eq!(error, ProtocolError("unexpected trailing fields".into()));
+    }
+
+    #[test]
+    fn rejects_zero_physical_dimensions() {
+        // A client that cannot measure its own screen must say so by failing,
+        // not by sending zero and letting the host invent a size.
+        assert!(parse_message("HELLO OTP/4 1080 2400 10 0 156000").is_err());
+        assert!(parse_message("HELLO OTP/4 1080 2400 10 69000 0").is_err());
+    }
+
+    #[test]
+    fn rejects_protocol_versions_older_than_the_one_still_in_use() {
+        // Version 1 had no physical size and version 2 had no actions, so
+        // accepting either would mean guessing at what the client can do. No
+        // client we shipped speaks them.
+        assert!(parse_message("HELLO OTP/1 1080 2400 10").is_err());
+        assert!(parse_message("HELLO OTP/2 1080 2400 10 69000 156000").is_err());
+        assert!(parse_message("HELLO OTP/9 1080 2400 10 69000 156000").is_err());
+        assert!(parse_message("HELLO 1080 2400 10 69000 156000").is_err());
+    }
+
+    #[test]
+    fn version_three_is_still_accepted_because_a_shipped_client_speaks_it() {
+        // The light client is tagged `v0.1-light`, sends this exact handshake,
+        // and cannot fall back — nothing existed before it to fall back to. A
+        // host that refused this would stop a working trackpad.
+        let Ok(Message::Hello(hello)) = parse_message("HELLO OTP/3 2412 1080 10 155000 69000")
+        else {
+            panic!("the shipped client's handshake must be accepted");
+        };
+        assert_eq!(hello.version, Version::Three);
+        assert!(hello.capabilities.is_empty());
+        assert!(!hello.version.answers());
+    }
+
+    #[test]
+    fn a_version_three_handshake_cannot_carry_capabilities() {
+        // A version is a promise about what may arrive. A client sending a
+        // field its own version never had is not the client it says it is.
+        assert!(parse_message("HELLO OTP/3 2400 1080 10 156000 69000 audio").is_err());
+        assert!(parse_message("HELLO OTP/3 2400 1080 10 156000 69000 -").is_err());
+    }
+
+    #[test]
+    fn a_version_three_session_gets_touch_and_chords_and_nothing_newer() {
+        let mut session = Session::new();
+        session
+            .accept("HELLO OTP/3 2400 1080 10 156000 69000")
+            .unwrap();
+
+        // Everything that version ever had.
+        assert!(session.accept("FRAME 1 1000 1 0 100 100 500 5").is_ok());
+        assert!(session.accept("ACTION 1 KEY ctrl+c").is_ok());
+
+        // And nothing that came after it. A version 3 client cannot know these
+        // exist, so one asking is not what it claims to be.
+        assert!(session.accept("ACTION 2 BUTTON right").is_err());
+        let mut session = Session::new();
+        session
+            .accept("HELLO OTP/3 2400 1080 10 156000 69000")
+            .unwrap();
+        assert!(session.accept("ACTION 2 RECORD").is_err());
+
+        let mut session = Session::new();
+        session
+            .accept("HELLO OTP/3 2400 1080 10 156000 69000")
+            .unwrap();
+        session.grant(Capabilities {
+            audio: true,
+            ..Capabilities::NONE
+        });
+        assert!(session.accept("REQUEST 1 audio REFRESH").is_err());
+    }
+
+    #[test]
+    fn only_version_four_is_ever_written_to() {
+        // Nothing has answered a version 3 client, so it is not reading.
+        // Writing to it would be wasted at best and a stall at worst.
+        assert!(!Version::Three.answers());
+        assert!(Version::Four.answers());
+    }
+
+    #[test]
+    fn a_handshake_yields_the_pad_geometry() {
+        let Ok(Message::Hello(hello)) = parse_message("HELLO OTP/4 2412 1080 10 156000 69000")
+        else {
+            panic!("expected a handshake");
+        };
+        assert_eq!(hello.geometry().width_mm(), 156);
+        assert_eq!(hello.geometry().height_mm(), 69);
+    }
+
+    #[test]
+    fn rejects_zero_dimensions() {
+        assert!(parse_message("HELLO OTP/4 0 2400 10 69000 156000").is_err());
+        assert!(parse_message("HELLO OTP/4 1080 0 10 69000 156000").is_err());
+    }
+
+    #[test]
+    fn rejects_out_of_range_max_contacts() {
+        assert!(parse_message("HELLO OTP/4 1080 2400 0 69000 156000").is_err());
+        assert!(parse_message("HELLO OTP/4 1080 2400 33 69000 156000").is_err());
+    }
+
+    #[test]
+    fn rejects_excessive_pressure() {
+        assert!(parse_message("FRAME 1 1000 1 0 10 10 1025 5").is_err());
+    }
+
+    #[test]
+    fn truncated_frame_is_an_error_not_a_panic() {
+        assert!(parse_message("FRAME 1 1000 2 0 10 10 500 5").is_err());
+    }
+
+    #[test]
+    fn contact_count_cannot_preallocate_beyond_the_ceiling() {
+        // A hostile `count` must be rejected before any allocation happens.
+        assert!(parse_message("FRAME 1 1000 255").is_err());
+    }
+
+    #[test]
+    fn an_overlong_line_is_refused_before_it_is_parsed() {
+        // A line-framed protocol otherwise invites one unbounded allocation:
+        // a client that never sends a newline.
+        let flood = format!("FRAME 1 1000 0{}", " 0".repeat(MAX_LINE_BYTES));
+        assert_eq!(
+            parse_message(&flood),
+            Err(ProtocolError("line is too long".into()))
+        );
+    }
+
+    #[test]
+    fn frame_before_hello_is_rejected() {
+        let mut session = Session::new();
+        assert!(session.accept("FRAME 1 1000 0").is_err());
+    }
+
+    #[test]
+    fn duplicate_hello_is_rejected() {
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        assert!(session.accept(HANDSHAKE).is_err());
+    }
+
+    #[test]
+    fn sequence_must_increase() {
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        session.accept("FRAME 5 1000 0").unwrap();
+        assert!(session.accept("FRAME 5 1001 0").is_err());
+        assert!(session.accept("FRAME 4 1002 0").is_err());
+    }
+
+    #[test]
+    fn sequence_gaps_are_allowed() {
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        session.accept("FRAME 5 1000 0").unwrap();
+        // Frames are complete snapshots, so a gap needs no recovery.
+        assert!(session.accept("FRAME 900 1001 0").is_ok());
+    }
+
+    #[test]
+    fn contacts_outside_the_declared_surface_are_rejected() {
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        assert!(session.accept("FRAME 1 1000 1 0 2400 500 500 5").is_err());
+        assert!(session.accept("FRAME 2 1000 1 0 500 1080 500 5").is_err());
+    }
+
+    #[test]
+    fn parses_a_key_action() {
+        assert_eq!(
+            parse_message("ACTION 7 KEY ctrl+c"),
+            Ok(Message::Action(Action::Key(
+                Chord::parse("ctrl+c").unwrap()
+            )))
+        );
+    }
+
+    #[test]
+    fn parses_a_request_to_open_the_recorder() {
+        assert_eq!(
+            parse_message("ACTION 4 RECORD"),
+            Ok(Message::Action(Action::Record))
+        );
+    }
+
+    #[test]
+    fn a_recorder_request_carries_nothing_at_all() {
+        // Nothing of the client's reaches the program that gets spawned,
+        // because the message has nowhere to put anything. A name, a path or a
+        // command here would be the whole point undone.
+        assert!(parse_message("ACTION 1 RECORD now").is_err());
+        assert!(parse_message("ACTION 1 RECORD ctrl+c").is_err());
+        assert!(parse_message("ACTION 1 RECORD /usr/bin/sh").is_err());
+        assert!(parse_message("ACTION 1 RECORDER").is_err());
+    }
+
+    #[test]
+    fn a_recorder_request_before_the_handshake_is_rejected() {
+        let mut session = Session::new();
+        assert!(session.accept("ACTION 1 RECORD").is_err());
+    }
+
+    #[test]
+    fn parses_a_button_click() {
+        assert_eq!(
+            parse_message("ACTION 7 BUTTON right"),
+            Ok(Message::Action(Action::Button(Button::Right)))
+        );
+        assert_eq!(
+            parse_message("ACTION 8 BUTTON left"),
+            Ok(Message::Action(Action::Button(Button::Left)))
+        );
+        assert_eq!(
+            parse_message("ACTION 9 BUTTON middle"),
+            Ok(Message::Action(Action::Button(Button::Middle)))
+        );
+    }
+
+    #[test]
+    fn a_button_can_only_be_one_of_three_names() {
+        // The same rule as an unknown key name, and for the same reason: a
+        // button named by number, or a click with a count on it, is what turns
+        // a vocabulary back into an interface.
+        assert!(parse_message("ACTION 1 BUTTON 3").is_err());
+        assert!(parse_message("ACTION 1 BUTTON 0x110").is_err());
+        assert!(parse_message("ACTION 1 BUTTON BTN_LEFT").is_err());
+        assert!(parse_message("ACTION 1 BUTTON Left").is_err());
+        assert!(parse_message("ACTION 1 BUTTON back").is_err());
+        assert!(parse_message("ACTION 1 BUTTON").is_err());
+        assert!(parse_message("ACTION 1 BUTTON left 2").is_err());
+        assert!(parse_message("ACTION 1 BUTTON left left").is_err());
+    }
+
+    #[test]
+    fn there_is_no_way_to_hold_a_button_down() {
+        // A held button is a drag, and a drag needs the pointer moving while it
+        // is held — the other path's job. There is no message for it, so there
+        // is no way to leave one down.
+        assert!(parse_message("ACTION 1 BUTTON left down").is_err());
+        assert!(parse_message("ACTION 1 BUTTONDOWN left").is_err());
+        assert!(parse_message("ACTION 1 PRESS left").is_err());
+        assert!(parse_message("ACTION 1 BUTTON left hold").is_err());
+    }
+
+    #[test]
+    fn a_click_before_the_handshake_is_rejected() {
+        let mut session = Session::new();
+        assert!(session.accept("ACTION 1 BUTTON left").is_err());
+    }
+
+    #[test]
+    fn clicks_do_not_disturb_the_frame_sequence() {
+        // Same separate path as a chord: a click must not be able to reorder
+        // the frames the touchpad depends on.
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        session.accept("FRAME 10 1000 0").unwrap();
+        session.accept("ACTION 1 BUTTON right").unwrap();
+        assert!(session.accept("FRAME 11 1001 0").is_ok());
+    }
+
+    #[test]
+    fn rejects_actions_it_does_not_understand() {
+        // A control surface must not become a way to run things. Anything
+        // outside the vocabulary is refused rather than guessed at.
+        assert!(parse_message("ACTION 1 RUN rm -rf /").is_err());
+        assert!(parse_message("ACTION 1 EXEC something").is_err());
+        assert!(parse_message("ACTION 1 KEY ctrl+sysrq").is_err());
+        assert!(parse_message("ACTION 1").is_err());
+        assert!(parse_message("ACTION 1 KEY").is_err());
+        assert!(parse_message("ACTION notanumber KEY c").is_err());
+        assert!(parse_message("ACTION 1 KEY ctrl+c extra").is_err());
+    }
+
+    #[test]
+    fn an_action_before_the_handshake_is_rejected() {
+        let mut session = Session::new();
+        assert!(session.accept("ACTION 1 KEY ctrl+c").is_err());
+    }
+
+    #[test]
+    fn actions_and_frames_do_not_share_a_sequence() {
+        // They are independent paths; an action must not disturb the frame
+        // ordering the touchpad depends on.
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        session.accept("FRAME 10 1000 0").unwrap();
+        session.accept("ACTION 1 KEY ctrl+c").unwrap();
+        assert!(session.accept("FRAME 11 1001 0").is_ok());
+    }
+
+    #[test]
+    fn frames_may_not_exceed_the_declared_contact_limit() {
+        let mut session = Session::new();
+        session
+            .accept("HELLO OTP/4 2400 1080 2 156000 69000")
+            .unwrap();
+        assert!(session
+            .accept("FRAME 1 1000 3 0 1 1 1 1 1 2 2 1 1 2 3 3 1 1")
+            .is_err());
+    }
+
+    // --- capabilities ---
+
+    #[test]
+    fn a_handshake_may_name_what_the_client_wants_to_be_told_about() {
+        let Ok(Message::Hello(hello)) =
+            parse_message("HELLO OTP/4 2400 1080 10 156000 69000 audio")
+        else {
+            panic!("expected a handshake");
+        };
+        assert!(hello.capabilities.audio);
+    }
+
+    #[test]
+    fn a_client_that_only_wants_a_trackpad_names_nothing() {
+        let Ok(Message::Hello(hello)) = parse_message(HANDSHAKE) else {
+            panic!("expected a handshake");
+        };
+        assert!(hello.capabilities.is_empty());
+    }
+
+    #[test]
+    fn capabilities_this_host_does_not_know_are_ignored_rather_than_fatal() {
+        // The hinge that lets a later panel be added without another version
+        // bump. Unknown message types stay fatal; only this list is open.
+        let capabilities = Capabilities::parse("apps,brightness,audio,something-new");
+        assert!(capabilities.audio);
+
+        let Ok(Message::Hello(hello)) =
+            parse_message("HELLO OTP/4 2400 1080 10 156000 69000 apps,notyet")
+        else {
+            panic!("a handshake naming unknown capabilities must still be accepted");
+        };
+        assert!(hello.capabilities.is_empty());
+    }
+
+    #[test]
+    fn none_is_written_and_read_as_a_dash() {
+        assert_eq!(Capabilities::NONE.to_string(), "-");
+        assert!(Capabilities::parse("-").is_empty());
+    }
+
+    #[test]
+    fn the_host_serves_only_what_both_sides_can_do() {
+        let wanted = Capabilities {
+            audio: true,
+            ..Capabilities::NONE
+        };
+        assert!(
+            wanted
+                .intersect(Capabilities {
+                    audio: true,
+                    ..Capabilities::NONE
+                })
+                .audio
+        );
+        // Asked for, but this machine has no audio daemon.
+        assert!(!wanted.intersect(Capabilities::NONE).audio);
+        // Servable, but never asked for.
+        assert!(!Capabilities::NONE.intersect(wanted).audio);
+    }
+
+    // --- requests ---
+
+    #[test]
+    fn parses_every_request_in_the_vocabulary() {
+        assert_eq!(
+            parse_message("REQUEST 3 audio VOLUME output 53 750"),
+            Ok(Message::Request(Request {
+                sequence: 3,
+                domain: Domain::Audio,
+                verb: Verb::Volume {
+                    kind: audio::Kind::Output,
+                    id: 53,
+                    level: 750
+                },
+            }))
+        );
+        assert_eq!(
+            parse_message("REQUEST 4 audio MUTE stream 53 1"),
+            Ok(Message::Request(Request {
+                sequence: 4,
+                domain: Domain::Audio,
+                verb: Verb::Mute {
+                    kind: audio::Kind::Stream,
+                    id: 53,
+                    muted: true
+                },
+            }))
+        );
+        assert_eq!(
+            parse_message("REQUEST 5 audio DEFAULT output 53"),
+            Ok(Message::Request(Request {
+                sequence: 5,
+                domain: Domain::Audio,
+                verb: Verb::MakeDefault {
+                    kind: audio::Kind::Output,
+                    id: 53
+                },
+            }))
+        );
+        assert_eq!(
+            parse_message("REQUEST 6 audio REFRESH"),
+            Ok(Message::Request(Request {
+                sequence: 6,
+                domain: Domain::Audio,
+                verb: Verb::Refresh,
+            }))
+        );
+    }
+
+    #[test]
+    fn the_request_vocabulary_is_closed_the_way_the_key_vocabulary_is() {
+        // A return channel is a second attack surface. Nothing here may name a
+        // command, a path, or a device by string: every request names a number
+        // this host published.
+        assert!(parse_message("REQUEST 1 audio RUN pactl").is_err());
+        assert!(parse_message("REQUEST 1 audio EXEC something").is_err());
+        assert!(parse_message("REQUEST 1 audio SETSINK alsa_output.hdmi").is_err());
+        assert!(parse_message("REQUEST 1 shell VOLUME output 1 1").is_err());
+        assert!(parse_message("REQUEST 1 audio").is_err());
+        assert!(parse_message("REQUEST audio VOLUME output 1 1").is_err());
+        assert!(parse_message("REQUEST 1 AUDIO VOLUME output 1 1").is_err());
+    }
+
+    #[test]
+    fn a_level_outside_the_scale_is_refused_rather_than_clamped() {
+        // The same rule as an unknown key name: a client that does not know the
+        // scale is a client whose next message cannot be trusted either.
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53 1501").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53 99999").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53 -1").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53 loud").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53").is_err());
+        // The ends of the scale are both legal, and so is everything between.
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53 0").is_ok());
+        assert!(parse_message("REQUEST 1 audio VOLUME output 53 1500").is_ok());
+    }
+
+    #[test]
+    fn the_range_above_a_hundred_percent_is_accepted() {
+        // Offered rather than capped: the panel draws the fader against a scale
+        // running to 150 with a tick at 100, and turns amber above it, so the
+        // amplifying range is visible at a glance instead of hidden.
+        for level in [1000, 1001, 1200, 1499, 1500] {
+            assert!(
+                parse_message(&format!("REQUEST 1 audio VOLUME output 53 {level}")).is_ok(),
+                "level {level} should be accepted"
+            );
+        }
+        // And the ceiling is still a wall, not a suggestion.
+        for level in [1501, 2000, 65535] {
+            assert!(
+                parse_message(&format!("REQUEST 1 audio VOLUME output 53 {level}")).is_err(),
+                "level {level} should be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn a_mute_flag_must_be_zero_or_one() {
+        assert!(parse_message("REQUEST 1 audio MUTE output 53 2").is_err());
+        assert!(parse_message("REQUEST 1 audio MUTE output 53 true").is_err());
+        assert!(parse_message("REQUEST 1 audio MUTE output 53").is_err());
+    }
+
+    #[test]
+    fn a_request_must_say_what_kind_of_thing_it_is_about() {
+        // Sinks, sources and streams are numbered independently by the sound
+        // daemon, so an id alone is ambiguous — and the way that shows up is a
+        // fader moving the wrong device.
+        assert!(parse_message("REQUEST 1 audio VOLUME 53 500").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME sink 53 500").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME OUTPUT 53 500").is_err());
+        assert!(parse_message("REQUEST 1 audio MUTE 53 1").is_err());
+        assert!(parse_message("REQUEST 1 audio DEFAULT 53").is_err());
+    }
+
+    #[test]
+    fn nothing_but_a_device_can_be_asked_to_become_the_default() {
+        // There is no default stream to be, so this is malformed rather than
+        // merely unlucky, and it is refused here rather than left for the panel
+        // to discover.
+        assert!(parse_message("REQUEST 1 audio DEFAULT stream 1348").is_err());
+        assert!(parse_message("REQUEST 1 audio DEFAULT input 57").is_ok());
+        assert!(parse_message("REQUEST 1 audio DEFAULT output 53").is_ok());
+    }
+
+    #[test]
+    fn an_entity_id_must_be_a_number() {
+        assert!(parse_message("REQUEST 1 audio VOLUME output @DEFAULT_SINK@ 500").is_err());
+        assert!(parse_message("REQUEST 1 audio DEFAULT output alsa_output.hdmi").is_err());
+        assert!(parse_message("REQUEST 1 audio MUTE output -1 1").is_err());
+    }
+
+    #[test]
+    fn requests_reject_trailing_fields() {
+        assert!(parse_message("REQUEST 1 audio REFRESH now").is_err());
+        assert!(parse_message("REQUEST 1 audio VOLUME output 1 1 1").is_err());
+        assert!(parse_message("REQUEST 1 audio DEFAULT output 1 1").is_err());
+    }
+
+    #[test]
+    fn a_request_before_the_handshake_is_rejected() {
+        let mut session = Session::new();
+        assert!(session.accept("REQUEST 1 audio REFRESH").is_err());
+    }
+
+    #[test]
+    fn a_request_for_something_never_granted_is_a_protocol_violation() {
+        // Not a refusal. A refusal is for something legal that could not be
+        // done; asking about a domain nobody agreed to is a client that is
+        // broken or probing, and it is hung up on either way.
+        let mut session = Session::new();
+        session.accept(HANDSHAKE).unwrap();
+        assert!(session.accept("REQUEST 1 audio REFRESH").is_err());
+
+        // Even having asked for it, nothing is legal until the host has said
+        // it can serve it.
+        let mut session = Session::new();
+        session
+            .accept("HELLO OTP/4 2400 1080 10 156000 69000 audio")
+            .unwrap();
+        assert!(session.accept("REQUEST 1 audio REFRESH").is_err());
+        session.grant(Capabilities {
+            audio: true,
+            ..Capabilities::NONE
+        });
+        assert!(session.accept("REQUEST 1 audio REFRESH").is_ok());
+    }
+
+    #[test]
+    fn requests_do_not_disturb_the_frame_sequence() {
+        let mut session = session_with_audio();
+        session.accept("FRAME 10 1000 0").unwrap();
+        session
+            .accept("REQUEST 1 audio VOLUME output 53 500")
+            .unwrap();
+        assert!(session.accept("FRAME 11 1001 0").is_ok());
+    }
+
+    // --- what goes back ---
+
+    fn entity(kind: audio::Kind, id: u32, name: &str) -> audio::Entity {
+        audio::Entity {
+            kind,
+            id,
+            volume: 950,
+            muted: false,
+            default: true,
+            target: None,
+            port: None,
+            paused: false,
+            name: name.to_owned(),
+        }
+    }
+
+    #[test]
+    fn renders_the_handshake_answer() {
+        assert_eq!(
+            Outbound::Welcome(Capabilities {
+                audio: true,
+                ..Capabilities::NONE
+            })
+            .to_string(),
+            "WELCOME OTP/4 audio"
+        );
+        assert_eq!(
+            Outbound::Welcome(Capabilities::NONE).to_string(),
+            "WELCOME OTP/4 -"
+        );
+    }
+
+    #[test]
+    fn renders_a_snapshot_and_its_entries() {
+        assert_eq!(
+            Outbound::Snapshot {
+                domain: Domain::Audio,
+                generation: 7,
+                count: 2,
+            }
+            .to_string(),
+            "SNAPSHOT audio 7 2"
+        );
+        assert_eq!(
+            Outbound::Entry {
+                domain: Domain::Audio,
+                generation: 7,
+                record: Record::Audio(entity(audio::Kind::Output, 53, "HDMI Digital Stereo")),
+            }
+            .to_string(),
+            "ENTRY audio 7 output 53 950 0 1 - - - HDMI%20Digital%20Stereo"
+        );
+    }
+
+    #[test]
+    fn a_stream_carries_the_output_it_plays_through() {
+        let mut stream = entity(audio::Kind::Stream, 1348, "Firefox");
+        stream.default = false;
+        stream.target = Some(53);
+        assert_eq!(
+            Outbound::Changed {
+                domain: Domain::Audio,
+                generation: 7,
+                record: Record::Audio(stream),
+            }
+            .to_string(),
+            "CHANGED audio 7 stream 1348 950 0 0 53 - 0 Firefox"
+        );
+    }
+
+    #[test]
+    fn renders_removals_refusals_and_absence() {
+        assert_eq!(
+            Outbound::Removed {
+                domain: Domain::Audio,
+                generation: 8,
+                kind: audio::Kind::Input.as_str(),
+                id: 57,
+            }
+            .to_string(),
+            "REMOVED audio 8 input 57"
+        );
+        assert_eq!(
+            Outbound::Refused {
+                sequence: 12,
+                reason: Refusal::UnknownId,
+            }
+            .to_string(),
+            "REFUSED 12 unknown-id"
+        );
+        assert_eq!(
+            Outbound::Unavailable {
+                domain: Domain::Audio,
+                reason: Absence::NoDaemon,
+            }
+            .to_string(),
+            "UNAVAILABLE audio no-daemon"
+        );
+    }
+
+    #[test]
+    fn free_text_cannot_write_its_own_protocol_lines() {
+        // A window title is written by whatever page a browser has open. Pasted
+        // raw into a line-framed protocol it would be a way for a web page to
+        // inject messages into the stream the phone is reading.
+        let hostile = "ok\nCHANGED audio 1 output 53 1000 0 1 - pwned";
+        let escaped = escape_text(hostile);
+        assert!(!escaped.contains('\n'));
+        assert!(!escaped.contains(' '));
+        assert_eq!(escaped.lines().count(), 1);
+
+        let rendered = Outbound::Entry {
+            domain: Domain::Audio,
+            generation: 1,
+            record: Record::Audio(entity(audio::Kind::Output, 53, hostile)),
+        }
+        .to_string();
+        assert_eq!(rendered.lines().count(), 1);
+        assert_eq!(rendered.split_whitespace().count(), 12);
+    }
+
+    #[test]
+    fn every_line_the_host_sends_is_one_line_with_no_gaps_in_it() {
+        let awkward = entity(audio::Kind::Output, 1, "a b\tc\nd  e");
+        for message in [
+            Outbound::Welcome(Capabilities {
+                audio: true,
+                ..Capabilities::NONE
+            }),
+            Outbound::Snapshot {
+                domain: Domain::Audio,
+                generation: 1,
+                count: 1,
+            },
+            Outbound::Entry {
+                domain: Domain::Audio,
+                generation: 1,
+                record: Record::Audio(awkward.clone()),
+            },
+            Outbound::Changed {
+                domain: Domain::Audio,
+                generation: 1,
+                record: Record::Audio(awkward),
+            },
+            Outbound::Removed {
+                domain: Domain::Audio,
+                generation: 1,
+                kind: audio::Kind::Stream.as_str(),
+                id: 1,
+            },
+            Outbound::Unavailable {
+                domain: Domain::Audio,
+                reason: Absence::Lost,
+            },
+            Outbound::Refused {
+                sequence: 1,
+                reason: Refusal::TooFast,
+            },
+        ] {
+            let rendered = message.to_string();
+            assert!(!rendered.contains('\n'), "{rendered:?} spans lines");
+            assert!(!rendered.contains("  "), "{rendered:?} has an empty field");
+            assert!(!rendered.ends_with(' '), "{rendered:?} ends in a separator");
+            assert!(
+                rendered.len() <= MAX_LINE_BYTES,
+                "{rendered:?} is longer than a line may be"
+            );
+        }
+    }
+
+    // --- the shortcut and import domains ---
+
+    #[test]
+    fn parses_the_requests_of_both_new_domains() {
+        assert_eq!(
+            parse_message("REQUEST 1 shortcuts RENAME 7 My%20name"),
+            Ok(Message::Request(Request {
+                sequence: 1,
+                domain: Domain::Shortcuts,
+                verb: Verb::Rename {
+                    id: 7,
+                    name: "My name".to_owned()
+                },
+            }))
+        );
+        assert_eq!(
+            parse_message("REQUEST 2 shortcuts DELETE 7"),
+            Ok(Message::Request(Request {
+                sequence: 2,
+                domain: Domain::Shortcuts,
+                verb: Verb::Delete { id: 7 },
+            }))
+        );
+        assert_eq!(
+            parse_message("REQUEST 3 import ACCEPT 4 1,2,9"),
+            Ok(Message::Request(Request {
+                sequence: 3,
+                domain: Domain::Import,
+                verb: Verb::Accept {
+                    generation: 4,
+                    ids: vec![1, 2, 9]
+                },
+            }))
+        );
+    }
+
+    #[test]
+    fn one_domain_cannot_be_asked_for_anothers_verb() {
+        // Not a refusal: a client asking the shortcut list to change a volume
+        // is broken or probing, and either way the next message cannot be
+        // trusted.
+        assert!(parse_message("REQUEST 1 shortcuts VOLUME output 53 500").is_err());
+        assert!(parse_message("REQUEST 1 audio RENAME 7 Name").is_err());
+        assert!(parse_message("REQUEST 1 audio ACCEPT 1 1").is_err());
+        assert!(parse_message("REQUEST 1 import RENAME 7 Name").is_err());
+        assert!(parse_message("REQUEST 1 import DELETE 7").is_err());
+        assert!(parse_message("REQUEST 1 shortcuts ACCEPT 1 1").is_err());
+    }
+
+    #[test]
+    fn every_domain_can_be_asked_to_say_it_all_again() {
+        for domain in ["audio", "shortcuts", "import"] {
+            assert!(
+                parse_message(&format!("REQUEST 1 {domain} REFRESH")).is_ok(),
+                "{domain} could not be refreshed"
+            );
+        }
+    }
+
+    #[test]
+    fn a_name_from_the_client_must_arrive_escaped() {
+        // The one place a client's own free text crosses into this host. A
+        // field with a raw space was not written by anything that knows the
+        // rules, so it is refused rather than half-read.
+        assert!(parse_message("REQUEST 1 shortcuts RENAME 7 My name").is_err());
+        assert!(parse_message("REQUEST 1 shortcuts RENAME 7 %").is_err());
+        assert!(parse_message("REQUEST 1 shortcuts RENAME 7 %zz").is_err());
+        assert!(parse_message("REQUEST 1 shortcuts RENAME 7").is_err());
+        // And it comes back out as what was written.
+        let Ok(Message::Request(request)) =
+            parse_message("REQUEST 1 shortcuts RENAME 7 A%C3%A7%C3%A3o%20r%C3%A1pida")
+        else {
+            panic!("expected a rename");
+        };
+        assert_eq!(
+            request.verb,
+            Verb::Rename {
+                id: 7,
+                name: "Ação rápida".to_owned()
+            }
+        );
+    }
+
+    #[test]
+    fn an_accepted_set_is_bounded_and_has_no_repeats() {
+        assert!(parse_message("REQUEST 1 import ACCEPT 1 1,1").is_err());
+        assert!(parse_message("REQUEST 1 import ACCEPT 1 ").is_err());
+        assert!(parse_message("REQUEST 1 import ACCEPT 1 x").is_err());
+        assert!(parse_message("REQUEST 1 import ACCEPT 1 1,,2").is_err());
+        assert!(parse_message("REQUEST 1 import ACCEPT 1").is_err());
+
+        let many: Vec<String> = (1..=MAX_ACCEPTED as u32 + 1)
+            .map(|id| id.to_string())
+            .collect();
+        assert!(
+            parse_message(&format!("REQUEST 1 import ACCEPT 1 {}", many.join(","))).is_err(),
+            "an unbounded set should be refused"
+        );
+    }
+
+    #[test]
+    fn renders_a_shortcut_and_a_candidate() {
+        let shortcut = shortcuts::Shortcut {
+            id: 7,
+            name: "Reopen closed tab".to_owned(),
+            chord: Chord::parse("ctrl+shift+t").unwrap(),
+            origin: shortcuts::Origin::Convention,
+            group: Some(shortcuts::Group::Browser),
+            recommended: false,
+        };
+        assert_eq!(
+            Outbound::Entry {
+                domain: Domain::Shortcuts,
+                generation: 3,
+                record: Record::Shortcut(shortcut),
+            }
+            .to_string(),
+            "ENTRY shortcuts 3 shortcut 7 ctrl+shift+t convention browser Reopen%20closed%20tab"
+        );
+
+        let offer = import::Candidate {
+            group: shortcuts::Group::Session,
+            recommended: true,
+            name: "Lock Session".to_owned(),
+            chord: Chord::parse("super+l").unwrap(),
+        };
+        assert_eq!(
+            Outbound::Entry {
+                domain: Domain::Import,
+                generation: 2,
+                record: Record::Candidate { id: 4, offer },
+            }
+            .to_string(),
+            "ENTRY import 2 candidate 4 super+l session 1 Lock%20Session"
+        );
+    }
+
+    #[test]
+    fn a_recorded_shortcut_says_it_has_no_group_rather_than_guessing_one() {
+        // The person did not say what theirs is for, and a guess from a chord
+        // would be worse than silence. The screen groups those by origin.
+        let shortcut = shortcuts::Shortcut {
+            id: 9,
+            name: "Mine".to_owned(),
+            chord: Chord::parse("super+j").unwrap(),
+            origin: shortcuts::Origin::Recorded,
+            group: None,
+            recommended: false,
+        };
+        assert_eq!(
+            Outbound::Entry {
+                domain: Domain::Shortcuts,
+                generation: 1,
+                record: Record::Shortcut(shortcut),
+            }
+            .to_string(),
+            "ENTRY shortcuts 1 shortcut 9 super+j recorded - Mine"
+        );
+    }
+
+    #[test]
+    fn the_handshake_can_ask_for_every_domain_at_once() {
+        let Ok(Message::Hello(hello)) =
+            parse_message("HELLO OTP/4 2400 1080 10 156000 69000 audio,shortcuts,import")
+        else {
+            panic!("expected a handshake");
+        };
+        assert!(hello.capabilities.audio);
+        assert!(hello.capabilities.shortcuts);
+        assert!(hello.capabilities.import);
+        assert_eq!(hello.capabilities.to_string(), "audio,shortcuts,import");
+    }
+
+    #[test]
+    fn the_accept_cap_is_the_list_cap_so_a_set_never_has_to_be_split() {
+        // Not a coincidence. Accepting more than the list can hold is
+        // meaningless, so no honest set is larger than this — and splitting one
+        // could not work anyway, because accepting bumps the generation and the
+        // second request would be refused as stale by construction.
+        assert_eq!(MAX_ACCEPTED, shortcuts::MAX_SHORTCUTS);
+
+        // A full list's worth fits in one line, with room to spare.
+        let everything: Vec<String> = (1..=MAX_ACCEPTED as u32).map(|id| id.to_string()).collect();
+        let line = format!("REQUEST 1 import ACCEPT 1 {}", everything.join(","));
+        assert!(line.len() < MAX_LINE_BYTES, "{} bytes", line.len());
+        assert!(parse_message(&line).is_ok());
+    }
+
+    #[test]
+    fn one_counter_serves_every_domain() {
+        // `REFUSED` names a sequence and nothing else, so two domains each
+        // numbering from one would make a refusal ambiguous. That fails as a
+        // refusal shown on the wrong screen or on none at all, which reads as a
+        // button that sometimes does nothing — so it is refused at the door
+        // rather than written down and hoped for.
+        let mut session = session_with_audio();
+        assert!(session.accept("REQUEST 1 audio REFRESH").is_ok());
+        assert!(session.accept("REQUEST 2 shortcuts REFRESH").is_ok());
+        // A second domain starting its own count.
+        assert!(session.accept("REQUEST 1 shortcuts REFRESH").is_err());
+    }
+
+    #[test]
+    fn request_numbers_may_skip_but_not_repeat() {
+        let mut session = session_with_audio();
+        assert!(session.accept("REQUEST 5 audio REFRESH").is_ok());
+        // Gaps are fine — a client may share one counter with its actions.
+        assert!(session.accept("REQUEST 900 audio REFRESH").is_ok());
+        assert!(session.accept("REQUEST 900 audio REFRESH").is_err());
+    }
+
+    #[test]
+    fn requests_and_frames_keep_their_own_counts() {
+        // They are independent paths; neither may disturb the other's ordering.
+        let mut session = session_with_audio();
+        session.accept("FRAME 10 1000 0").unwrap();
+        session.accept("REQUEST 1 audio REFRESH").unwrap();
+        assert!(session.accept("FRAME 11 1001 0").is_ok());
+        assert!(session.accept("REQUEST 2 audio REFRESH").is_ok());
+    }
+
+    #[test]
+    fn parses_a_request_to_switch_to_a_window() {
+        assert_eq!(
+            parse_message("REQUEST 1 windows ACTIVATE 7"),
+            Ok(Message::Request(Request {
+                sequence: 1,
+                domain: Domain::Windows,
+                verb: Verb::Activate { id: 7 },
+            }))
+        );
+    }
+
+    #[test]
+    fn switching_is_the_only_thing_the_rail_may_ask_for() {
+        // Not close, not minimise, not move. The design is "tap one and switch
+        // to it"; anything more would be a window manager on a phone.
+        assert!(parse_message("REQUEST 1 windows CLOSE 7").is_err());
+        assert!(parse_message("REQUEST 1 windows MINIMISE 7").is_err());
+        assert!(parse_message("REQUEST 1 windows MOVE 7 2").is_err());
+        assert!(parse_message("REQUEST 1 windows RENAME 7 Name").is_err());
+        // And a window is named by a number this host published, never by a
+        // KWin identifier the client invented.
+        assert!(parse_message("REQUEST 1 windows ACTIVATE {3bfc35fa}").is_err());
+        assert!(parse_message("REQUEST 1 windows ACTIVATE").is_err());
+        assert!(parse_message("REQUEST 1 windows ACTIVATE 7 8").is_err());
+    }
+
+    #[test]
+    fn a_window_carries_no_identifier_of_the_desktops_own() {
+        // The KWin UUID stays on the host. What crosses is a number this host
+        // handed out, so a client can only ever name something it was sent.
+        let window = windows::Window {
+            id: 4,
+            kwin_id: "{3bfc35fa-073b-42c1-9ff9-c7ff7d0879dd}".to_owned(),
+            application: "firefox".to_owned(),
+            title: "OpenTrackpad — Mozilla Firefox".to_owned(),
+        };
+        let rendered = Outbound::Entry {
+            domain: Domain::Windows,
+            generation: 2,
+            record: Record::Window(window),
+        }
+        .to_string();
+        assert_eq!(
+            rendered,
+            "ENTRY windows 2 window 4 firefox OpenTrackpad%20%E2%80%94%20Mozilla%20Firefox"
+        );
+        assert!(!rendered.contains("3bfc35fa"));
+    }
+
+    #[test]
+    fn a_window_title_cannot_write_its_own_protocol_lines() {
+        // The most attacker-influenced string this product handles: a browser
+        // tab title is whatever a web page decided to call itself.
+        let window = windows::Window {
+            id: 1,
+            kwin_id: "{a}".to_owned(),
+            application: "firefox".to_owned(),
+            title: "ok\nENTRY windows 2 window 99 evil pwned".to_owned(),
+        };
+        let rendered = Outbound::Entry {
+            domain: Domain::Windows,
+            generation: 1,
+            record: Record::Window(window),
+        }
+        .to_string();
+        assert_eq!(rendered.lines().count(), 1);
+        // Seven fields: the keyword, domain, generation, kind, number,
+        // application and title. The title being exactly one of them is the
+        // property — a newline or a space in it would make more.
+        assert_eq!(rendered.split_whitespace().count(), 7);
+    }
+}

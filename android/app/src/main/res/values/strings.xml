@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The label says v0.2 because the light version stays installed beside this
+      one. On the launcher they are two icons with the same picture, and this is
+      the only thing that tells them apart.
+    -->
+    <string name="app_name">OpenTrackpad v0.2</string>
+
+    <string name="pad_hint">Swipe with two fingers to scroll</string>
+    <string name="pad_description">Trackpad surface</string>
+
+    <!--
+      The hub of the Quick Ring. Two short lines, because the drawing gives it
+      two: it names the menu and doubles as the way out, so it is never blank.
+    -->
+    <string name="ring_hub_top">Quick</string>
+    <string name="ring_hub_bottom">actions</string>
+    <string name="ring_description">Quick actions</string>
+
+    <!-- The settings screen. -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back to the trackpad</string>
+    <string name="settings_connection">Connection</string>
+    <string name="settings_status">Status</string>
+    <string name="settings_speaking">Speaking</string>
+    <string name="settings_screen">Screen</string>
+    <string name="settings_fade">Fade when idle</string>
+    <string name="settings_awake">Keep screen awake</string>
+    <string name="settings_return">Back to the trackpad after</string>
+    <string name="settings_return_note">A panel left open stops being a trackpad.</string>
+    <string name="settings_controls">Controls</string>
+    <string name="settings_handedness">Handedness</string>
+    <string name="settings_haptics">Haptics</string>
+    <string name="settings_active_profile">Active profile</string>
+    <string name="settings_import">Shortcuts on your computer</string>
+    <string name="settings_import_count">%1$d to review</string>
+    <string name="settings_import_none">All brought over</string>
+    <string name="settings_version">App %1$s · protocol %2$s</string>
+    <string name="settings_hand_right">Right</string>
+    <string name="settings_hand_left">Left</string>
+    <string name="settings_never">Never</string>
+    <string name="settings_seconds">%1$d s</string>
+    <string name="settings_minute">1 min</string>
+    <string name="settings_not_speaking">—</string>
+
+    <!-- The connection, said in one word for the settings card. -->
+    <string name="status_connected">Connected</string>
+    <string name="status_limited">Older computer</string>
+    <string name="status_busy">Another app has it</string>
+    <string name="status_connecting">Connecting</string>
+    <string name="status_disconnected">Not connected</string>
+
+    <!-- The profile menu. -->
+    <string name="profile_heading">Profile</string>
+    <string name="profile_manage">Manage profiles</string>
+    <string name="profile_settings">Settings</string>
+
+    <!-- The audio panel. -->
+    <string name="audio_sound">Sound</string>
+    <string name="audio_close">Close</string>
+    <string name="audio_output">Output</string>
+    <string name="audio_input">Input</string>
+    <string name="audio_apps">Apps</string>
+    <string name="audio_settings">Settings</string>
+    <string name="audio_settings_title">Audio settings</string>
+    <string name="audio_hint">Tap a name to switch · tap a knob to mute</string>
+    <string name="audio_hint_apps">Tap a knob to mute</string>
+    <string name="audio_muted">Muted</string>
+    <string name="audio_port_analog">Analog</string>
+    <string name="audio_port_usb">USB</string>
+    <string name="audio_port_hdmi">HDMI</string>
+    <string name="audio_port_digital">Digital</string>
+    <string name="audio_port_bluetooth">Bluetooth</string>
+    <string name="audio_show_idle">Show apps that are not playing</string>
+    <string name="audio_show_idle_note">Off, the Apps page lists only what is making sound right now.</string>
+    <string name="audio_percent">%1$d%%</string>
+
+    <!-- Why the panel has nothing to show. Each says what to do about it. -->
+    <string name="audio_none_outputs">No outputs</string>
+    <string name="audio_none_inputs">No inputs</string>
+    <string name="audio_none_apps">Nothing is playing</string>
+    <string name="audio_no_tool">Your computer has no way to talk to its sound system.</string>
+    <string name="audio_no_daemon">No sound system is running on your computer.</string>
+    <string name="audio_lost">The sound system stopped. Looking for it.</string>
+
+    <string name="audio_boost">Allow louder than 100%</string>
+    <string name="audio_boost_note">Rescues a quiet video. Distorts the sound, and at high volume can damage speakers and ears. Anything past 100% turns amber on the fader.</string>
+    <string name="audio_opens_on">Opens on</string>
+    <string name="audio_opens_on_note">The page this panel shows first, every time.</string>
+
+    <!-- Reviewing what the computer already has. -->
+    <string name="import_title">Shortcuts already on your computer</string>
+    <string name="import_tally">%1$d found · %2$d chosen</string>
+    <string name="import_here">%1$d here · %2$d chosen</string>
+    <string name="import_group_count">%1$d / %2$d</string>
+    <string name="import_groups">What they control</string>
+    <string name="import_skip">Skip</string>
+    <string name="import_add">Add %1$d</string>
+    <string name="import_choose_all">Choose all</string>
+    <string name="import_choose_none">Choose none</string>
+    <string name="import_note">Only the ticked ones become buttons. Nothing on your computer changes, and you can record more later.</string>
+    <string name="import_adding">Adding…</string>
+    <string name="import_refused_stale">That list changed while you were choosing. It has been reloaded — check your ticks and try again.</string>
+    <string name="import_refused_full">That is more than the shortcut list can hold. Untick a few and try again.</string>
+    <string name="import_refused_other">Your computer could not add those. Nothing changed.</string>
+    <string name="import_none">Nothing to bring over. Your computer has no shortcuts OpenTrackpad does not already know.</string>
+
+    <!--
+      The fixed vocabulary both desktops map into, in words rather than in the
+      names their own settings use. "Mine" is everything recorded here, which
+      has no group because nobody said what theirs is for.
+    -->
+    <string name="group_windows">Windows</string>
+    <string name="group_desktop">Desktop</string>
+    <string name="group_screenshot">Screenshot</string>
+    <string name="group_sound">Sound</string>
+    <string name="group_media">Media</string>
+    <string name="group_session">Session</string>
+    <string name="group_power">Power</string>
+    <string name="group_keyboard">Keyboard</string>
+    <string name="group_accessibility">Accessibility</string>
+    <string name="group_text">Text</string>
+    <string name="group_browser">Browser</string>
+    <string name="group_terminal">Terminal</string>
+    <string name="group_other">Other</string>
+    <string name="group_mine">Mine</string>
+
+    <!-- The profile editor. -->
+    <string name="editor_profile">profile</string>
+    <string name="editor_reset">Reset</string>
+    <string name="editor_save">Save</string>
+    <string name="editor_search">Search %1$d shortcuts</string>
+    <string name="editor_all">All</string>
+    <string name="editor_empty">Empty</string>
+    <string name="editor_quick">Quick Ring</string>
+    <string name="editor_rail_shortcuts">Shortcut rail</string>
+    <string name="editor_rail_overflow">Opposite rail</string>
+    <string name="editor_hint">Drag a shortcut onto a slot · tap a slot to empty it</string>
+
+    <!-- Naming a copied profile: the only text entry in the app. -->
+    <string name="name_title">Name this profile</string>
+    <string name="name_label">Name</string>
+    <string name="name_origin">copied from %1$s · same %2$d shortcuts</string>
+    <string name="name_note">This is the only place the app asks you to type. It uses your phone\'s own keyboard, so it goes away as soon as you are done.</string>
+    <string name="name_keyboard">your keyboard covers this half</string>
+    <string name="name_taken">There is already a profile called that.</string>
+    <string name="name_blank">A profile needs a name.</string>
+    <string name="name_copy">%1$s copy</string>
+    <string name="name_copy_numbered">%1$s copy %2$d</string>
+    <string name="editor_duplicate">Duplicate</string>
+
+    <!-- The rails, for a screen reader. -->
+    <string name="rail_shortcuts">Shortcuts</string>
+    <string name="rail_overflow">More shortcuts</string>
+
+    <!--
+      A problem takes over the middle of the screen: there is no status bar to
+      put it in, and a peripheral that has quietly stopped working is worse than
+      one that says so.
+    -->
+    <string name="trouble_seeking">Looking for your computer</string>
+
+    <string name="unplugged_title">The cable came out</string>
+    <string name="unplugged_body">Plug it back in. It reconnects on its own — nothing to press.</string>
+    <string name="unplugged_note">Every key that was being held was let go, so nothing is stuck on the other side.</string>
+
+    <string name="busy_title">Something else is the trackpad</string>
+    <string name="busy_body">Your computer already has a phone connected — most likely the older OpenTrackpad on this one. Close that app and this one takes over.</string>
+    <string name="busy_note">Only one app can hold the connection, so this one waits rather than interrupting a session mid-gesture.</string>
+
+    <string name="mismatch_title">The two halves do not match</string>
+    <string name="mismatch_body">This app speaks a newer language than the OpenTrackpad on your computer. Update the computer side and it will connect again.</string>
+    <string name="mismatch_note">Until then the trackpad still works, without the rails. Tap to carry on that way.</string>
+    <string name="mismatch_phone_label">This phone</string>
+    <string name="mismatch_host_label">Your computer</string>
+    <string name="mismatch_speaks">speaks %1$s</string>
+
+    <string name="incompatible_title">That is not OpenTrackpad</string>
+    <string name="incompatible_body">Something is listening on the port but it is not the OpenTrackpad host. Check what else is using it on the computer.</string>
+
+    <string name="setup_hint">Run adb reverse tcp:4242 tcp:4242 on the computer</string>
+
+    <!-- The Quick Ring's import wedge. The count is the reason to press it. -->
+    <string name="ring_import">Import</string>
+    <string name="ring_import_count">Import (%1$d)</string>
+
+    <!-- Making a new shortcut: the chip in the editor, and the screen after it. -->
+    <string name="editor_new">New shortcut</string>
+    <string name="recording_title">Look at your computer</string>
+    <string name="recording_body">A window opened there. Press the keys you want on this button, and it will appear in your library.</string>
+    <string name="recording_note">Nothing is waiting on this screen. Close it whenever you like — the shortcut arrives on its own.</string>
+    <string name="recording_close">Close</string>
+
+    <!-- The three mouse buttons, which are the client's own and not the host's. -->
+    <string name="group_mouse">Mouse</string>
+    <string name="button_right">Right click</string>
+    <string name="button_middle">Middle click</string>
+    <string name="button_left">Left click</string>
+    <string name="button_chord">mouse</string>
+
+    <!-- Every open window, when four on a rail are not enough. -->
+    <string name="all_windows_title">All windows</string>
+    <string name="all_windows_order">Most recent first</string>
+    <plurals name="all_windows_open">
+        <item quantity="one">%1$d open</item>
+        <item quantity="other">%1$d open</item>
+    </plurals>
+
+    <!-- Editing a shortcut somebody recorded. -->
+    <string name="edit_title">Edit shortcut</string>
+    <string name="edit_name">Name</string>
+    <string name="edit_combination">Combination</string>
+    <string name="edit_record_again">Record again</string>
+    <string name="edit_record_note">Recording opens on your computer, the same as when you made it.</string>
+    <string name="edit_delete">Delete this shortcut</string>
+    <string name="edit_on_rails">On these rails</string>
+    <string name="edit_delete_note">Deleting it empties those slots. The rail keeps its five places; the empty one stays empty until you fill it.</string>
+    <string name="edit_nowhere">Not on any rail yet.</string>
+    <string name="edit_slot">slot %1$d</string>
+</resources>
