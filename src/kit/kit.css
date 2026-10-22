@@ -1,4 +1,6 @@
-/* KIT METALIZADO — peças transpostas de docs/referencias/opentrackpad-aluminio.html.
+/* KIT — só os MATERIAIS da identidade metalizada (docs/referencias/opentrackpad-aluminio.html):
+   face, chanfro, grão, profundidade, LED. Nenhuma tela, layout ou controle da v1 entra aqui;
+   os controles novos nascem nas rodadas do laboratório.
    Chanfro = gradiente no border-box; face = gradiente no padding-box; grão por cima. */
 
 /* ---------------------------------------------------------------- tecla */
@@ -7,18 +9,13 @@
   background: var(--key-face) padding-box, var(--cham) border-box;
   box-shadow: var(--shadow-key);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  color: var(--key-ink); cursor: pointer; padding: 0; min-width: 44px; min-height: 44px;
+  color: var(--key-ink); cursor: pointer; padding: 0; min-width: 48px; min-height: 48px;
   transition: transform 60ms, filter var(--curto);
 }
 .k-tecla.k-ligada { background: var(--key-face-on) padding-box, var(--cham) border-box; color: var(--key-ink-on); }
 .k-tecla:active { transform: translateY(1px); filter: brightness(1.12); }
-.k-rotulo { font-size: 10px; font-weight: 500; white-space: nowrap; color: var(--key-lbl); max-width: 100%; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+.k-rotulo { font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--key-lbl); max-width: 100%; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
 .k-ligada .k-rotulo { color: var(--key-lbl-on); }
-.k-tecla.k-destaque {
-  width: 56px; height: 56px; min-height: 0; border-radius: 999px; gap: 0;
-  background: var(--laranja-face) padding-box, var(--cham-org) border-box;
-  color: #FFF3EC; align-self: center;
-}
 
 /* ----------------------------------------------------------------- led */
 .k-led {
@@ -31,39 +28,6 @@
 .k-led.k-aceso.k-led-ambar i { background: var(--ambar); box-shadow: 0 0 5px rgba(245,165,36,0.9); }
 .k-led.k-aceso.k-led-laranja i { background: var(--laranja); box-shadow: 0 0 5px rgba(255,79,31,0.9); }
 .k-led-canto { position: absolute; top: 6px; right: 7px; }
-
-/* --------------------------------------------------------------- trilho */
-.k-trilho { width: 70px; flex: none; display: flex; flex-direction: column; gap: 8px; }
-.k-posicao { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
-.k-posicao > .k-tecla:not(.k-destaque) { width: 100%; height: 100%; }
-
-/* ---------------------------------------------------------------- chave */
-.k-chave {
-  position: relative; box-sizing: border-box; width: 42px; height: 22px; flex: none; padding: 0;
-  border: 1px solid transparent; border-radius: 999px; cursor: pointer;
-  background: linear-gradient(180deg, var(--sw-a) 0%, var(--sw-b) 100%) padding-box, var(--cham-in) border-box;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
-}
-.k-chave .k-bloco {
-  position: absolute; top: 3px; left: 2px; width: 22px; height: 14px; border-radius: 999px;
-  background: linear-gradient(180deg, #3E4145 0%, #2A2B30 100%);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22);
-  transition: left 140ms cubic-bezier(.3,.8,.3,1);
-}
-.k-chave .k-pino, .k-chave .k-haste { position: absolute; background: #4E5155; transition: background 140ms; }
-.k-chave .k-pino { top: 3px; right: 5px; width: 7px; height: 7px; border-radius: 999px; }
-.k-chave .k-haste { top: 9px; right: 7.5px; width: 2px; height: 6px; border-radius: 1px; }
-.k-chave.k-ligada .k-bloco { left: 16px; }
-.k-chave.k-ligada .k-pino { right: auto; left: 5px; background: var(--laranja); box-shadow: 0 0 5px rgba(255,79,31,0.8); }
-.k-chave.k-ligada .k-haste { right: auto; left: 7.5px; background: var(--laranja); }
-
-/* ----------------------------------------------------------- segmentado */
-.k-seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 5px; background: var(--groove); box-shadow: var(--inset-groove); }
-.k-seg button {
-  border-radius: 3px; padding: 4px 9px; font-size: 11px; font-weight: 500; min-height: 26px;
-  color: var(--ink-3); cursor: pointer; border: 1px solid transparent; background: transparent;
-}
-.k-seg button.k-ligada { background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-sm); color: var(--ink); }
 
 /* ------------------------------------------------------- poço e módulo */
 .k-poco {
@@ -88,52 +52,17 @@
 /* ---------------------------------------------------------------- aviso */
 .k-aviso {
   position: absolute; left: 50%; bottom: 16px; z-index: 40; transform: translateX(-50%) translateY(8px);
-  padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 500; white-space: nowrap;
+  padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap;
   border: 1px solid transparent; background: var(--mod-face) padding-box, var(--cham-sm) border-box;
   box-shadow: 0 6px 14px rgba(0,0,0,0.4); color: var(--ink);
   opacity: 0; pointer-events: none; transition: opacity 180ms, transform 180ms;
 }
 .k-aviso.k-mostra { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ---------------------------------------------------------------- fader */
-.k-fader { flex: 1; width: 100%; min-height: 0; padding: 14px 0; display: flex; justify-content: center; touch-action: none; cursor: ns-resize; }
-.k-fenda {
-  position: relative; width: 6px; height: 100%; box-sizing: border-box; border: 1px solid transparent; border-radius: 3px;
-  background: linear-gradient(180deg, var(--sw-a) 0%, var(--sw-b) 100%) padding-box, var(--cham-in) border-box;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
-}
-.k-enchimento { position: absolute; left: 1px; right: 1px; bottom: 1px; border-radius: 2px; background: #323438; }
-.k-enchimento.k-vivo { background: linear-gradient(180deg, #A9EE4A 0%, #6FA81E 100%); box-shadow: 0 0 6px rgba(155,226,63,0.45); }
-.k-tampa {
-  position: absolute; left: 50%; width: 30px; height: 18px; margin-left: -15px; margin-bottom: -9px; padding: 0;
-  box-sizing: border-box; border: 1px solid transparent; border-radius: 4px; cursor: pointer;
-  background: linear-gradient(180deg, #3F4246 0%, #2C2E32 100%) padding-box, var(--cham) border-box;
-  box-shadow: var(--shadow-key); display: grid; place-items: center; color: #DDE0DC;
-}
-.k-tampa.k-mudo { background: linear-gradient(180deg, #2A2C30 0%, #1F2124 100%) padding-box, var(--cham-sm) border-box; color: #8B8E8A; }
-
-/* ---------------------------------------------------------------- disco */
-.k-disco { position: relative; flex: none; touch-action: none; cursor: grab; border-radius: 999px; }
-.k-disco:active { cursor: grabbing; }
-.k-disco-aro { position: absolute; inset: 0; border-radius: 999px; border: 1px solid var(--hairline); opacity: .6; }
-.k-disco-marca { position: absolute; left: 50%; top: 50%; width: 2px; margin-left: -1px; pointer-events: none; }
-.k-disco-marca b { display: block; width: 2px; border-radius: 1px; background: var(--tick-off); transition: background 80ms; }
-.k-disco-marca b.k-aceso { background: var(--led); box-shadow: 0 0 4px rgba(155,226,63,0.7); }
-.k-disco-cubo {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  box-sizing: border-box; border: 1px solid transparent; border-radius: 999px;
-  background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  pointer-events: none; color: var(--ink); font-size: 13px; font-weight: 500; text-align: center;
-}
-
 /* ------------------------------------------------------- superfície */
 .k-superficie {
   position: relative; flex: 1; min-width: 0; box-sizing: border-box; border: 1px solid transparent; border-radius: 6px;
-  background: var(--gds) padding-box, radial-gradient(var(--pad-dots) 1px, transparent 1px) padding-box,
-              var(--pad-face) padding-box, var(--cham-in) border-box;
-  background-size: auto, 18px 18px, auto, auto;
-  background-position: 0 0, 9px 9px, 0 0, 0 0;
+  background: var(--gds) padding-box, var(--pad-face) padding-box, var(--cham-in) border-box;
   box-shadow: var(--inset-pad);
   touch-action: none; cursor: crosshair; overflow: hidden;
 }
@@ -149,6 +78,5 @@
 @keyframes k-anel { to { width: 46px; height: 46px; margin: -23px 0 0 -23px; opacity: 0; } }
 .k-gesto {
   position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-  font-size: 11px; font-weight: 500; color: var(--pad-ink); pointer-events: none; white-space: nowrap;
+  font-size: 12px; font-weight: 500; color: var(--pad-ink); pointer-events: none; white-space: nowrap;
 }
-.k-marca-dagua { position: absolute; right: 14px; bottom: 11px; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; color: var(--pad-mark); opacity: .7; pointer-events: none; }

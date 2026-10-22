@@ -4,26 +4,12 @@ import { DesktopFalso } from './bancada/DesktopFalso'
 import { MolduraCelular } from './bancada/MolduraCelular'
 import { Aviso } from './kit/Aviso'
 import { SuperficieTrackpad } from './kit/SuperficieTrackpad'
-import { Tecla } from './kit/Tecla'
-import { Trilho } from './kit/Trilho'
-import { useSim } from './sim/loja'
 
+/* Provisório até a R1: só a superfície, sem nenhum layout de tela. */
 function TelaDoCelular() {
-  const avisar = useSim((s) => s.avisar)
   return (
-    <div data-lab="1" style={{ position: 'absolute', inset: 0, padding: 12, display: 'flex', gap: 12 }}>
-      <Trilho lado="esquerda">
-        <Tecla rotulo="copiar" icone="copiar" aoTocar={() => avisar('Copiar enviado')} />
-        <Tecla rotulo="colar" icone="colar" aoTocar={() => avisar('Colar enviado')} />
-      </Trilho>
+    <div data-lab="1" style={{ position: 'absolute', inset: 0, padding: 12, display: 'flex' }}>
       <SuperficieTrackpad />
-      <Trilho lado="direita">
-        <Tecla rotulo="mic" icone="microfone" led aoTocar={() => avisar('Microfone')} />
-        <span />
-        <span />
-        <span />
-        <Tecla rotulo="Modos" icone="rapido" destaque aoTocar={() => avisar('Modos')} />
-      </Trilho>
       <Aviso />
     </div>
   )

@@ -15,7 +15,7 @@ type Ponto = { x: number; y: number }
    com mouse, usa os "dedos" escolhidos na barra de simulação.
    1 dedo move o cursor do computador falso (com aceleração: rápido anda mais),
    2 rolam, 3 e 4 deslizam entre áreas e janelas. Toque curto = clique; segurar = clique firme. */
-export function SuperficieTrackpad({ marcaDagua = true }: { marcaDagua?: boolean }) {
+export function SuperficieTrackpad() {
   const ref = useRef<HTMLDivElement>(null)
   const ponteiros = useRef(new Map<number, Ponto>())
   const inicio = useRef<{ t: number; x: number; y: number; andou: number; firme: boolean } | null>(null)
@@ -91,7 +91,6 @@ export function SuperficieTrackpad({ marcaDagua = true }: { marcaDagua?: boolean
       {dedos.map((d, i) => <span key={i} className="k-dedo" style={{ left: d.x, top: d.y }} />)}
       {aneis.map((a) => <span key={a.id} className={`k-anel${a.firme ? ' k-firme' : ''}`} style={{ left: a.x, top: a.y }} />)}
       {gesto && <div className="k-gesto">{gesto}</div>}
-      {marcaDagua && <div className="k-marca-dagua">opentrackpad</div>}
     </div>
   )
 }

@@ -44,6 +44,10 @@
   }
 }
 
+/* Contraste (WCAG AA, conferido nas faces de painel, tecla, poço, módulo e trackpad):
+   --ink, --ink-2, --ink-3, --key-lbl e --pad-ink servem para texto (≥ 4,5:1);
+   --ink-4 só para ícone, borda e marca (≥ 3:1), nunca para texto. */
+
 /* alumínio escuro */
 [data-acabamento="escuro"], .acabamento-escuro {
   --panel: radial-gradient(130% 105% at 20% -12%, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0) 58%), linear-gradient(176deg, #262729 0%, #1D1E20 46%, #151618 100%);
@@ -58,8 +62,8 @@
   --cham-org: linear-gradient(150deg, #E0A184 0%, #B87552 13%, #6E3A22 36%, #45210F 54%, #8E5333 78%, #C98C68 100%);
   --groove: #0A0B0C;
   --sw-a: #101113; --sw-b: #17181B;
-  --ink: #DDE0DC; --ink-2: #B6B9B5; --ink-3: #83868A; --ink-4: #64676A;
-  --key-ink: #C0C3BF; --key-ink-on: #E6E9E5; --key-lbl: #959894; --key-lbl-on: #E6E9E5;
+  --ink: #DDE0DC; --ink-2: #B6B9B5; --ink-3: #979A9E; --ink-4: #76797D;
+  --key-ink: #C0C3BF; --key-ink-on: #E6E9E5; --key-lbl: #A3A6A2; --key-lbl-on: #E6E9E5;
   --pad-dots: rgba(172,178,184,0.08);
   --shadow-key: 0 2px 3px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.42);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
@@ -71,7 +75,7 @@
   --scrim: rgba(9,10,11,0.5);
   --hairline: #34373B;
   --tick-off: #3A3D40;
-  --pad-ink: #6C6F72; --pad-mark: #3D4043;
+  --pad-ink: #8F9295; --pad-mark: #3D4043;
   --led-off: #2A2C2E; --led-poco: #0C0D0E;
   --gd: var(--gd-full); --gl: var(--gl-full);
   --gds: var(--gds-full); --gls: var(--gls-full);
@@ -91,8 +95,8 @@
   --cham-org: linear-gradient(150deg, #FFEADF 0%, #F0B295 13%, #A05B36 36%, #6E3A20 54%, #C4805A 78%, #FFD9C4 100%);
   --groove: #A2A39F;
   --sw-a: #A2A39F; --sw-b: #A6A7A3;
-  --ink: #232624; --ink-2: #3C3F3B; --ink-3: #6A6D69; --ink-4: #7A7C78;
-  --key-ink: #2E312B; --key-ink-on: #1F221D; --key-lbl: #54574F; --key-lbl-on: #1F221D;
+  --ink: #232624; --ink-2: #3C3F3B; --ink-3: #464945; --ink-4: #5F625E;
+  --key-ink: #2E312B; --key-ink-on: #1F221D; --key-lbl: #41443D; --key-lbl-on: #1F221D;
   --pad-dots: rgba(52,55,58,0.13);
   --shadow-key: 0 1px 2px rgba(0,0,0,0.24), 0 0 0 1px rgba(0,0,0,0.10);
   --shadow-sm: 0 1px 1px rgba(0,0,0,0.20);
@@ -104,7 +108,7 @@
   --scrim: rgba(236,237,233,0.55);
   --hairline: #9C9D99;
   --tick-off: #6E706C;
-  --pad-ink: #E6E7E3; --pad-mark: #75766F;
+  --pad-ink: #1A1C19; --pad-mark: #75766F;
   --led-off: #6E706C; --led-poco: #2A2C2E;
   --gd: var(--gd-lite); --gl: var(--gl-lite);
   --gds: var(--gds-lite); --gls: var(--gls-lite);

@@ -227,11 +227,24 @@ O detalhamento está em `docs/ARCHITECTURE.md`, `docs/TESTING.md` e
   (dentro de uma moldura de celular deitado) e as do computador (bandeja,
   central de configurações, assistente), com dados de mentira, clicáveis e com
   os protótipos "ver na prática" funcionando no toque.
-- **Identidade visual: a metalizada.** A referência é o artifact "OpenTrackpad
-  em Alumínio" (https://claude.ai/artifact/H5RKqhyPBYRie91C5CUuRt): alumínio
-  escuro e claro com textura, bordas chanfradas, teclas físicas, LED verde de
-  estado, botão laranja de destaque, fonte Archivo. A identidade minimalista da
-  v0.2 (grafite e verde-limão) sai.
+- **Identidade visual: a metalizada, e só a identidade.** A referência é o
+  artifact "OpenTrackpad em Alumínio"
+  (https://claude.ai/artifact/H5RKqhyPBYRie91C5CUuRt). Dele vêm **apenas**:
+  cores (alumínio escuro e claro, LED verde para "ligado", laranja de
+  destaque), materiais (grão do metal, bordas chanfradas, profundidade e
+  sombras), tipografia (Archivo) e o traço dos ícones. **Nada das telas da
+  v1 entra**: layouts, trilhos de teclas, anel de atalhos, botão redondo de
+  destaque, disco, faders, organização dos painéis. As telas e os controles
+  novos nascem do zero no laboratório. A identidade minimalista da v0.2
+  (grafite e verde-limão) também sai.
+- **Usabilidade e acessibilidade valem acima do estilo.** Alvo de toque de
+  pelo menos 48 dp no celular (44 px no computador); contraste WCAG AA (4,5:1
+  para texto, 3:1 para ícones e bordas de controle); estado nunca só por cor
+  (o LED vem com forma, texto ou posição); todo controle com nome acessível e
+  foco visível; tudo do computador usável pelo teclado; respeitar "reduzir
+  movimento" e o tamanho de fonte do sistema; vibração sempre acompanhada de
+  resposta visual; o celular é usado de relance, então o que importa fica onde
+  o polegar alcança e não muda de lugar.
 - **Com um laboratório de refinamento**, copiado do projeto Bora Vê
   (`laboratorio/refinamento/` e `laboratorio/servidor.cjs` de lá): painel que
   abre com a tecla R, status e anotação por seção, variações lado a lado,

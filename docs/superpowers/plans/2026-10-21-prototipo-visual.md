@@ -13,7 +13,8 @@
 ## Global Constraints
 
 - Interface em **pt-BR**, frases curtas, sem texto que explique a interface (no máximo uma linha de apoio por tela). Nome do produto: **OpenTrackpad**.
-- Identidade: **a metalizada** do artifact "OpenTrackpad em Alumínio" (cópia em `docs/referencias/opentrackpad-aluminio.html`, criada no Task 1). Alumínio escuro e claro com textura de grão, bordas chanfradas em gradiente, teclas físicas com sombra, LED verde `#9BE23F` para "ligado/funcionando", laranja `#FF4F1F` só para o botão de destaque e o foco, fonte **Archivo**. A identidade grafite + verde-limão da v0.2 não entra.
+- Identidade: **só a identidade** metalizada do artifact "OpenTrackpad em Alumínio" (cópia em `docs/referencias/opentrackpad-aluminio.html`, criada no Task 1): cores (alumínio escuro e claro, LED verde `#9BE23F` para "ligado", laranja `#FF4F1F` de destaque e foco), materiais (grão, chanfro em gradiente, profundidade e sombras), tipografia **Archivo** e traço dos ícones. **Nenhuma tela, layout ou controle da v1** (trilhos de teclas, anel de atalhos, botão redondo laranja, disco, faders, painéis): telas e controles nascem do zero. A identidade grafite + verde-limão da v0.2 também não entra.
+- **Usabilidade e acessibilidade acima do estilo** (spec): alvo de toque ≥ 48 dp no celular e ≥ 44 px no computador; contraste WCAG AA (4,5:1 texto, 3:1 ícones e bordas de controle); estado nunca só por cor; nome acessível e foco visível em todo controle; telas do computador usáveis pelo teclado; "reduzir movimento" e tamanho de fonte respeitados; vibração sempre com resposta visual; o essencial fica ao alcance do polegar e não muda de lugar.
 - Celular sempre **deitado** nas telas de uso, desenhado a **780 × 360** (um celular de 6,7" deitado) e escalado inteiro, sem refluir. Exceção: "monitor vertical", que gira o celular.
 - O celular pode ser Android ou iPhone e o computador Linux, Windows ou macOS: a barra de simulação troca os dois e o cromo muda junto (barra de status e gesto do celular; bandeja, barra de título e botões da janela do computador).
 - Toque mínimo 44 px (em unidades da moldura). Movimento curto (120–260 ms) e respeitando "reduzir movimento".
@@ -281,16 +282,16 @@ Seções da R1 (cada uma com **pelo menos 3 variações reais, diferentes na est
 | n | Seção | Variações (proposta primeiro) |
 |---|---|---|
 | 1 | Acabamento | alumínio escuro · alumínio claro · escuro com trackpad claro · claro com trilhos escuros |
-| 2 | Trackpad principal | trilho dos dois lados · um trilho só · sem trilho, borda que puxa os atalhos · doca embaixo |
-| 3 | Como trocar de modo (trackpad, atalhos, tela, mesa, teclado) | botão laranja que abre um anel · a quinta tecla do trilho vira seletor · gaveta que desliza da borda · chave rotativa física no canto |
+| 2 | Trackpad principal | trackpad ocupando a tela, atalhos chamados por gesto da borda · trackpad com uma faixa de atalhos do app em foco · trackpad e painel lado a lado, divisão ajustável |
+| 3 | Como trocar de modo (trackpad, atalhos, tela, mesa, teclado) | barra de modos que surge da borda · seletor fixo de modos no topo · toque longo com dois dedos abre os modos |
 | 4 | Painel de atalhos | grade de teclas quadradas · teclas largas com nome · mesa de som (faixas verticais) · páginas que deslizam de lado |
 | 5 | Tela espelhada e modos de toque | alternador flutuante (toque direto / trackpad) · chave no trilho · gesto de três dedos com aviso |
 | 6 | Parear pela primeira vez | QR grande no computador e câmera no celular · lista de computadores achados · passo a passo por tipo de conexão |
 | 7 | Estado da conexão | LED com o tipo de conexão · medidor de sinal L/M/P · nada à vista até piorar |
 | 8 | Central do computador | barra lateral · abas no topo · painel de equipamento (módulos lado a lado) |
 | 9 | Ver na prática: teclas seguradas | tecla que trava ao tocar, LED aceso · segurar enquanto usa · faixa da borda que segura Shift e o resto é trackpad |
-| 10 | Ver na prática: botão giratório | disco no centro · anel em volta do trackpad · arco no canto do polegar |
-| 11 | Ver na prática: giratório com mixer | toca no app e gira · cada app com seu próprio disco · fader que vira disco ao segurar |
+| 10 | Ver na prática: botão giratório | três desenhos novos de controle giratório (nenhum é o disco da v1): por exemplo arco no canto do polegar · faixa circular em volta do trackpad · roda que aparece onde o dedo pousa |
+| 11 | Ver na prática: giratório com mixer | toca no app e gira · cada app com seu próprio controle · controle de volume que vira giratório ao segurar |
 | 12 | Ver na prática: botões de volume | teclas laterais desenhadas na moldura · aviso de qual atalho cada botão dispara · desligado (para comparar) |
 | 13 | Ver na prática: modo travado | trava com segurar três segundos · trava com padrão desenhado · sem trava (para comparar) |
 
