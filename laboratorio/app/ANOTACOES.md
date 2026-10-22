@@ -1,6 +1,6 @@
 # Refinamento — app · rodada R1
 
-Gerado pelo painel de Refinamento em 2026-10-22T02:22:13.449Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
+Gerado pelo painel de Refinamento em 2026-10-22T12:10:27.781Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
 
 ## 1 · Acabamento
 
@@ -66,4 +66,19 @@ Variantes vistas: laterais: **atalhos**
 
 Status: **Em revisão**  
 Variantes vistas: trava: **segurar**
+
+## 14 · Teclado e voz
+
+Status: **Em revisão**  
+Variantes vistas: teclado: **centro** · lateraisTeclado: **icones**
+
+## 34 · Botões de liga e desliga (#8)
+
+Status: **Em revisão**  
+Variantes vistas: alternador: **tecla**
+
+## 35 · Animações: rastro no trackpad (#4)
+
+Status: **Em revisão**  
+Variantes vistas: rastro: **grade**
 

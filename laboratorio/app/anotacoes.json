@@ -40,7 +40,7 @@
       "variantes": {
         "atalhos": "grade"
       },
-      "aberto": true
+      "aberto": false
     },
     "5": {
       "nome": "Tela espelhada e modos de toque",
@@ -122,9 +122,51 @@
         "trava": "segurar"
       },
       "aberto": false
+    },
+    "14": {
+      "nome": "Teclado e voz",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "teclado": "centro",
+        "lateraisTeclado": "icones"
+      },
+      "aberto": false
+    },
+    "32": {
+      "nome": "Computador: gravar atalho",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "33": {
+      "nome": "Remapear as laterais por app (#5)",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "34": {
+      "nome": "Botões de liga e desliga (#8)",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "alternador": "tecla"
+      },
+      "aberto": false
+    },
+    "35": {
+      "nome": "Animações: rastro no trackpad (#4)",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "rastro": "grade"
+      },
+      "aberto": false
     }
   },
   "alfinetes": [],
   "rodadas": [],
-  "atualizado": "2026-10-22T02:22:13.449Z"
+  "atualizado": "2026-10-22T12:10:27.781Z"
 }
