@@ -478,3 +478,23 @@
 .cel-reuniao-camera.k-ligada { color: var(--ink); }
 .cel-mini-camera { width: 44px; height: 30px; border-radius: 4px; background: #0b0c0d; }
 .cel-mini-camera.no-ar { background: linear-gradient(180deg, #8fb3d9 0%, #c9d6e2 45%, #6b5a46 46%, #3d3328 100%); box-shadow: 0 0 0 2px var(--laranja); }
+
+/* ===================================================== R2 · aparelho e ajustes */
+.cel-noturno { filter: brightness(.62) sepia(.25); }
+.cel-quente { filter: brightness(.75); }
+.cel-noturno.cel-quente { filter: brightness(.5) sepia(.25); }
+.cel-girado { transform: rotate(180deg); }
+.cel-camada-escura { position: absolute; inset: 0; z-index: 55; background: rgba(0,0,0,0.94); cursor: pointer; }
+.cel-saude { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
+.k-lateral-direita .k-cabeca { gap: 8px; }
+.cel-laterais > .k-lateral .k-cabeca { animation: cel-deriva-leve 180s ease-in-out infinite alternate; }
+@keyframes cel-deriva-leve { 0% { transform: translate(0, 0); } 50% { transform: translate(2px, 1px); } 100% { transform: translate(-2px, 0); } }
+.cel-menu-rodape { display: flex; gap: 6px; }
+.cel-ajustes { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 4px; min-height: 0; }
+.cel-ajustes section { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); }
+.cel-ajustes h3 { margin: 0 0 2px; font-size: 11px; font-weight: 500; color: var(--ink-3); }
+.cel-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; }
+.cel-ajuste + .cel-ajuste { border-top: 1px solid rgba(0,0,0,0.25); }
+.cel-ajuste-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 13px; color: var(--ink); }
+.cel-ajuste-texto small { font-size: 11px; color: var(--ink-3); }
+.cel-ajuste .k-fader-horizontal { flex: 0 0 220px; }

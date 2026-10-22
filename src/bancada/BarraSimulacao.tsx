@@ -1,7 +1,7 @@
 import { APPS, type AppId } from '../dados/apps'
 import type { Sistema } from '../dados/computadores'
 import { PRESETS, ROTULO_NIVEL, type PresetId } from '../sim/conexao'
-import { nivelAtual, useSim, type Dedos, type Plataforma } from '../sim/loja'
+import { nivelAtual, useSim, type Dedos, type Plataforma, type Saude } from '../sim/loja'
 import './barra-simulacao.css'
 
 /* Ferramenta da bancada, não produto: fica fora do visual metalizado. */
@@ -42,6 +42,11 @@ export function BarraSimulacao() {
           </select>
         </label>
         <Grupo<Dedos> rotulo="Dedos do mouse" valor={s.dedos} opcoes={[[1, '1'], [2, '2'], [3, '3'], [4, '4']]} aoMudar={s.setDedos} />
+        <label className="bs-grupo"><span className="bs-rotulo">Celular está</span>
+          <select id="bs-saude" value={s.saude} onChange={(e) => s.setSaude(e.target.value as Saude)}>
+            <option value="ok">Normal</option><option value="bateria">Com bateria fraca</option><option value="quente">Quente</option>
+          </select>
+        </label>
         <button type="button" className="bs-botao" onClick={() => s.copiar(COPIAS[Math.floor(Math.random() * COPIAS.length)], 'computador')}>Copiar algo no computador</button>
         <span className="bs-marca">simulação</span>
       </div>

@@ -9,6 +9,8 @@ import { TELAS_CELULAR, type TelaCelular, type TelaPc } from './telas'
 
 export type Plataforma = 'android' | 'iphone'
 export type Dedos = 1 | 2 | 3 | 4
+export type Saude = 'ok' | 'bateria' | 'quente'
+export interface Ajustes { mao: 'direita' | 'esquerda'; girado: boolean; velocidade: number; aceleracao: number; rolagemNatural: boolean; limitarCarga: boolean }
 export interface Copia { id: number; texto: string; origem: string; em: number }
 export interface Ponto { x: number; y: number; p: number }
 /* funções opcionais (o spec pede "opcional por padrão"): ligam e desligam na central e no celular */
@@ -40,6 +42,8 @@ interface Estado {
   focoPorComputador: Record<string, AppId>
   cameraEmUso: boolean
   micEmUso: boolean
+  saude: Saude
+  ajustes: Ajustes
 }
 
 interface Acoes {
@@ -69,6 +73,8 @@ interface Acoes {
   trocarComputador(id: string): void
   usarCamera(sim: boolean): void
   usarMicrofone(sim: boolean): void
+  setSaude(s: Saude): void
+  setAjuste<K extends keyof Ajustes>(k: K, v: Ajustes[K]): void
   reiniciar(): void
 }
 
@@ -101,6 +107,8 @@ const INICIAL: Estado = {
   focoPorComputador: {},
   cameraEmUso: false,
   micEmUso: false,
+  saude: 'ok',
+  ajustes: { mao: 'direita', girado: false, velocidade: 60, aceleracao: 40, rolagemNatural: true, limitarCarga: true },
 }
 
 const AVISO_MS = 3000
@@ -182,6 +190,12 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   },
   usarCamera: (sim) => set({ cameraEmUso: sim }),
   usarMicrofone: (sim) => set({ micEmUso: sim }),
+  setSaude(saude) {
+    set({ saude })
+    if (saude === 'bateria') get().avisar('Bateria do celular fraca: ligue no cabo')
+    if (saude === 'quente') get().avisar('Celular quente: o brilho foi reduzido')
+  },
+  setAjuste: (k, v) => set(({ ajustes }) => ({ ajustes: { ...ajustes, [k]: v } })),
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
 

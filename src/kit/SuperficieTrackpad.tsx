@@ -72,8 +72,10 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
         const n = zona.current === 'borda' ? 2 : quantos()
         if (n === 1) {
           const velocidade = Math.hypot(dx, dy)
-          const acel = 1 + Math.min(2.5, velocidade / 6)
-          moverCursor(dx * GANHO * acel, (dy * GANHO * acel * 16) / 10)
+          const { velocidade: vel, aceleracao } = useSim.getState().ajustes
+          const acel = 1 + Math.min(2.5, velocidade / 6) * (aceleracao / 40)
+          const ganho = GANHO * (0.4 + vel / 60)
+          moverCursor(dx * ganho * acel, (dy * ganho * acel * 16) / 10)
           setGesto(null)
         } else if (n === 2) setGesto('rolando')
         else setGesto(Math.abs(dx) > Math.abs(dy) ? `${n} dedos: trocar de área` : `${n} dedos: ver janelas`)

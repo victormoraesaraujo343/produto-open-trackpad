@@ -17,7 +17,7 @@ import { TeclaModos } from '../navegacao/Modos'
    `doModo` é a única tecla que muda com o modo, sempre na última posição da lateral do sistema. */
 export function ComLaterais({ centro, doModo }: { centro: ReactNode; doModo?: ReactNode }) {
   const forma = useVariante('trackpad')
-  const mao = useVariante('mao')
+  const mao = useSim((s) => s.ajustes.mao)
   const appId = useSim((s) => s.appEmFoco)
   const ids = PERFIS[appId]
   const nomeApp = <span className="cel-cabeca-app"><IconeApp app={appId} tamanho={16} /><span>{APPS[appId].nome}</span></span>
@@ -42,7 +42,7 @@ export function ComLaterais({ centro, doModo }: { centro: ReactNode; doModo?: Re
     ;[esquerda, direita] = mao === 'esquerda' ? [s, a] : [a, s]
   } else {
     const a = <Lateral lado="esquerda" rotulo="Atalhos do app em foco" cabeca={nomeApp}>{app}</Lateral>
-    const s = <Lateral lado="direita" rotulo="Sistema" cabeca={<Indicador />}>{sistema}</Lateral>
+    const s = <Lateral lado="direita" rotulo="Sistema" cabeca={<><Indicador /><Saude /></>}>{sistema}</Lateral>
     ;[esquerda, direita] = mao === 'esquerda' ? [s, a] : [a, s]
   }
 
@@ -53,6 +53,13 @@ export function ComLaterais({ centro, doModo }: { centro: ReactNode; doModo?: Re
       {direita}
     </div>
   )
+}
+
+/* Bateria fraca ou celular quente: aviso fixo na cabeça da lateral, além do aviso que some. */
+function Saude() {
+  const saude = useSim((s) => s.saude)
+  if (saude === 'ok') return null
+  return <span className="cel-saude" role="status"><Led aceso cor="ambar" />{saude === 'bateria' ? 'Bateria' : 'Quente'}</span>
 }
 
 function InfoPresas() {

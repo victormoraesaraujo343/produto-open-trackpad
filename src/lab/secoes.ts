@@ -31,12 +31,13 @@ export const SECOES = [
   { n: '24', nome: 'Área de transferência' },
   { n: '25', nome: 'Câmera e microfone do celular' },
   { n: '26', nome: 'Vários computadores' },
+  { n: '27', nome: 'Ajustes do celular' },
+  { n: '28', nome: 'Aparelho dedicado: escurecer, bateria, calor, noturno' },
 ]
 
 export const VARIANTES = {
   acabamento: { secao: '1', rotulo: 'Acabamento', opcoes: [['escuro', 'Alumínio escuro'], ['claro', 'Alumínio claro'], ['escuro-pad-claro', 'Escuro com trackpad claro']] },
   trackpad: { secao: '2', rotulo: 'Laterais', opcoes: [['app-sistema', 'Esquerda: app em foco · direita: sistema'], ['uma-mao', 'Tudo numa lateral dupla, do lado da mão'], ['polegar', 'Teclas só embaixo, informação em cima']] },
-  mao: { secao: '2', rotulo: 'Mão', opcoes: [['direita', 'Direita'], ['esquerda', 'Esquerda']] },
   modos: { secao: '3', rotulo: 'Modos', opcoes: [['tecla', 'Tecla Modos abre o menu'], ['deslizar', 'Segurar a tecla e soltar no modo'], ['doisdedos', 'Só o gesto: dois dedos parados']] },
   atalhos: { secao: '4', rotulo: 'Atalhos', opcoes: [['grade', 'Grade de teclas'], ['largas', 'Teclas largas com a combinação'], ['grupos', 'Colunas por grupo'], ['paginas', 'Páginas de lado']] },
   espelho: { secao: '5', rotulo: 'Alternar toque', opcoes: [['lateral', 'Alternador na lateral'], ['flutuante', 'Alternador flutuante'], ['gesto', 'Três dedos alternam']] },

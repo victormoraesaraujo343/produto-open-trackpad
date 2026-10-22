@@ -117,12 +117,17 @@ function MenuModos({ aberto, aoFechar, aoEscolher }: { aberto: boolean; aoFechar
             )
           })}
         </div>
+        <div className="cel-menu-rodape">
+        <button type="button" role="menuitem" className="cel-menu-travar" data-lab="27" onClick={() => { useSim.getState().irPara('ajustes'); aoFechar() }}>
+          <Icone nome="ajustes" tamanho={18} /><span>Ajustes</span>
+        </button>
         {trava !== 'sem' && (
           <button type="button" role="menuitem" className="cel-menu-travar" data-lab="13"
             onClick={() => { useSim.getState().travar(true); aoFechar(); vibrar(12); useSim.getState().avisar('Travado: o celular fica só no OpenTrackpad') }}>
             <Icone nome="cadeado" tamanho={18} /><span>Travar no OpenTrackpad</span>
           </button>
         )}
+        </div>
       </Modulo>
     </Camada>
   )

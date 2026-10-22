@@ -16,6 +16,7 @@ import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
 import { JanelaUnica, MonitorExtra, Recorte } from './tela/Conteudos'
 import { TelaPainel } from './tela/TelaPainel'
+import { TelaAjustes } from './ajustes/TelaAjustes'
 import { TelaCamera } from './ponte/TelaCamera'
 import { TelaComputadores } from './ponte/TelaComputadores'
 import { TelaMicrofone } from './ponte/TelaMicrofone'
@@ -76,6 +77,7 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
     case 'camera': return { centro: <TelaCamera />, doModo: <Voltar /> }
     case 'microfone': return { centro: <TelaMicrofone />, doModo: <Voltar /> }
     case 'computadores': return { centro: <TelaComputadores />, doModo: <Voltar /> }
+    case 'ajustes': return { centro: <TelaAjustes />, doModo: <Voltar /> }
     case 'painel': return { centro: <TelaPainel />, doModo: <Voltar /> }
     case 'midia': return { centro: <TelaMidia />, doModo: <Voltar /> }
     case 'janelas': return { centro: <TelaJanelas />, doModo: <Voltar /> }
@@ -110,6 +112,10 @@ export function Celular() {
   const [verTela, setVerTela] = useState(false)
   const teclado = useVariante('teclado')
   const descanso = useSim(mostrarDescanso)
+  const escuro = useSim((s) => s.ocioso && !s.opcoes.paradoViraPainel)
+  const noturno = useSim((s) => s.opcoes.noturno)
+  const quente = useSim((s) => s.saude === 'quente')
+  const girado = useSim((s) => s.ajustes.girado)
   useEffect(() => {
     if (descanso) return
     let t = setTimeout(() => useSim.getState().ficarOcioso(), PARADO_MS)
@@ -121,7 +127,7 @@ export function Celular() {
   const { centro, doModo } = conteudo(tela, verTela, setVerTela)
   const telaInteira = tela === 'teclado' && teclado === 'dividido'
   return (
-    <div className="cel" data-lab="1"
+    <div className={`cel${noturno ? ' cel-noturno' : ''}${quente ? ' cel-quente' : ''}${girado ? ' cel-girado' : ''}`} data-lab="1"
       onPointerDownCapture={(e) => {
         dedos.current.add(e.pointerId)
         const n = Math.max(dedos.current.size, useSim.getState().dedos)
@@ -142,6 +148,10 @@ export function Celular() {
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
           <span>Volume +: {ATALHOS[a].rotulo}</span><span>Volume −: {ATALHOS[b].rotulo}</span>
         </div>
+      )}
+      {escuro && (
+        <div className="cel-camada-escura" role="button" tabIndex={0} aria-label="Tela escurecida. Toque para acordar" data-lab="28"
+          onPointerDown={(e) => { e.stopPropagation(); useSim.getState().tocar() }} onKeyDown={() => useSim.getState().tocar()} />
       )}
       {descanso && (
         <div className="cel-camada-descanso" role="button" tabIndex={0} aria-label="Celular parado. Toque para voltar"

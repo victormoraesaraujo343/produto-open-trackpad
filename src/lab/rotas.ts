@@ -42,6 +42,8 @@ const ROTAS: Record<string, () => void> = {
   '24': () => celular('transferencia'),
   '25': () => celular('camera', 3),
   '26': () => { useSim.getState().setOpcao('variosPcs', true); celular('computadores') },
+  '27': () => celular('ajustes'),
+  '28': () => { celular('trackpad'); useSim.getState().setSaude('bateria') },
   '18': () => { celular('trackpad'); useSim.getState().setOpcao('zonas', true) },
 }
 
