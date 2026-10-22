@@ -261,4 +261,4 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
 }))
 
 /* Parado, o celular vira painel de informações (opção "parado vira painel"). */
-export const mostrarDescanso = (s: { ocioso: boolean; opcoes: Opcoes }) => s.ocioso && s.opcoes.paradoViraPainel
+export const mostrarDescanso = (s: { ocioso: boolean; opcoes: Opcoes; descanso: { jeito: JeitoDescanso } }) => s.ocioso && s.opcoes.paradoViraPainel && s.descanso.jeito !== 'escuro'

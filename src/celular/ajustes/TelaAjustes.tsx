@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { Basculante } from '../../kit/Basculante'
 import { Fader } from '../../kit/Fader'
 import { Segmentos } from '../../kit/Segmentos'
-import { useSim, type Opcoes } from '../../sim/loja'
+import { useSim, type JeitoDescanso, type Opcoes } from '../../sim/loja'
+import { ConfigBlocos } from '../tela/TelaPainel'
 
 function Linha({ nome, detalhe, children }: { nome: string; detalhe?: string; children: ReactNode }) {
   return (
@@ -18,6 +19,7 @@ function Linha({ nome, detalhe, children }: { nome: string; detalhe?: string; ch
 export function TelaAjustes() {
   const a = useSim((s) => s.ajustes)
   const o = useSim((s) => s.opcoes)
+  const jeito = useSim((s) => s.descanso.jeito)
   const { setAjuste, setOpcao } = useSim.getState()
   const chave = (k: keyof Opcoes, nome: string, detalhe?: string) => (
     <Linha nome={nome} detalhe={detalhe}><Basculante ligado={o[k]} rotulo={nome} aoMudar={(v) => setOpcao(k, v)} /></Linha>
@@ -39,7 +41,11 @@ export function TelaAjustes() {
       <section aria-label="Aparelho">
         <h3>Aparelho</h3>
         {chave('vibracao', 'Vibrar ao tocar')}
-        {chave('paradoViraPainel', 'Parado vira painel', 'Senão, só escurece')}
+        {chave('paradoViraPainel', 'Tela de descanso', 'Quando o celular fica parado')}
+        {o.paradoViraPainel && (<>
+          <Linha nome="Mostrar"><Segmentos rotulo="O que a tela de descanso mostra" valor={jeito} opcoes={[['relogio', 'Relógio'], ['painel', 'Infos'], ['foto', 'Foto'], ['escuro', 'Nada']]} aoMudar={(v) => useSim.getState().setJeitoDescanso(v as JeitoDescanso)} /></Linha>
+          {jeito === 'painel' && <ConfigBlocos onde="descanso" />}
+        </>)}
         {chave('noturno', 'Modo noturno')}
         {chave('abrirSozinho', 'Abrir sozinho ao conectar')}
         <Linha nome="Limitar a carga em 80%" detalhe="Para o celular que vive no cabo"><Basculante ligado={a.limitarCarga} rotulo="Limitar a carga em 80%" aoMudar={(v) => setAjuste('limitarCarga', v)} /></Linha>

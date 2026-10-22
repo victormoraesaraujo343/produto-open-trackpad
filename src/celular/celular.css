@@ -617,3 +617,32 @@
 }
 .cel-trocar-opcoes button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cel-trocar-opcoes .cel-modo-ativo { color: var(--ink); box-shadow: var(--shadow-key), inset 0 -2px 0 var(--laranja); }
+
+/* painel e descanso configuráveis (#6, #7) */
+.cel-painel-grade { grid-template-rows: none; grid-auto-rows: minmax(0, 1fr); }
+.cel-blocos-1 { grid-template-columns: 1fr; }
+.cel-blocos-1 .cel-bloco-hora .cel-hora { font-size: 64px; }
+.cel-bloco-musica { display: flex; align-items: center; gap: 10px; color: var(--ink-2); }
+.cel-bloco-musica div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cel-bloco-musica b { font-size: 13px; color: var(--ink); }
+.cel-bloco-musica span { font-size: 11px; }
+.cel-capa-mini { width: 40px; height: 40px; border-radius: 5px; flex: none; background: radial-gradient(circle at 30% 25%, #F5C26B 0%, #D9643A 38%, #5B2A6E 100%); }
+.cel-bloco-rede { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cel-bloco-rede span:first-child { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.cel-vazio { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--ink-3); }
+.cel-painel-editar { overflow-y: auto; }
+.cel-config-blocos { margin: 0; padding: 4px 10px; list-style: none; display: flex; flex-direction: column; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); width: 100%; }
+.cel-config-blocos li { display: flex; align-items: center; gap: 10px; min-height: 52px; }
+.cel-config-blocos li + li { border-top: 1px solid rgba(0,0,0,0.25); }
+.cel-config-nome { flex: 1; font-size: 13px; color: var(--ink); }
+.cel-config-ordem { display: inline-flex; gap: 2px; }
+.cel-config-ordem button { width: 36px; height: 36px; padding: 0; cursor: pointer; border: 0; border-radius: 5px; background: transparent; color: var(--ink-2); font-size: 14px; }
+.cel-config-ordem button:hover:not(:disabled) { background: var(--groove); color: var(--ink); }
+.cel-config-ordem button:disabled { opacity: .3; cursor: default; }
+.cel-ajustes .cel-config-blocos { background: transparent; box-shadow: none; padding: 0; }
+.cel-descanso-relogio, .cel-descanso-foto { display: grid; place-items: center; }
+.cel-descanso-relogio .cel-deriva, .cel-descanso-foto .cel-deriva { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cel-descanso-foto { border-radius: 8px; background: linear-gradient(160deg, #3b4f63 0%, #6b5a46 55%, #2a221a 100%); }
+.cel-descanso-foto .cel-deriva { align-self: end; justify-self: start; align-items: flex-start; padding: 0 0 20px 24px; }
+.cel-descanso-foto .cel-hora-grande { font-size: 64px; color: #EDEFEA; }
+.cel-descanso-foto .cel-data { color: #D5D8D2; }

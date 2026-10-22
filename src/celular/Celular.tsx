@@ -63,7 +63,7 @@ function Voltar() {
 }
 
 /* O que cada modo põe no centro e na última tecla da lateral do sistema. */
-function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => void): { centro: ReactNode; doModo: ReactNode } {
+function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => void, editarPainel: boolean, setEditarPainel: (v: boolean) => void): { centro: ReactNode; doModo: ReactNode } {
   switch (t) {
     case 'teclado': return { centro: <TelaTeclado />, doModo: <Voltar /> }
     case 'voz': return { centro: <TelaVoz />, doModo: <Voltar /> }
@@ -78,7 +78,10 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
     case 'microfone': return { centro: <TelaMicrofone />, doModo: <Voltar /> }
     case 'computadores': return { centro: <TelaComputadores />, doModo: <Voltar /> }
     case 'ajustes': return { centro: <TelaAjustes />, doModo: <Voltar /> }
-    case 'painel': return { centro: <TelaPainel />, doModo: <Voltar /> }
+    case 'painel': return {
+      centro: <TelaPainel editar={editarPainel} />,
+      doModo: <Tecla rotulo={editarPainel ? 'Pronto' : 'Editar'} icone={editarPainel ? 'tick' : 'ajustes'} ligada={editarPainel} aoTocar={() => setEditarPainel(!editarPainel)} />,
+    }
     case 'midia': return { centro: <TelaMidia />, doModo: <Voltar /> }
     case 'janelas': return { centro: <TelaJanelas />, doModo: <Voltar /> }
     case 'lancador': return { centro: <TelaLancador />, doModo: <Voltar /> }
@@ -116,7 +119,7 @@ export function Celular() {
   const [verTela, setVerTela] = useState(false)
   const teclado = useVariante('teclado')
   const descanso = useSim(mostrarDescanso)
-  const escuro = useSim((s) => s.ocioso && !s.opcoes.paradoViraPainel)
+  const escuro = useSim((s) => s.ocioso && (!s.opcoes.paradoViraPainel || s.descanso.jeito === 'escuro'))
   const noturno = useSim((s) => s.opcoes.noturno)
   const quente = useSim((s) => s.saude === 'quente')
   const girado = useSim((s) => s.ajustes.girado)
@@ -128,7 +131,8 @@ export function Celular() {
     window.addEventListener('keydown', mexeu)
     return () => { clearTimeout(t); window.removeEventListener('pointerdown', mexeu); window.removeEventListener('keydown', mexeu) }
   }, [descanso, tela])
-  const { centro, doModo } = conteudo(tela, verTela, setVerTela)
+  const [editarPainel, setEditarPainel] = useState(false)
+  const { centro, doModo } = conteudo(tela, verTela, setVerTela, editarPainel, setEditarPainel)
   const telaInteira = tela === 'teclado' && teclado === 'dividido'
   return (
     <div className={`cel${noturno ? ' cel-noturno' : ''}${quente ? ' cel-quente' : ''}${girado ? ' cel-girado' : ''}`} data-lab="1"

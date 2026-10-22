@@ -13,6 +13,7 @@ import { PRESETS, liberado } from '../sim/conexao'
 import { nivelAtual, useSim, type Lado, type Opcoes } from '../sim/loja'
 import { nomeDoItem, opcoesDeItem } from '../celular/laterais/itens'
 import { Janela } from './Janela'
+import { ConfigBlocos } from '../celular/tela/TelaPainel'
 
 type Secao = 'aparelhos' | 'conexao' | 'atalhos' | 'laterais' | 'telas' | 'funcoes' | 'sensacao'
 const SECOES: { id: Secao; nome: string; icone: string }[] = [
@@ -139,6 +140,7 @@ function Conteudo({ secao, compacto = false }: { secao: Secao; compacto?: boolea
     const ok = liberado(3, nivel)
     return (
       <div className="pc-lista">
+        {!compacto && <><h3 className="pc-subtitulo">Painel de informações</h3><div className="pc-config"><ConfigBlocos onde="painel" /></div><h3 className="pc-subtitulo">Telas do computador no celular</h3></>}
         {['Espelhar a tela', 'Segundo monitor', 'Uma janela só', 'Recorte', 'Monitor vertical'].map((t) => (
           <Linha key={t} nome={t}>{ok ? <><Led aceso /> disponível</> : <><Led aceso={false} /> precisa de cabo rápido ou Wi-Fi recente</>}</Linha>
         ))}
