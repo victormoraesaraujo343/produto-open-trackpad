@@ -2,7 +2,7 @@ import { Bancada } from './bancada/Bancada'
 import { MolduraCelular } from './bancada/MolduraCelular'
 
 function TelaDoCelular() {
-  return <div className="tela-vazia">opentrackpad</div>
+  return <div className="tela-vazia" data-lab="1">opentrackpad</div>
 }
 
 function TelaDoComputador() {
