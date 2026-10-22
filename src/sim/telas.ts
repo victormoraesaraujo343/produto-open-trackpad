@@ -11,6 +11,7 @@ export const TELAS_CELULAR = {
   recorte: { nome: 'Recorte', nivel: 3, area: 'tela' },
   vertical: { nome: 'Monitor vertical', nivel: 3, area: 'tela' },
   painel: { nome: 'Informações', nivel: 2, area: 'tela' },
+  recursos: { nome: 'Recursos', nivel: 2, area: 'tela' },
   mixer: { nome: 'Som', nivel: 2, area: 'atalhos' },
   teclado: { nome: 'Teclado', nivel: 1, area: 'controle' },
   voz: { nome: 'Voz', nivel: 2, area: 'controle' },

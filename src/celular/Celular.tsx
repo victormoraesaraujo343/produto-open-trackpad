@@ -16,6 +16,7 @@ import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
 import { JanelaUnica, MonitorExtra, Recorte } from './tela/Conteudos'
 import { TelaPainel } from './tela/TelaPainel'
+import { TelaRecursos } from './recursos/TelaRecursos'
 import { TelaAjustes } from './ajustes/TelaAjustes'
 import { TelaCamera } from './ponte/TelaCamera'
 import { TelaComputadores } from './ponte/TelaComputadores'
@@ -78,6 +79,12 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
     case 'microfone': return { centro: <TelaMicrofone />, doModo: <Voltar /> }
     case 'computadores': return { centro: <TelaComputadores />, doModo: <Voltar /> }
     case 'ajustes': return { centro: <TelaAjustes />, doModo: <Voltar /> }
+    case 'recursos': return {
+      centro: <TelaRecursos editar={editarPainel} />,
+      doModo: useSim.getState().monitor.vista === 'avancada'
+        ? <Tecla rotulo={editarPainel ? 'Pronto' : 'Editar'} icone={editarPainel ? 'tick' : 'ajustes'} ligada={editarPainel} aoTocar={() => setEditarPainel(!editarPainel)} />
+        : <Voltar />,
+    }
     case 'painel': return {
       centro: <TelaPainel editar={editarPainel} />,
       doModo: <Tecla rotulo={editarPainel ? 'Pronto' : 'Editar'} icone={editarPainel ? 'tick' : 'ajustes'} ligada={editarPainel} aoTocar={() => setEditarPainel(!editarPainel)} />,
@@ -119,6 +126,7 @@ export function Celular() {
   const [verTela, setVerTela] = useState(false)
   const teclado = useVariante('teclado')
   const descanso = useSim(mostrarDescanso)
+  useSim((s) => s.monitor.vista)
   const escuro = useSim((s) => s.ocioso && (!s.opcoes.paradoViraPainel || s.descanso.jeito === 'escuro'))
   const noturno = useSim((s) => s.opcoes.noturno)
   const quente = useSim((s) => s.saude === 'quente')

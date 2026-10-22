@@ -4,6 +4,7 @@ import type { AppId } from '../dados/apps'
 import { ATALHOS, PERFIS, teclasDoSistema, type Atalho } from '../dados/atalhos'
 import type { Sistema } from '../dados/computadores'
 import { JANELAS } from '../dados/janelas'
+import type { Metrica } from './telemetria'
 import { PRESETS, liberado, nivelDe, type Nivel, type PresetId } from './conexao'
 import { TELAS_CELULAR, type TelaCelular, type TelaPc } from './telas'
 
@@ -12,6 +13,9 @@ export type Dedos = 1 | 2 | 3 | 4
 export type Lado = 'esquerda' | 'direita'
 export interface Bloco { id: string; ligado: boolean }
 export type JeitoDescanso = 'relogio' | 'painel' | 'foto' | 'escuro'
+export type VistaMonitor = 'simples' | 'padrao' | 'avancada'
+export type EstiloMedidor = 'barra' | 'anel' | 'ponteiro' | 'grafico' | 'segmentos' | 'numero' | 'colunas'
+export interface BlocoMonitor { id: string; metrica: Metrica; estilo: EstiloMedidor; largura: 1 | 2 }
 export type Saude = 'ok' | 'bateria' | 'quente'
 export interface Ajustes { mao: 'direita' | 'esquerda'; girado: boolean; velocidade: number; aceleracao: number; rolagemNatural: boolean; limitarCarga: boolean }
 export interface Copia { id: number; texto: string; origem: string; em: number }
@@ -54,6 +58,7 @@ interface Estado {
   laterais: Record<AppId, { esquerda: string[]; direita: string[] }>
   blocosPainel: Bloco[]
   descanso: { jeito: JeitoDescanso; blocos: Bloco[] }
+  monitor: { vista: VistaMonitor; blocos: BlocoMonitor[] }
 }
 
 interface Acoes {
@@ -94,6 +99,11 @@ interface Acoes {
   alternarBloco(onde: 'painel' | 'descanso', id: string): void
   moverBloco(onde: 'painel' | 'descanso', id: string, direcao: -1 | 1): void
   setJeitoDescanso(j: JeitoDescanso): void
+  setVistaMonitor(v: VistaMonitor): void
+  adicionarBlocoMonitor(): string
+  configurarBlocoMonitor(id: string, p: Partial<Omit<BlocoMonitor, 'id'>>): void
+  moverBlocoMonitor(id: string, para: number): void
+  removerBlocoMonitor(id: string): void
   reiniciar(): void
 }
 
@@ -132,6 +142,14 @@ const INICIAL: Estado = {
   secaoCentral: 'aparelhos',
   laterais: Object.fromEntries((Object.keys(PERFIS) as AppId[]).map((a) => [a, { esquerda: PERFIS[a].slice(0, 5), direita: ['cliqueDireito', 'presa:Ctrl', 'presa:Shift'] }])) as Record<AppId, { esquerda: string[]; direita: string[] }>,
   blocosPainel: ['hora', 'maquina', 'reuniao', 'notificacoes', 'musica', 'rede'].map((id) => ({ id, ligado: !['musica', 'rede'].includes(id) })),
+  monitor: { vista: 'padrao', blocos: [
+    { id: 'm1', metrica: 'cpu', estilo: 'grafico', largura: 2 },
+    { id: 'm2', metrica: 'memoria', estilo: 'anel', largura: 1 },
+    { id: 'm3', metrica: 'temperatura', estilo: 'ponteiro', largura: 1 },
+    { id: 'm4', metrica: 'rede', estilo: 'colunas', largura: 2 },
+    { id: 'm5', metrica: 'gpu', estilo: 'segmentos', largura: 1 },
+    { id: 'm6', metrica: 'bateria', estilo: 'numero', largura: 1 },
+  ] },
   descanso: { jeito: 'relogio', blocos: ['hora', 'maquina', 'reuniao', 'notificacoes', 'musica', 'rede'].map((id) => ({ id, ligado: id === 'hora' })) },
   ajustes: { mao: 'direita', girado: false, velocidade: 60, aceleracao: 40, rolagemNatural: true, limitarCarga: true },
 }
@@ -257,6 +275,21 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     return onde === 'painel' ? { blocosPainel: lista } : { descanso: { ...st.descanso, blocos: lista } }
   }),
   setJeitoDescanso: (jeito) => set((st) => ({ descanso: { ...st.descanso, jeito } })),
+  setVistaMonitor: (vista) => set((st) => ({ monitor: { ...st.monitor, vista } })),
+  adicionarBlocoMonitor() {
+    const id = `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
+    set((st) => ({ monitor: { ...st.monitor, blocos: [...st.monitor.blocos, { id, metrica: 'cpu', estilo: 'barra', largura: 1 }] } }))
+    return id
+  },
+  configurarBlocoMonitor: (id, p) => set((st) => ({ monitor: { ...st.monitor, blocos: st.monitor.blocos.map((b) => (b.id === id ? { ...b, ...p } : b)) } })),
+  moverBlocoMonitor: (id, para) => set((st) => {
+    const l = st.monitor.blocos.filter((b) => b.id !== id)
+    const b = st.monitor.blocos.find((x) => x.id === id)
+    if (!b) return {}
+    l.splice(Math.max(0, Math.min(para, l.length)), 0, b)
+    return { monitor: { ...st.monitor, blocos: l } }
+  }),
+  removerBlocoMonitor: (id) => set((st) => ({ monitor: { ...st.monitor, blocos: st.monitor.blocos.filter((b) => b.id !== id) } })),
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
 

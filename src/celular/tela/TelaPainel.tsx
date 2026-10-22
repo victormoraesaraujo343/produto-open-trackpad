@@ -8,6 +8,8 @@ import { IconeApp } from '../../kit/IconeApp'
 import { Tecla } from '../../kit/Tecla'
 import { PRESETS } from '../../sim/conexao'
 import { useSim, type Bloco } from '../../sim/loja'
+import { olharTelemetria } from '../../sim/telemetria'
+import { Medidor as MedidorRecurso } from '../recursos/Medidor'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
@@ -16,17 +18,8 @@ export const NOME_BLOCO: Record<string, string> = { hora: 'Hora', maquina: 'Comp
 function useAgora() {
   const [agora, setAgora] = useState(() => new Date())
   useEffect(() => { const t = setInterval(() => setAgora(new Date()), 15000); return () => clearInterval(t) }, [])
+  useEffect(() => olharTelemetria(), [])
   return agora
-}
-
-function Medidor({ nome, valor, detalhe }: { nome: string; valor: number; detalhe: string }) {
-  return (
-    <div className="cel-medida" role="meter" aria-label={nome} aria-valuenow={valor} aria-valuemin={0} aria-valuemax={100}>
-      <span className="cel-medida-nome">{nome}</span>
-      <span className="cel-medida-trilho"><i style={{ width: `${valor}%` }} className={valor > 80 ? 'alto' : ''} /></span>
-      <span className="cel-medida-valor">{detalhe}</span>
-    </div>
-  )
 }
 
 function ConteudoBloco({ id, descanso }: { id: string; descanso: boolean }) {
@@ -34,12 +27,7 @@ function ConteudoBloco({ id, descanso }: { id: string; descanso: boolean }) {
   const preset = useSim((s) => s.preset)
   const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   if (id === 'hora') return <><span className="cel-hora">{hora}</span><span className="cel-data">{DIAS[agora.getDay()]}, {agora.getDate()} {MESES[agora.getMonth()]}</span></>
-  if (id === 'maquina') return (<>
-    <Medidor nome="Processador" valor={23} detalhe="23%" />
-    <Medidor nome="Memória" valor={61} detalhe="9,8 GB" />
-    <Medidor nome="Temperatura" valor={48} detalhe="54 °C" />
-    <Medidor nome="Bateria" valor={78} detalhe="78%" />
-  </>)
+  if (id === 'maquina') return <div className="cel-maquina">{(['cpu', 'memoria', 'temperatura', 'bateria'] as const).map((m) => <MedidorRecurso key={m} metrica={m} estilo="barra" />)}</div>
   if (id === 'reuniao') return (<>
     <b className="cel-reuniao-prox">{AGENDA[0].titulo}</b>
     <span className="cel-data">{AGENDA[0].inicio} · {AGENDA[0].local}</span>

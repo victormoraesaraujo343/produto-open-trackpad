@@ -57,6 +57,7 @@ const ROTAS: Record<string, () => void> = {
   '33': () => { limpar(); garantirNivel(1); useSim.getState().setSecaoCentral('laterais'); useSim.getState().irParaPc('central'); celular('trackpad', 1, 'central') },
   '34': () => celular('ajustes'),
   '35': () => { celular('trackpad'); useSim.getState().setOpcao('rastro', true) },
+  '36': () => celular('recursos', 2),
   '18': () => { celular('trackpad'); useSim.getState().setOpcao('zonas', true) },
 }
 
