@@ -12,3 +12,4 @@
 .bs-n2 { background: #6b5a1f; color: #f6eed8; }
 .bs-n1 { background: #6b2f1f; color: #f6dfd8; }
 .bs-marca { margin-left: auto; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--chrome-ink-2); }
+.bs-botao { font: inherit; color: var(--chrome-ink); background: var(--chrome-bg); border: 1px solid var(--chrome-line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }

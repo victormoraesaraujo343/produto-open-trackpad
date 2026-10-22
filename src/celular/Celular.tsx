@@ -4,7 +4,7 @@ import { Aviso } from '../kit/Aviso'
 import { SuperficieTrackpad } from '../kit/SuperficieTrackpad'
 import { Tecla } from '../kit/Tecla'
 import { useVariante, variante } from '../lab/refinamento'
-import { mostrarDescanso, useSim } from '../sim/loja'
+import { mostrarDescanso, nivelAtual, useSim } from '../sim/loja'
 import type { TelaCelular } from '../sim/telas'
 import { vibrar } from '../sim/vibrar'
 import { TelaAtalhos } from './atalhos/TelaAtalhos'
@@ -16,6 +16,10 @@ import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
 import { JanelaUnica, MonitorExtra, Recorte } from './tela/Conteudos'
 import { TelaPainel } from './tela/TelaPainel'
+import { TelaCamera } from './ponte/TelaCamera'
+import { TelaComputadores } from './ponte/TelaComputadores'
+import { TelaMicrofone } from './ponte/TelaMicrofone'
+import { TelaTransferencia } from './ponte/TelaTransferencia'
 import { TelaVertical } from './tela/TelaVertical'
 import { TelaMesa, podeVerTela } from './entrada/TelaMesa'
 import { TelaTeclado } from './entrada/TelaTeclado'
@@ -40,6 +44,19 @@ export function apertarBotaoLateral(qual: 'mais' | 'menos') {
   vibrar(8)
 }
 
+/* Reunião completa (combinação): a câmera do celular, o mudo e o tempo na mesma tela. */
+function CameraNaReuniao() {
+  const emUso = useSim((s) => s.cameraEmUso)
+  const pode = useSim((s) => nivelAtual(s.preset) >= 3)
+  if (!pode) return null
+  return (
+    <button type="button" className={`cel-reuniao-camera${emUso ? ' k-ligada' : ''}`} aria-pressed={emUso} onClick={() => useSim.getState().usarCamera(!emUso)}>
+      <span className={`cel-mini-camera${emUso ? ' no-ar' : ''}`} aria-hidden="true" />
+      <span>{emUso ? 'Câmera do celular no ar' : 'Usar a câmera do celular'}</span>
+    </button>
+  )
+}
+
 function Voltar() {
   return <Tecla rotulo="Voltar ao trackpad" icone="trackpad" aoTocar={() => useSim.getState().irPara('trackpad')} />
 }
@@ -55,11 +72,15 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
         ? <Tecla rotulo={verTela ? 'Esconder a tela' : 'Ver a tela'} icone="tela" ligada={verTela} aoTocar={() => setVerTela(!verTela)} />
         : <Tecla rotulo="Limpar desenho" icone="fechar" aoTocar={() => useSim.getState().limparDesenho()} />,
     }
+    case 'transferencia': return { centro: <TelaTransferencia />, doModo: <Voltar /> }
+    case 'camera': return { centro: <TelaCamera />, doModo: <Voltar /> }
+    case 'microfone': return { centro: <TelaMicrofone />, doModo: <Voltar /> }
+    case 'computadores': return { centro: <TelaComputadores />, doModo: <Voltar /> }
     case 'painel': return { centro: <TelaPainel />, doModo: <Voltar /> }
     case 'midia': return { centro: <TelaMidia />, doModo: <Voltar /> }
     case 'janelas': return { centro: <TelaJanelas />, doModo: <Voltar /> }
     case 'lancador': return { centro: <TelaLancador />, doModo: <Voltar /> }
-    case 'reuniao': return { centro: <TelaReuniao />, doModo: <Voltar /> }
+    case 'reuniao': return { centro: <TelaReuniao extra={<CameraNaReuniao />} />, doModo: <Voltar /> }
     case 'atalhos': return { centro: <TelaAtalhos />, doModo: <Voltar /> }
     case 'mixer': return { centro: <TelaMixer />, doModo: <Voltar /> }
     case 'giro': return { centro: <TelaGiro />, doModo: <Voltar /> }

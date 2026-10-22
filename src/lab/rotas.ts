@@ -39,6 +39,9 @@ const ROTAS: Record<string, () => void> = {
   '21': () => celular('vertical', 3),
   '22': () => celular('painel', 2),
   '23': () => { celular('trackpad'); useSim.getState().setOpcao('paradoViraPainel', true); useSim.getState().ficarOcioso() },
+  '24': () => celular('transferencia'),
+  '25': () => celular('camera', 3),
+  '26': () => { useSim.getState().setOpcao('variosPcs', true); celular('computadores') },
   '18': () => { celular('trackpad'); useSim.getState().setOpcao('zonas', true) },
 }
 

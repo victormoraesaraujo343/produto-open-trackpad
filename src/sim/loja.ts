@@ -9,6 +9,7 @@ import { TELAS_CELULAR, type TelaCelular, type TelaPc } from './telas'
 
 export type Plataforma = 'android' | 'iphone'
 export type Dedos = 1 | 2 | 3 | 4
+export interface Copia { id: number; texto: string; origem: string; em: number }
 export interface Ponto { x: number; y: number; p: number }
 /* funções opcionais (o spec pede "opcional por padrão"): ligam e desligam na central e no celular */
 export interface Opcoes { zonas: boolean; noturno: boolean; confianca: boolean; variosPcs: boolean; variosCelulares: boolean; abrirSozinho: boolean; paradoViraPainel: boolean; vibracao: boolean }
@@ -34,6 +35,11 @@ interface Estado {
   opcoes: Opcoes
   tracos: Ponto[][]
   orientacao: 'deitado' | 'empe'
+  transferencia: Copia[]
+  computador: string
+  focoPorComputador: Record<string, AppId>
+  cameraEmUso: boolean
+  micEmUso: boolean
 }
 
 interface Acoes {
@@ -59,6 +65,10 @@ interface Acoes {
   desenhar(traco: Ponto[]): void
   limparDesenho(): void
   trocarParaJanela(id: string): void
+  copiar(texto: string, origem: string): void
+  trocarComputador(id: string): void
+  usarCamera(sim: boolean): void
+  usarMicrofone(sim: boolean): void
   reiniciar(): void
 }
 
@@ -83,6 +93,14 @@ const INICIAL: Estado = {
   opcoes: { zonas: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true },
   tracos: [],
   orientacao: 'deitado',
+  transferencia: [
+    { id: 2, texto: 'apresentacao-q4-versao-final-de-verdade.pdf', origem: 'computador', em: 2 },
+    { id: 1, texto: 'Rua das Palmeiras, 120 — apto 31', origem: 'celular', em: 1 },
+  ],
+  computador: 'c1',
+  focoPorComputador: {},
+  cameraEmUso: false,
+  micEmUso: false,
 }
 
 const AVISO_MS = 3000
@@ -100,13 +118,15 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   conectar(p) {
     const n = nivelAtual(p)
     const { tela } = get()
-    if (n === 0) return set({ preset: p, tela: 'conexao', teclasPresas: [] })
+    const antes = get().preset
+    if (n === 0) return set({ preset: p, tela: 'conexao', teclasPresas: [], cameraEmUso: false, micEmUso: false })
     if (tela === 'conexao') return set({ preset: p, tela: 'trackpad' })
     if (!cabe(tela, n)) {
       set({ preset: p, tela: 'trackpad', orientacao: 'deitado' })
       return get().avisar('A conexão piorou. Voltamos ao trackpad.')
     }
     set({ preset: p })
+    if (nivelAtual(antes) > 0 && PRESETS[antes].via !== PRESETS[p].via) get().avisar(`Agora por ${PRESETS[p].rotulo}. Nada foi interrompido.`)
   },
 
   irPara(t) {
@@ -153,6 +173,15 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     if (!j) return
     set({ appEmFoco: j.app, ultimoAtalho: { texto: j.titulo, em: Date.now() } })
   },
+  copiar: (texto, origem) => set(({ transferencia }) => ({ transferencia: [{ id: Date.now() + Math.random(), texto, origem, em: Date.now() }, ...transferencia].slice(0, 12) })),
+  trocarComputador(id) {
+    const { computador, appEmFoco, focoPorComputador } = get()
+    if (id === computador) return
+    const guardado = { ...focoPorComputador, [computador]: appEmFoco }
+    set({ computador: id, focoPorComputador: guardado, appEmFoco: guardado[id] ?? 'area', teclasPresas: [] })
+  },
+  usarCamera: (sim) => set({ cameraEmUso: sim }),
+  usarMicrofone: (sim) => set({ micEmUso: sim }),
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
 

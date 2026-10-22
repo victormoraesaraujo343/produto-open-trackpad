@@ -28,6 +28,9 @@ export const SECOES = [
   { n: '21', nome: 'Monitor vertical' },
   { n: '22', nome: 'Painel de informações' },
   { n: '23', nome: 'Tela de descanso' },
+  { n: '24', nome: 'Área de transferência' },
+  { n: '25', nome: 'Câmera e microfone do celular' },
+  { n: '26', nome: 'Vários computadores' },
 ]
 
 export const VARIANTES = {

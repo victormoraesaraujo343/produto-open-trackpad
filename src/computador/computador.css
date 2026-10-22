@@ -78,3 +78,6 @@
 .pc-osd-barra i { display: block; height: 100%; background: #fff; }
 .pc-osd b { width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 .pc-presas { position: absolute; padding: 3px 8px; border-radius: 6px; font: 600 12px system-ui, sans-serif; color: #fff; background: rgba(20,20,22,0.85); pointer-events: none; }
+.pc-em-uso { position: absolute; left: 16px; top: 16px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.pc-em-uso span { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; font: 500 12px system-ui, sans-serif; color: #fff; background: rgba(20,20,22,0.82); }
+.pc-em-uso i { width: 8px; height: 8px; border-radius: 50%; background: #FF4F1F; box-shadow: 0 0 6px #FF4F1F; }

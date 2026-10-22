@@ -18,6 +18,8 @@ function Grupo<T extends string | number>({ rotulo, valor, opcoes, aoMudar }: { 
   )
 }
 
+const COPIAS = ['https://libinput.pages.freedesktop.org', 'git checkout -b recomeco', 'Reunião remarcada para quinta, 10h', 'R$ 1.249,90']
+
 export function BarraSimulacao() {
   const s = useSim()
   const nivel = nivelAtual(s.preset)
@@ -40,6 +42,7 @@ export function BarraSimulacao() {
           </select>
         </label>
         <Grupo<Dedos> rotulo="Dedos do mouse" valor={s.dedos} opcoes={[[1, '1'], [2, '2'], [3, '3'], [4, '4']]} aoMudar={s.setDedos} />
+        <button type="button" className="bs-botao" onClick={() => s.copiar(COPIAS[Math.floor(Math.random() * COPIAS.length)], 'computador')}>Copiar algo no computador</button>
         <span className="bs-marca">simulação</span>
       </div>
     </header>

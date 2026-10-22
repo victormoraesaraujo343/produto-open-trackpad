@@ -25,6 +25,8 @@ export function Computador() {
   const osd = useSim((s) => s.osdVolume)
   const presas = useSim((s) => s.teclasPresas)
   const cursor = useSim((s) => s.cursor)
+  const camera = useSim((s) => s.cameraEmUso)
+  const mic = useSim((s) => s.micEmUso)
   const mostraAtalho = useRecente(atalho?.em, 1300)
   const mostraVolume = useRecente(osd || undefined, 1500)
   return (
@@ -34,6 +36,12 @@ export function Computador() {
         {telaPc === 'central' && <Central />}
         {telaPc === 'pareamento' && <Pareamento />}
       </div>
+      {(camera || mic) && (
+        <div className="pc-em-uso" role="status">
+          {camera && <span><i />Câmera do OpenTrackpad em uso</span>}
+          {mic && <span><i />Microfone do OpenTrackpad em uso</span>}
+        </div>
+      )}
       {presas.length > 0 && (
         <div className="pc-presas" style={{ left: `calc(${cursor.x * 100}% + 18px)`, top: `calc(${cursor.y * 100}% + 18px)` }}>{presas.join(' + ')}</div>
       )}

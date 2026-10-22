@@ -20,6 +20,10 @@ export const TELAS_CELULAR = {
   reuniao: { nome: 'Reunião', nivel: 2, area: 'atalhos' },
   lancador: { nome: 'Abrir', nivel: 1, area: 'atalhos' },
   giro: { nome: 'Volume', nivel: 1, area: 'controle' },
+  transferencia: { nome: 'Transferência', nivel: 1, area: 'ponte' },
+  camera: { nome: 'Câmera', nivel: 3, area: 'ponte' },
+  microfone: { nome: 'Microfone', nivel: 2, area: 'ponte' },
+  computadores: { nome: 'Computadores', nivel: 1, area: 'conexao' },
   conexao: { nome: 'Conexão', nivel: 1, area: 'conexao' },
   ajustes: { nome: 'Ajustes', nivel: 1, area: 'ajustes' },
 } as const satisfies Record<string, { nome: string; nivel: 1 | 2 | 3; area: Area }>

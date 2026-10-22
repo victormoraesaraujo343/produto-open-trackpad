@@ -17,7 +17,8 @@ const SEGURAR_LISTA_MS = 260
 function useModos() {
   const tela = useSim((s) => s.tela)
   const nivel = nivelAtual(useSim((s) => s.preset))
-  return MODOS.map((m) => ({ ...m, ativo: m.tela === tela, livre: liberado(TELAS_CELULAR[m.tela].nivel, nivel) }))
+  const variosPcs = useSim((s) => s.opcoes.variosPcs)
+  return MODOS.filter((m) => m.tela !== 'computadores' || variosPcs).map((m) => ({ ...m, ativo: m.tela === tela, livre: liberado(TELAS_CELULAR[m.tela].nivel, nivel) }))
 }
 
 /* A tecla Modos, na lateral (seção 3). Abre o menu escondido com os modos e a trava.
