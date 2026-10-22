@@ -28,5 +28,12 @@ plano da fase atual: `docs/superpowers/plans/2026-10-21-prototipo-visual.md`.
 - Ao fechar rodada: ler tudo (inclusive alfinetes), trazer síntese, só executar depois do "pode fazer".
 - **Nunca rodar teste que grave no `anotacoes.json` real** (interceptar `/__lab/**`).
 
+## Notas de trabalho
+- `?v=chave:opcao,chave2:opcao` no endereço (só em dev) força variações sem mexer no painel nem nas anotações do Victor. Útil para conferir telas e é o que o passeio Playwright usa.
+- O passeio (`npm run e2e`) intercepta `/__lab/**`: nunca grava no `anotacoes.json` real. Ele passa por todas as seções em 3 larguras e por todas as variações.
+- Parado por 20 s, o celular entra na tela de descanso (ou escurece). Qualquer toque volta.
+- Melhorias abertas para validar: issues #4 a #10 no GitHub (já com uma primeira versão no protótipo).
+- Registro das decisões tomadas durante a construção: `docs/superpowers/registro-prototipo-visual.md`.
+
 ## Comandos
 `npm test` (vitest) · `npm run typecheck` · `npm run e2e` (Playwright) · `npm run lab`
