@@ -563,3 +563,42 @@
 .cel-lado-icones:not(.cel-lado-aberto) .cel-modos-icone { display: grid; place-items: center; }
 .cel-lado-icones:not(.cel-lado-aberto) .k-presa b { font-size: 11px; font-weight: 600; letter-spacing: 0.01em; }
 .cel-lado-icones:not(.cel-lado-aberto) .k-led-canto { top: 4px; right: 4px; transform: scale(.8); }
+
+/* menu de modos: arranjos alternativos */
+.cel-tile-modo {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 4px; cursor: pointer; min-width: 0;
+  font: 500 11.5px var(--fonte); color: var(--key-ink); border: 1px solid transparent; border-radius: 8px;
+  background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key);
+}
+.cel-tile-modo span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel-tile-modo.cel-modo-ativo { color: var(--ink); background: var(--key-face-on) padding-box, var(--cham-sm) border-box; }
+.cel-tile-modo.cel-modo-ativo::after { content: ''; position: absolute; left: 30%; right: 30%; bottom: 5px; height: 2px; border-radius: 1px; background: var(--laranja); box-shadow: 0 0 6px rgba(255,79,31,0.6); }
+.cel-tile-modo:disabled { cursor: not-allowed; color: var(--ink-3); background: var(--well-face) padding-box, var(--cham-in) border-box; box-shadow: none; }
+/* abas */
+.cel-menu-abas { gap: 10px; }
+.cel-abas-grupos { flex: none; width: 150px; display: flex; flex-direction: column; gap: 6px; }
+.cel-abas-grupos button {
+  position: relative; flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; cursor: pointer;
+  font: 600 14px var(--fonte); color: var(--ink-2); border: 1px solid transparent; border-radius: 6px; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove);
+}
+.cel-abas-grupos .cel-modo-ativo { color: var(--ink); background: var(--key-face-on) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
+.cel-abas-grupos .cel-modo-ativo::before { content: ''; position: absolute; left: 5px; top: 14px; bottom: 14px; width: 3px; border-radius: 2px; background: var(--laranja); }
+.cel-abas-itens { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; }
+.cel-abas-itens .cel-tile-modo { font-size: 13px; }
+.cel-menu-abas .cel-menu-acoes { width: 64px; flex: none; }
+/* ícones */
+.cel-menu-icones { gap: 10px; }
+.cel-icones-grupos { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cel-icones-grupo { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 6px; flex: 1; min-height: 0; }
+.cel-icones-grupo h3 { margin: 0; font-size: 11px; font-weight: 500; color: var(--ink-3); }
+.cel-icones-grade { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; height: 100%; }
+.cel-menu-icones .cel-menu-acoes { width: 64px; flex: none; }
+/* gaveta */
+.cel-camada-gaveta { justify-content: flex-end; align-items: stretch; padding: 8px; }
+.cel-gaveta-modos { width: 300px; display: flex; flex-direction: column; gap: 8px; padding: 8px; animation: cel-entra 180ms cubic-bezier(.2,.8,.2,1); }
+.cel-gaveta-rolagem { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; }
+.cel-gaveta-rolagem section { display: flex; flex-direction: column; gap: 4px; }
+.cel-gaveta-rolagem h3 { position: sticky; top: 0; z-index: 1; margin: 0; padding: 2px 6px; font-size: 11px; font-weight: 500; color: var(--ink-3); background: var(--mod-face); }
+.cel-menu-acoes-linha { flex-direction: row; }
+.cel-menu-acoes-linha .cel-acao-menu { flex: 1; height: 48px; flex-direction: row; gap: 6px; }
+.cel-menu-acoes-linha .cel-acao-menu:first-child { height: 48px; }

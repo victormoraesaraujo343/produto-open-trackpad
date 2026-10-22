@@ -13,12 +13,18 @@ const rf = criarRefinamento({ pagina: 'app', secoes: SECOES, variantes: VARIANTE
 const ouvintes = new Map<string, Set<() => void>>()
 for (const k of Object.keys(VARIANTES)) rf.aoMudar(k, () => ouvintes.get(k)?.forEach((f) => f()))
 
-export const variante = (k: ChaveVariante) => rf.variante(k)
+/* Só em dev: ?v=chave:opcao,chave2:opcao força variações sem mexer no painel nem nas anotações
+   (para conferir telas e para os testes de navegador). */
+const forcadas = new Map(
+  import.meta.env.DEV ? (new URLSearchParams(location.search).get('v') ?? '').split(',').filter(Boolean).map((p) => p.split(':') as [string, string]) : [],
+)
+
+export const variante = (k: ChaveVariante) => forcadas.get(k) ?? rf.variante(k)
 
 export function useVariante(k: ChaveVariante): string {
   return useSyncExternalStore(
     (f) => { const s = ouvintes.get(k) ?? new Set(); s.add(f); ouvintes.set(k, s); return () => { s.delete(f) } },
-    () => rf.variante(k),
+    () => forcadas.get(k) ?? rf.variante(k),
   )
 }
 

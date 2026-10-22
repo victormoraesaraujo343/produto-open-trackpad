@@ -56,6 +56,7 @@ export const VARIANTES = {
   teclado: { secao: '14', rotulo: 'Teclado', opcoes: [['centro', 'Inteiro, entre as laterais'], ['dividido', 'Dividido para os dois polegares']] },
   lateraisTeclado: { secao: '14', rotulo: 'Laterais no teclado', opcoes: [['icones', 'Viram ícones; crescem ao tocar'], ['recolhidas', 'Recolhidas na borda; abrem por cima'], ['normais', 'Normais (para comparar)']] },
   descanso: { secao: '23', rotulo: 'Descanso', opcoes: [['painel', 'Painel de informações, escurecido'], ['relogio', 'Só o relógio']] },
+  menuModos: { secao: '3', rotulo: 'Menu de modos', opcoes: [['colunas', 'Uma coluna por grupo'], ['abas', 'Grupos como abas, modos grandes'], ['icones', 'Grade de ícones'], ['gaveta', 'Gaveta saindo da lateral']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES
