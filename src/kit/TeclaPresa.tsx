@@ -39,7 +39,7 @@ export function TeclaPresa({ tecla }: { tecla: string }) {
     }
   const estado = presa ? (travada.current ? 'travado' : 'preso') : 'solto'
   return (
-    <button type="button" className={`k-tecla k-tecla-presa${presa ? ' k-ligada' : ''}`} aria-pressed={presa} aria-label={`${tecla} ${estado}`} {...handlers}>
+    <button type="button" data-lab="9" className={`k-tecla k-tecla-presa${presa ? ' k-ligada' : ''}`} aria-pressed={presa} aria-label={`${tecla} ${estado}`} {...handlers}>
       {presa && <Led aceso canto />}
       <span className="k-presa"><b>{tecla}</b><small>{estado}</small></span>
     </button>
