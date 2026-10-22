@@ -498,3 +498,6 @@
 .cel-ajuste-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 13px; color: var(--ink); }
 .cel-ajuste-texto small { font-size: 11px; color: var(--ink-3); }
 .cel-ajuste .k-fader-horizontal { flex: 0 0 220px; }
+.cel-tec-recuo { flex: 0.5; }
+.cel-tecla-tec { position: relative; }
+.cel-tec-alt { position: absolute; top: 3px; right: 5px; font-size: 10px; line-height: 1; color: var(--ink-3); }
