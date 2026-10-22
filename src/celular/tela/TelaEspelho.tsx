@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DesktopFalso } from '../../bancada/DesktopFalso'
 import { DESENHO_COMPUTADOR } from '../../bancada/MolduraComputador'
 import { useTamanho } from '../../design/useTamanho'
@@ -29,6 +29,8 @@ export function TelaEspelho({ conteudo, lab = '5', cursorProprio = false }: { co
   const outro: Modo = modo === 'direto' ? 'trackpad' : 'direto'
   const qualidade = qualidadeDe(PRESETS[useSim((s) => s.preset)])
   const [proprio, setProprio] = useState({ x: 0.5, y: 0.5 })
+  const [verQualidade, setVerQualidade] = useState(true)
+  useEffect(() => { setVerQualidade(true); const t = setTimeout(() => setVerQualidade(false), 2600); return () => clearTimeout(t) }, [qualidade])
   const mover = (dx: number, dy: number) => cursorProprio ? setProprio((c) => ({ x: Math.min(1, Math.max(0, c.x + dx)), y: Math.min(1, Math.max(0, c.y + dy)) })) : moverCursor(dx, dy)
   const cursorAtual = () => (cursorProprio ? proprio : useSim.getState().cursor)
 
@@ -71,7 +73,9 @@ export function TelaEspelho({ conteudo, lab = '5', cursorProprio = false }: { co
       onPointerCancel={(e) => { ponteiros.current.delete(e.pointerId); ultimo.current = null }}>
       {escala > 0 && <div style={{ position: 'absolute', left: 0, top: 0, transform: `scale(${escala})`, transformOrigin: '0 0', pointerEvents: 'none' }}>{conteudo ?? <DesktopFalso />}</div>}
       {cursorProprio && <svg className="cel-cursor-proprio" style={{ left: `${proprio.x * 100}%`, top: `${proprio.y * 100}%` }} width="14" height="19" viewBox="0 0 18 24" aria-hidden="true"><path d="M1 1v19l5-5 3.5 7.5 3-1.4L9 13.8h7z" fill="#fff" stroke="#000" strokeWidth="1.2" /></svg>}
-      <span className="cel-qualidade">Qualidade {qualidade}</span>
+      <span className={`cel-qualidade${verQualidade ? ' cel-qualidade-ve' : ''}`} role="img" aria-label={`Qualidade ${qualidade}`}>
+        <i className="aceso" /><i className="aceso" /><i className={qualidade === 'alta' ? 'aceso' : ''} />
+      </span>
       {forma === 'flutuante' && (
         <button type="button" className="cel-flutuante" onPointerDown={(e) => e.stopPropagation()} onClick={() => trocar(outro)}
           aria-label={`Jeito de tocar: ${NOME[modo]}. Tocar para trocar`}>

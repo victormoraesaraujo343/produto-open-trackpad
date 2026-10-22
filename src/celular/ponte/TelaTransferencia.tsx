@@ -12,7 +12,8 @@ export function TelaTransferencia() {
   const itens = useSim((s) => s.transferencia)
   return (
     <div className="cel-transferencia" data-lab="24">
-      <ul className="cel-copias" aria-label="Copiados recentemente">
+      {itens.length === 0 && <div className="cel-vazio"><Icone nome="copiar" tamanho={22} /><span>Nada copiado ainda</span></div>}
+      <ul className="cel-copias" aria-label="Copiados recentemente" hidden={itens.length === 0}>
         {itens.map((c) => (
           <li key={c.id}>
             <button type="button" className="cel-copia" onClick={() => { useSim.getState().mostrarNoPc(`Colado: ${c.texto}`); vibrar(8) }}

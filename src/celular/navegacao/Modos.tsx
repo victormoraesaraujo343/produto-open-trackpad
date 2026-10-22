@@ -101,7 +101,7 @@ function AcoesDoMenu({ aoFechar, compacto = false }: { aoFechar: () => void; com
       </button>
       {trava !== 'sem' && (
         <button type="button" role="menuitem" className="cel-acao-menu" data-lab="13" aria-label="Travar no OpenTrackpad"
-          onClick={() => { useSim.getState().travar(true); aoFechar(); vibrar(12); useSim.getState().avisar('Travado: o celular fica só no OpenTrackpad') }}>
+          onClick={() => { useSim.getState().travar(true); aoFechar(); vibrar(12); useSim.getState().avisar('Travado') }}>
           <Icone nome="cadeado" tamanho={18} /><span>Travar</span>
         </button>
       )}
@@ -228,7 +228,7 @@ function Destravar({ forma }: { forma: string }) {
         </button>
         <Camada aberta={desenhar} aoFechar={() => setDesenhar(false)} className="cel-camada-menu">
           <Modulo className="cel-desenho">
-            <p>Ligue os pontos na ordem para destravar</p>
+            <p>Ligue os pontos</p>
             <Traco aoAcertar={() => { setDesenhar(false); destravar() }} />
             <button type="button" className="cel-texto-botao" onClick={() => { setDesenhar(false); destravar() }}>Destravar sem desenhar</button>
           </Modulo>

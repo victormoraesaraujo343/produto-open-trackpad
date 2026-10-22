@@ -16,9 +16,8 @@ export function TelaCamera() {
         {emUso && <span className="cel-camera-em-uso"><Led aceso cor="laranja" />No ar</span>}
       </div>
       <div className="cel-camera-controles">
-        <div className="cel-linha-controle"><span>Usar como câmera do computador</span><Basculante ligado={emUso} rotulo="Usar como câmera do computador" aoMudar={(v) => useSim.getState().usarCamera(v)} /></div>
+        <div className="cel-linha-controle"><span>Câmera do computador</span><Basculante ligado={emUso} rotulo="Usar como câmera do computador" aoMudar={(v) => useSim.getState().usarCamera(v)} /></div>
         <div className="cel-linha-controle"><span>Lente</span><Segmentos rotulo="Lente" valor={lente} opcoes={[['traseira', 'Traseira'], ['frontal', 'Frontal']]} aoMudar={setLente} /></div>
-        <p className="cel-nota">{emUso ? 'Aparece como “Câmera do OpenTrackpad” no Meet, no Discord e no OBS.' : 'Ligue para aparecer como câmera nos apps de chamada.'}</p>
       </div>
     </div>
   )

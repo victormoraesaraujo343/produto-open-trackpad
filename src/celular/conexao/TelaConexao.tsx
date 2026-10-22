@@ -30,8 +30,7 @@ function LerQr() {
     <div className="cel-conexao cel-conexao-qr" data-lab="6">
       <div className="cel-visor" aria-hidden="true"><i /><i /><i /><i /><span className="cel-visor-linha" /></div>
       <div className="cel-conexao-texto">
-        <h2>Aponte para o código na tela do computador</h2>
-        <p>Abra o OpenTrackpad no computador. O código aparece sozinho.</p>
+        <h2>Aponte para o código no computador</h2>
         <Tecla rotulo="Simular leitura do código" icone="qr" className="cel-tecla-texto" aoTocar={() => concluir('wifi6')} />
       </div>
     </div>
@@ -46,7 +45,7 @@ function PorPerto() {
       <div className="cel-conexao" data-lab="6">
         <div className="cel-conexao-texto">
           <h2>Confirme no computador</h2>
-          <p>Em <b>{pc.nome}</b>, confira se o código é este:</p>
+          <p className="cel-pc-alvo"><Icone nome="computador" tamanho={16} />{pc.nome}</p>
           <div className="cel-codigo" aria-label={`Código ${CODIGO.split('').join(' ')}`}>{CODIGO.split('').map((d, i) => <span key={i}>{d}</span>)}</div>
           <button type="button" className="cel-texto-botao" onClick={() => setPedido(null)}>Escolher outro computador</button>
         </div>
@@ -57,7 +56,6 @@ function PorPerto() {
     <div className="cel-conexao" data-lab="6">
       <div className="cel-conexao-texto">
         <h2>Computadores por perto</h2>
-        <p>Na mesma rede Wi-Fi, com o OpenTrackpad aberto.</p>
       </div>
       <Poco className="cel-lista-pcs">
         {COMPUTADORES.map((c) => (

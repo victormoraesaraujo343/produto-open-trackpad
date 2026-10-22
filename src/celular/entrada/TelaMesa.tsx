@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { DesktopFalso } from '../../bancada/DesktopFalso'
 import { DESENHO_COMPUTADOR } from '../../bancada/MolduraComputador'
 import { useTamanho } from '../../design/useTamanho'
+import { Icone } from '../../kit/Icone'
 import { liberado } from '../../sim/conexao'
 import { nivelAtual, useSim, type Ponto } from '../../sim/loja'
 
@@ -21,7 +22,7 @@ export function TelaMesa({ verTela }: { verTela: boolean }) {
     return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, p: e.pressure && e.pointerType !== 'mouse' ? e.pressure : 0.5 }
   }
   return (
-    <div ref={area} className={`cel-mesa${verTela ? ' cel-mesa-tela' : ''}`} data-lab="15" role="img" aria-label="Área de desenho"
+    <div ref={area} className={`cel-mesa${verTela ? ' cel-mesa-tela' : ''}`} data-lab="15" role="img" aria-label="Área de desenho: desenhe com o dedo ou a caneta"
       onPointerDown={(e) => { e.currentTarget.setPointerCapture?.(e.pointerId); setAtual([local(e)]) }}
       onPointerMove={(e) => { if (atual) setAtual([...atual, local(e)]) }}
       onPointerUp={() => { if (atual && atual.length > 1) useSim.getState().desenhar(atual); setAtual(null) }}>
@@ -31,7 +32,7 @@ export function TelaMesa({ verTela }: { verTela: boolean }) {
       <svg viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">
         {[...tracos, ...(atual ? [atual] : [])].map((t, i) => <path key={i} d={caminho(t)} strokeWidth={larguraDoTraco(t)} />)}
       </svg>
-      {tracos.length === 0 && !atual && <span className="cel-dica-centro">Desenhe com o dedo ou a caneta</span>}
+      {tracos.length === 0 && !atual && <span className="cel-dica-icone" aria-hidden="true"><Icone nome="caneta" tamanho={28} /></span>}
     </div>
   )
 }

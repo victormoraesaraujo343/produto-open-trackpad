@@ -117,7 +117,7 @@ function Giratorio({ canais, sel, setSel, volume }: { canais: Canal[]; sel: numb
       <div className="cel-mixer-giro" role="slider" tabIndex={0} aria-label={`Volume de ${atual.nome}`} aria-valuenow={atual.volume} aria-valuemin={0} aria-valuemax={100}
         onKeyDown={(e) => { if (e.key === 'ArrowUp' || e.key === 'ArrowRight') volume(atual.id, Math.min(100, atual.volume + 2)); if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') volume(atual.id, Math.max(0, atual.volume - 2)) }}
         {...giro}>
-        <Anel valor={atual.mudo ? 0 : atual.volume} tamanho={200} rotulo={atual.nome} detalhe="gire para ajustar" />
+        <Anel valor={atual.mudo ? 0 : atual.volume} tamanho={200} rotulo={atual.nome} />
       </div>
     </div>
   )

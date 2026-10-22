@@ -162,7 +162,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
       return get().avisar('A conexão piorou. Voltamos ao trackpad.')
     }
     set({ preset: p })
-    if (nivelAtual(antes) > 0 && PRESETS[antes].via !== PRESETS[p].via) get().avisar(`Agora por ${PRESETS[p].rotulo}. Nada foi interrompido.`)
+    if (nivelAtual(antes) > 0 && PRESETS[antes].via !== PRESETS[p].via) get().avisar(`Agora por ${PRESETS[p].rotulo}`)
   },
 
   /* Travado (seção 13) impede sair do OpenTrackpad, não navegar dentro dele. */

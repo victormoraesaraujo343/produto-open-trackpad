@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useVariante } from '../../lab/refinamento'
+import { Icone } from '../../kit/Icone'
 import { useSim } from '../../sim/loja'
 import { vibrar } from '../../sim/vibrar'
 
@@ -42,7 +43,7 @@ export function TelaTeclado() {
   const { digitar, apagar } = useSim.getState()
   const letra = (l: string) => { digitar(maiuscula ? l.toUpperCase() : l); setMaiuscula(false) }
 
-  const enviado = <div className="cel-enviado" aria-live="polite"><span>{texto.slice(-40) || 'O que você digitar aparece no computador'}</span><i aria-hidden="true" />{copiado && <button type="button" className="cel-colar" onPointerDown={(e) => { e.preventDefault(); digitar(copiado.texto) }} aria-label={`Colar do computador: ${copiado.texto}`}>Colar <span>{copiado.texto}</span></button>}</div>
+  const enviado = <div className="cel-enviado" aria-live="polite"><span>{texto.slice(-40) || <Icone nome="computador" tamanho={15} />}</span><i aria-hidden="true" />{copiado && <button type="button" className="cel-colar" onPointerDown={(e) => { e.preventDefault(); digitar(copiado.texto) }} aria-label={`Colar do computador: ${copiado.texto}`}>Colar <span>{copiado.texto}</span></button>}</div>
   const linhaBase = (
     <div className="cel-tec-linha">
       <Tecla rotulo={numerico ? 'ABC' : '123'} aria={numerico ? 'Letras' : 'Números'} largura={1.4} onPress={() => setNumerico(!numerico)} />

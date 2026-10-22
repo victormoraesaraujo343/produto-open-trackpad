@@ -33,7 +33,7 @@ export function TelaVoz() {
       <div className="cel-voz-nivel" aria-hidden="true">
         {Array.from({ length: 16 }, (_, i) => <i key={i} style={{ height: `${8 + Math.abs(Math.sin(i * 1.7 + nivel * 6)) * 40 * nivel}px` }} />)}
       </div>
-      <p className="cel-voz-estado" role="status">{ouvindo ? 'Ouvindo. O texto aparece no computador.' : 'Toque para ditar'}</p>
+      <p className="cel-so-leitor" role="status">{ouvindo ? 'Ouvindo. O texto aparece no computador.' : 'Toque no microfone para ditar'}</p>
     </div>
   )
 }

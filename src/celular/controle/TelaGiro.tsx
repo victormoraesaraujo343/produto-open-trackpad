@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Icone } from '../../kit/Icone'
 import { SuperficieTrackpad } from '../../kit/SuperficieTrackpad'
 import { useVariante } from '../../lab/refinamento'
 import { useSim } from '../../sim/loja'
@@ -78,7 +79,7 @@ function Roda({ volume, passo, teclado }: { volume: number; passo: (d: number) =
       onPointerUpCapture={fechar} onPointerCancelCapture={fechar}>
       <SuperficieTrackpad cliqueFirme={false} />
       {roda && <div className="cel-roda" style={{ left: roda.x, top: roda.y }}><Anel valor={volume} tamanho={150} rotulo="Volume" /></div>}
-      {!roda && <div className="cel-dica-centro">Segure e gire para o volume</div>}
+      {!roda && <span className="cel-dica-icone" aria-hidden="true"><Icone nome="recarregar" tamanho={26} /></span>}
     </div>
   )
 }

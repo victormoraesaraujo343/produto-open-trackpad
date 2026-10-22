@@ -28,32 +28,32 @@ export function TelaAjustes() {
     <div className="cel-ajustes" data-lab="27">
       <section aria-label="Mão e posição">
         <h3>Mão e posição</h3>
-        <Linha nome="Mão" detalhe="Inverte as laterais"><Segmentos rotulo="Mão" valor={a.mao} opcoes={[['direita', 'Direita'], ['esquerda', 'Esquerda']]} aoMudar={(v) => setAjuste('mao', v)} /></Linha>
-        <Linha nome="Girar a tela" detalhe="Para usar com o cabo do outro lado"><Basculante ligado={a.girado} rotulo="Girar a tela" aoMudar={(v) => setAjuste('girado', v)} /></Linha>
+        <Linha nome="Mão"><Segmentos rotulo="Mão" valor={a.mao} opcoes={[['direita', 'Direita'], ['esquerda', 'Esquerda']]} aoMudar={(v) => setAjuste('mao', v)} /></Linha>
+        <Linha nome="Girar 180°"><Basculante ligado={a.girado} rotulo="Girar a tela" aoMudar={(v) => setAjuste('girado', v)} /></Linha>
       </section>
       <section aria-label="Trackpad">
         <h3>Trackpad</h3>
         <Linha nome="Velocidade"><Fader orientacao="horizontal" valor={a.velocidade} rotulo="Velocidade do cursor" aoMudar={(v) => setAjuste('velocidade', v)} ativo /></Linha>
         <Linha nome="Aceleração"><Fader orientacao="horizontal" valor={a.aceleracao} rotulo="Aceleração" aoMudar={(v) => setAjuste('aceleracao', v)} ativo /></Linha>
         <Linha nome="Rolagem natural"><Basculante ligado={a.rolagemNatural} rotulo="Rolagem natural" aoMudar={(v) => setAjuste('rolagemNatural', v)} /></Linha>
-        {chave('zonas', 'Zonas no trackpad', 'Borda rola, canto faz clique direito')}
-        {chave('rastro', 'Rastro no trackpad', 'Pontos que acendem em volta do dedo')}
+        {chave('zonas', 'Zonas: borda rola, canto clica')}
+        {chave('rastro', 'Rastro no trackpad')}
       </section>
       <section aria-label="Aparelho">
         <h3>Aparelho</h3>
         {chave('vibracao', 'Vibrar ao tocar')}
-        {chave('paradoViraPainel', 'Tela de descanso', 'Quando o celular fica parado')}
+        {chave('paradoViraPainel', 'Tela de descanso')}
         {o.paradoViraPainel && (<>
           <Linha nome="Mostrar"><Segmentos rotulo="O que a tela de descanso mostra" valor={jeito} opcoes={[['relogio', 'Relógio'], ['painel', 'Infos'], ['foto', 'Foto'], ['escuro', 'Nada']]} aoMudar={(v) => useSim.getState().setJeitoDescanso(v as JeitoDescanso)} /></Linha>
           {jeito === 'painel' && <ConfigBlocos onde="descanso" />}
         </>)}
         {chave('noturno', 'Modo noturno')}
         {chave('abrirSozinho', 'Abrir sozinho ao conectar')}
-        <Linha nome="Limitar a carga em 80%" detalhe="Para o celular que vive no cabo"><Basculante ligado={a.limitarCarga} rotulo="Limitar a carga em 80%" aoMudar={(v) => setAjuste('limitarCarga', v)} /></Linha>
+        <Linha nome="Carregar só até 80%"><Basculante ligado={a.limitarCarga} rotulo="Limitar a carga em 80%" aoMudar={(v) => setAjuste('limitarCarga', v)} /></Linha>
       </section>
       <section aria-label="Conexão">
         <h3>Conexão</h3>
-        {chave('confianca', 'Conectar sozinho a computadores conhecidos')}
+        {chave('confianca', 'Conectar sozinho aos conhecidos')}
         {chave('variosPcs', 'Um celular, vários computadores')}
         {chave('variosCelulares', 'Vários celulares neste computador')}
       </section>

@@ -18,7 +18,7 @@ export function TelaMicrofone() {
       <div className="cel-mic-nivel" role="meter" aria-label="Nível do microfone" aria-valuenow={Math.round(nivel * 100)} aria-valuemin={0} aria-valuemax={100}>
         {Array.from({ length: 20 }, (_, i) => <i key={i} className={i / 20 < nivel ? (i > 16 ? 'pico' : 'aceso') : ''} />)}
       </div>
-      <div className="cel-linha-controle"><span>Usar como microfone do computador</span><Basculante ligado={emUso} rotulo="Usar como microfone do computador" aoMudar={(v) => useSim.getState().usarMicrofone(v)} /></div>
+      <div className="cel-linha-controle"><span>Microfone do computador</span><Basculante ligado={emUso} rotulo="Usar como microfone do computador" aoMudar={(v) => useSim.getState().usarMicrofone(v)} /></div>
     </div>
   )
 }
