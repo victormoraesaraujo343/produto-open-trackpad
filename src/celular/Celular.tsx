@@ -96,14 +96,16 @@ export function Celular() {
   const tela = useSim((s) => s.tela)
   const laterais = useVariante('laterais')
   const longo = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const dedos = useRef(new Set<number>())
+  const dedos = useRef(new Map<number, { x: number; y: number }>())
+  const formaModos = useVariante('modos')
   const [a, b] = useSim((s) => s.perfis[s.appEmFoco])
   const proprios = useSim((s) => s.atalhosProprios)
   const nomeAtalho = (id: string) => (ATALHOS[id] ?? proprios[id])?.rotulo ?? '—'
 
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).closest?.('input, textarea, select, [role="slider"]')) return
+      if (e.defaultPrevented) return
+      if ((e.target as HTMLElement).closest?.('input, textarea, select, [role="slider"], [role="tablist"], [role="menu"], [role="listbox"], [role="radiogroup"], .bancada-computador, [class^="rf-"], [class*=" rf-"]')) return
       if (e.key === 'ArrowUp') apertarBotaoLateral('mais')
       if (e.key === 'ArrowDown') apertarBotaoLateral('menos')
     }
@@ -131,12 +133,17 @@ export function Celular() {
   return (
     <div className={`cel${noturno ? ' cel-noturno' : ''}${quente ? ' cel-quente' : ''}${girado ? ' cel-girado' : ''}`} data-lab="1"
       onPointerDownCapture={(e) => {
-        dedos.current.add(e.pointerId)
-        const n = Math.max(dedos.current.size, useSim.getState().dedos)
         clearTimeout(longo.current)
-        if (n >= 2 && tela !== 'espelho') longo.current = setTimeout(() => { vibrar(12); window.dispatchEvent(new Event(ABRIR_MODOS)) }, TOQUE_LONGO_MS)
+        const noTrackpad = !!(e.target as HTMLElement).closest('.k-superficie')
+        if (!noTrackpad) { dedos.current.clear(); return }
+        dedos.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+        const n = e.pointerType === 'mouse' ? useSim.getState().dedos : dedos.current.size
+        if (formaModos === 'doisdedos' && n >= 2) longo.current = setTimeout(() => { vibrar(12); window.dispatchEvent(new Event(ABRIR_MODOS)) }, TOQUE_LONGO_MS)
       }}
-      onPointerMoveCapture={(e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) clearTimeout(longo.current) }}
+      onPointerMoveCapture={(e) => {
+        const ini = dedos.current.get(e.pointerId)
+        if (ini && Math.hypot(e.clientX - ini.x, e.clientY - ini.y) > 10) clearTimeout(longo.current)
+      }}
       onPointerUpCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}
       onPointerCancelCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}>
       {tela === 'conexao' ? <TelaConexao />

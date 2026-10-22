@@ -67,7 +67,8 @@ export function TelaEspelho({ conteudo, lab = '5', cursorProprio = false }: { co
         mover(p.x - ultimo.current.x, p.y - ultimo.current.y)
         ultimo.current = p
       }}
-      onPointerUp={(e) => { ponteiros.current.delete(e.pointerId); ultimo.current = null }}>
+      onPointerUp={(e) => { ponteiros.current.delete(e.pointerId); ultimo.current = null }}
+      onPointerCancel={(e) => { ponteiros.current.delete(e.pointerId); ultimo.current = null }}>
       {escala > 0 && <div style={{ position: 'absolute', left: 0, top: 0, transform: `scale(${escala})`, transformOrigin: '0 0', pointerEvents: 'none' }}>{conteudo ?? <DesktopFalso />}</div>}
       {cursorProprio && <svg className="cel-cursor-proprio" style={{ left: `${proprio.x * 100}%`, top: `${proprio.y * 100}%` }} width="14" height="19" viewBox="0 0 18 24" aria-hidden="true"><path d="M1 1v19l5-5 3.5 7.5 3-1.4L9 13.8h7z" fill="#fff" stroke="#000" strokeWidth="1.2" /></svg>}
       <span className="cel-qualidade">Qualidade {qualidade}</span>

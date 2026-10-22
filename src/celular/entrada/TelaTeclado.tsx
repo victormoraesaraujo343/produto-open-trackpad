@@ -23,6 +23,7 @@ function Tecla({ rotulo, aria, largura = 1, onPress, ligada = false, segurar }: 
       }}
       onPointerUp={() => { if (!segurar) return; clearTimeout(relogio.current); if (!segurou.current) onPress() }}
       onPointerLeave={() => clearTimeout(relogio.current)}
+      onClick={(e) => { if (e.detail === 0) onPress() }}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPress() } }}>
       {rotulo}
       {segurar && <sup className="cel-tec-alt" aria-hidden="true">{segurar.rotulo}</sup>}

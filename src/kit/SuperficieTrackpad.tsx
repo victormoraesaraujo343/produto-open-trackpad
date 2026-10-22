@@ -27,6 +27,7 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
   const [gesto, setGesto] = useState<string | null>(null)
   const dedosSimulados = useSim((s) => s.dedos)
   const zonas = useSim((s) => s.opcoes.zonas)
+  const maxDedos = useRef(0)
   const zona = useRef<'borda' | 'canto' | null>(null)
   const { moverCursor, tocar } = useSim.getState()
 
@@ -50,6 +51,7 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
         const p = local(e.clientX, e.clientY)
         ponteiros.current.set(e.pointerId, p)
         setDedos([...ponteiros.current.values()])
+        maxDedos.current = Math.max(ponteiros.current.size === 1 ? 0 : maxDedos.current, ponteiros.current.size)
         const el = ref.current!
         zona.current = !zonas ? null : p.x > el.offsetWidth - ZONA_CANTO.l && p.y > el.offsetHeight - ZONA_CANTO.a ? 'canto' : p.x > el.offsetWidth - ZONA_BORDA ? 'borda' : null
         if (ponteiros.current.size === 1) {
@@ -92,7 +94,7 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
         if (i && p && !i.firme && Date.now() - i.t < TOQUE_MS && i.andou < TOQUE_PX) {
           vibrar(10)
           anel(p, false)
-          if (zona.current === 'canto' || quantos() === 2) useSim.getState().dispararAtalho('cliqueDireito')
+          if (zona.current === 'canto' || Math.max(maxDedos.current, useSim.getState().dedos) === 2) useSim.getState().dispararAtalho('cliqueDireito')
         }
       }}
       onPointerCancel={(e) => { ponteiros.current.delete(e.pointerId); setDedos([...ponteiros.current.values()]); inicio.current = null; clearTimeout(relogioFirme.current) }}>

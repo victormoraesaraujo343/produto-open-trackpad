@@ -8,9 +8,15 @@ function garantirNivel(minimo: 1 | 2 | 3, preferido: PresetId = 'usb3') {
   if (nivelAtual(s.preset) < minimo) s.conectar(preferido)
 }
 
-function celular(t: TelaCelular, nivel: 1 | 2 | 3 = 1, pc: TelaPc = 'area') {
+/* Cada rota começa limpa: o que outra seção deixou ligado (bateria fraca, parado, zonas…) volta ao normal. */
+function limpar() {
   const s = useSim.getState()
-  s.travar(false)
+  useSim.setState({ saude: 'ok', ocioso: false, travado: false, opcoes: { ...s.opcoes, zonas: false, paradoViraPainel: true } })
+}
+
+function celular(t: TelaCelular, nivel: 1 | 2 | 3 = 1, pc: TelaPc = 'area') {
+  limpar()
+  const s = useSim.getState()
   garantirNivel(nivel)
   s.irPara(t)
   s.irParaPc(pc)
@@ -22,9 +28,9 @@ const ROTAS: Record<string, () => void> = {
   '3': () => celular('trackpad'),
   '4': () => celular('atalhos'),
   '5': () => celular('espelho', 3),
-  '6': () => { const s = useSim.getState(); s.travar(false); s.conectar('nenhuma'); s.irParaPc('pareamento') },
+  '6': () => { limpar(); const s = useSim.getState(); s.conectar('nenhuma'); s.irParaPc('pareamento') },
   '7': () => celular('trackpad'),
-  '8': () => { garantirNivel(1); useSim.getState().irParaPc('central') },
+  '8': () => { limpar(); garantirNivel(1); useSim.getState().irParaPc('central') },
   '9': () => celular('trackpad'),
   '10': () => celular('giro'),
   '11': () => celular('mixer', 2),

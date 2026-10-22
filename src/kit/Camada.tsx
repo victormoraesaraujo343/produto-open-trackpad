@@ -9,6 +9,8 @@ const EVENTOS = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 't
    captura, no elemento da tela. Tocar no fundo escurecido fecha. */
 export function Camada({ aberta, aoFechar, children, className = '' }: { aberta: boolean; aoFechar: () => void; children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
+  const fecharRef = useRef(aoFechar)
+  fecharRef.current = aoFechar
   useEffect(() => {
     const no = ref.current
     if (!aberta || !no) return
@@ -20,7 +22,19 @@ export function Camada({ aberta, aoFechar, children, className = '' }: { aberta:
       e.preventDefault()
     }
     for (const t of EVENTOS) raiz.addEventListener(t, barrar, true)
-    return () => { for (const t of EVENTOS) raiz.removeEventListener(t, barrar, true) }
+    // teclado: o que está embaixo sai da ordem do Tab; o foco entra na camada; Esc fecha
+    const embaixo = [...raiz.children].filter((c) => c !== no && !c.contains(no)) as HTMLElement[]
+    embaixo.forEach((c) => c.setAttribute('inert', ''))
+    const antes = document.activeElement as HTMLElement | null
+    no.querySelector<HTMLElement>('button:not(:disabled), [href], input, [tabindex]:not([tabindex="-1"])')?.focus()
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); fecharRef.current() } }
+    window.addEventListener('keydown', esc)
+    return () => {
+      for (const t of EVENTOS) raiz.removeEventListener(t, barrar, true)
+      embaixo.forEach((c) => c.removeAttribute('inert'))
+      window.removeEventListener('keydown', esc)
+      if (antes && document.contains(antes)) antes.focus()
+    }
   }, [aberta])
   if (!aberta) return null
   /* sempre por cima da tela inteira do celular, de onde quer que seja aberta */

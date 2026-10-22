@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useVariante } from '../lab/refinamento'
 import { useSim } from '../sim/loja'
 import { vibrar } from '../sim/vibrar'
@@ -14,7 +14,9 @@ export function TeclaPresa({ tecla }: { tecla: string }) {
   const forma = useVariante('presas')
   const presa = useSim((s) => s.teclasPresas.includes(tecla))
   const pôr = (sim: boolean) => { const s = useSim.getState(); if (s.teclasPresas.includes(tecla) !== sim) { s.alternarPresa(tecla); vibrar(sim ? 10 : 5) } }
+  const [travadaVisivel, setTravadaVisivel] = useState(false)
   const travada = useRef(false)
+  const travar = (v: boolean) => { travada.current = v; setTravadaVisivel(v) }
   const ultimoToque = useRef(0)
 
   const handlers = forma === 'trava'
@@ -22,13 +24,13 @@ export function TeclaPresa({ tecla }: { tecla: string }) {
     : {
       onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
         e.currentTarget.setPointerCapture?.(e.pointerId)
-        if (forma === 'misto' && travada.current) { travada.current = false; pôr(false); return }
+        if (forma === 'misto' && travada.current) { travar(false); pôr(false); return }
         pôr(true)
       },
       onPointerUp: () => {
         if (forma === 'misto') {
           const agora = Date.now()
-          if (agora - ultimoToque.current < DOIS_TOQUES_MS) { travada.current = true; vibrar([8, 30, 8]); ultimoToque.current = 0; return }
+          if (agora - ultimoToque.current < DOIS_TOQUES_MS) { travar(true); vibrar([8, 30, 8]); ultimoToque.current = 0; return }
           ultimoToque.current = agora
           if (travada.current) return
         }
@@ -37,7 +39,7 @@ export function TeclaPresa({ tecla }: { tecla: string }) {
       onPointerCancel: () => { if (!travada.current) pôr(false) },
       onKeyDown: (e: React.KeyboardEvent) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); pôr(!presa) } },
     }
-  const estado = presa ? (travada.current ? 'travado' : 'preso') : 'solto'
+  const estado = presa ? (travadaVisivel ? 'travado' : 'preso') : 'solto'
   return (
     <button type="button" data-lab="9" className={`k-tecla k-tecla-presa${presa ? ' k-ligada' : ''}`} aria-pressed={presa} aria-label={`${tecla} ${estado}`} {...handlers}>
       {presa && <Led aceso canto />}

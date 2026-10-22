@@ -138,7 +138,10 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     const n = nivelAtual(p)
     const { tela } = get()
     const antes = get().preset
-    if (n === 0) return set({ preset: p, tela: 'conexao', teclasPresas: [], cameraEmUso: false, micEmUso: false })
+    if (n === 0) return set({ preset: p, tela: 'conexao', teclasPresas: [], cameraEmUso: false, micEmUso: false, orientacao: 'deitado' })
+    // câmera precisa de [P] e microfone de [M]: o que a conexão nova não aguenta, desliga
+    if (n < 3 && get().cameraEmUso) set({ cameraEmUso: false })
+    if (n < 2 && get().micEmUso) set({ micEmUso: false })
     if (tela === 'conexao') return set({ preset: p, tela: 'trackpad' })
     if (!cabe(tela, n)) {
       set({ preset: p, tela: 'trackpad', orientacao: 'deitado' })
@@ -148,8 +151,8 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     if (nivelAtual(antes) > 0 && PRESETS[antes].via !== PRESETS[p].via) get().avisar(`Agora por ${PRESETS[p].rotulo}. Nada foi interrompido.`)
   },
 
+  /* Travado (seção 13) impede sair do OpenTrackpad, não navegar dentro dele. */
   irPara(t) {
-    if (get().travado) return
     if (!cabe(t, nivelAtual(get().preset))) return
     set({ tela: t, ocioso: false, orientacao: t === 'vertical' ? 'empe' : 'deitado' })
   },

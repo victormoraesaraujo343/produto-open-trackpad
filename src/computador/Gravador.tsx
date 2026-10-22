@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { APPS } from '../dados/apps'
 import { IconeApp } from '../kit/IconeApp'
 import { useSim } from '../sim/loja'
@@ -13,10 +13,14 @@ export function Gravador() {
   const [teclas, setTeclas] = useState<string[]>([])
   const [nome, setNome] = useState('')
   const fechar = () => useSim.getState().irParaPc('central')
+  const area = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    area.current?.focus()
     const ouvir = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).id === 'gravador-nome') return
+      if (e.target !== area.current) return
+      if (e.key === 'Tab') return
+      if (e.key === 'Escape' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) { fechar(); return }
       e.preventDefault()
       e.stopImmediatePropagation()
       const mods = MODIFICADORES.filter((m) => e.getModifierState(m)).map((m) => NOMES[m] ?? m)
@@ -29,7 +33,8 @@ export function Gravador() {
 
   const salvar = () => {
     const s = useSim.getState()
-    const id = s.criarAtalho(nome.trim() || teclas.join(' + '), teclas.map((t) => (t === 'Ctrl' ? 'mod' : t)))
+    const mac = s.sistema === 'macos'
+    const id = s.criarAtalho(nome.trim() || teclas.join(' + '), teclas.map((t) => (mac ? (t === 'Super' ? 'mod' : t === 'Ctrl' ? '⌃' : t) : t === 'Ctrl' ? 'mod' : t)))
     s.adicionarAtalho(app, id)
     s.avisar(`Atalho gravado em ${APPS[app].nome}`)
     s.setSecaoCentral('atalhos')
@@ -40,7 +45,7 @@ export function Gravador() {
     <Janela titulo="Gravar atalho" aoFechar={fechar} largura={460} altura={330} lab="32">
       <div className="pc-gravador">
         <p>Aperte a combinação no teclado.</p>
-        <div className={`pc-captura${teclas.length ? ' pc-captura-cheia' : ''}`} aria-live="polite">
+        <div ref={area} tabIndex={0} role="textbox" aria-label="Combinação do atalho: aperte as teclas" className={`pc-captura${teclas.length ? ' pc-captura-cheia' : ''}`} aria-live="polite">
           {teclas.length ? teclas.map((t) => <kbd key={t}>{t}</kbd>) : <span>esperando…</span>}
         </div>
         <label className="pc-campo">

@@ -76,3 +76,52 @@ for (const [chave, v] of Object.entries(VARIANTES)) {
     })
   }
 }
+
+type Otp = { __otp: { irParaSecao: (n: string) => void; useSim: { getState: () => Record<string, any> } } }
+
+test('a conexão piora numa tela pesada: volta ao trackpad com aviso', async ({ page }) => {
+  await preparar(page, [])
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  await page.waitForFunction(() => '__otp' in window)
+  await page.evaluate(() => (window as unknown as Otp).__otp.irParaSecao('5'))
+  await page.evaluate(() => (window as unknown as Otp).__otp.useSim.getState().conectar('congestionado'))
+  await expect(page.getByText('A conexão piorou. Voltamos ao trackpad.')).toBeVisible()
+  expect(await page.evaluate(() => (window as unknown as Otp).__otp.useSim.getState().tela)).toBe('trackpad')
+})
+
+test('o gravador de atalho não engole o que se digita fora dele', async ({ page }) => {
+  await preparar(page, [])
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  await page.waitForFunction(() => '__otp' in window)
+  await page.evaluate(() => (window as unknown as Otp).__otp.irParaSecao('32'))
+  await page.evaluate(() => { const t = document.createElement('textarea'); t.id = 'fora'; document.body.appendChild(t) })
+  await page.locator('#fora').fill('')
+  await page.locator('#fora').pressSequentially('nota')
+  await expect(page.locator('#fora')).toHaveValue('nota')
+})
+
+test('setas na central do computador não apertam os botões de volume do celular', async ({ page }) => {
+  await preparar(page, [])
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  await page.waitForFunction(() => '__otp' in window)
+  await page.evaluate(() => { const o = (window as unknown as Otp).__otp; o.irParaSecao('8'); o.useSim.getState().focar('meet') })
+  await page.locator('[role=tablist] [aria-selected=true]').focus()
+  await page.keyboard.press('ArrowDown')
+  expect(await page.evaluate(() => (window as unknown as Otp).__otp.useSim.getState().ligados.camera ?? false)).toBe(false)
+})
+
+test('menu de modos aberto: Tab não alcança as teclas de baixo e Esc fecha', async ({ page }) => {
+  await preparar(page, [])
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/')
+  await page.waitForFunction(() => '__otp' in window)
+  await page.evaluate(() => { (window as unknown as Otp).__otp.irParaSecao('2'); window.dispatchEvent(new Event('otp:abrir-modos')) })
+  for (let i = 0; i < 25; i++) await page.keyboard.press('Tab')
+  const dentro = await page.evaluate(() => !!document.activeElement?.closest('.k-camada') || !document.activeElement?.closest('[data-tela-celular]'))
+  expect(dentro).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.k-camada')).toHaveCount(0)
+})

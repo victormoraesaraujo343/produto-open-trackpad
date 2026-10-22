@@ -236,7 +236,11 @@ function EditorAtalhos() {
               </label>
             ))}
             <button type="button" className="pc-botao" disabled={!marcados.length} onClick={() => {
-              for (const i of marcados) adicionarAtalho(app, criarAtalho(DO_SISTEMA[sistema][i].rotulo, DO_SISTEMA[sistema][i].teclas))
+              for (const i of marcados) {
+                const a = DO_SISTEMA[sistema][i]
+                const ja = Object.values(useSim.getState().atalhosProprios).find((x) => x.rotulo === a.rotulo && x.teclas.join() === a.teclas.join())
+                adicionarAtalho(app, ja ? ja.id : criarAtalho(a.rotulo, a.teclas))
+              }
               useSim.getState().avisar(`${marcados.length} atalho${marcados.length > 1 ? 's' : ''} importado${marcados.length > 1 ? 's' : ''}`)
               setPainel('nada')
             }}>Importar {marcados.length || ''}</button>

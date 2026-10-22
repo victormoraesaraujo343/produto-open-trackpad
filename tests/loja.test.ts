@@ -54,14 +54,6 @@ test('volume fica entre 0 e 100 e mostra o aviso no computador', () => {
   expect(useSim.getState().volume).toBe(0)
 })
 
-test('travado não deixa trocar de tela', () => {
-  useSim.getState().travar(true)
-  useSim.getState().irPara('atalhos')
-  expect(useSim.getState().tela).toBe('trackpad')
-  useSim.getState().travar(false)
-  useSim.getState().irPara('atalhos')
-  expect(useSim.getState().tela).toBe('atalhos')
-})
 
 test('disparar um atalho mostra a combinação do sistema no computador', () => {
   useSim.getState().dispararAtalho('copiar')
