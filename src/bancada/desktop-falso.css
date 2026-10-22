@@ -39,3 +39,10 @@
 .df-doca { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); display: flex; gap: 10px; padding: 8px 12px; border-radius: 16px; background: rgba(240,240,240,0.4); backdrop-filter: blur(10px); }
 .df-doca i { width: 34px; height: 34px; border-radius: 9px; }
 .df-cursor { position: absolute; margin: -1px 0 0 -1px; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4)); }
+.df-desenho { left: 300px; top: 70px; width: 480px; height: 330px; }
+.df-desenho svg { display: block; width: 100%; height: calc(100% - 30px); background: #fff; }
+.df-desenho path { fill: none; stroke: #222; stroke-linecap: round; stroke-linejoin: round; }
+.df-notas { left: 120px; bottom: 60px; width: 520px; height: 120px; }
+.df-notas p { margin: 0; padding: 14px 16px; font: 15px/1.5 system-ui, sans-serif; color: #1d1f22; overflow: hidden; }
+.df-caret { display: inline-block; width: 1.5px; height: 1.1em; margin-left: 1px; vertical-align: text-bottom; background: #1d1f22; animation: df-pisca 1s steps(1) infinite; }
+@keyframes df-pisca { 50% { opacity: 0; } }

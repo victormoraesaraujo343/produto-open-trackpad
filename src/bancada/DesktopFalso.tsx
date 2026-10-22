@@ -1,6 +1,7 @@
 import { APPS } from '../dados/apps'
 import { JANELAS } from '../dados/janelas'
 import { useSim } from '../sim/loja'
+import { caminho, larguraDoTraco } from '../celular/entrada/TelaMesa'
 import { DESENHO_COMPUTADOR } from './MolduraComputador'
 import './desktop-falso.css'
 
@@ -20,6 +21,8 @@ export function DesktopFalso() {
   const sistema = useSim((s) => s.sistema)
   const cursor = useSim((s) => s.cursor)
   const foco = useSim((s) => s.appEmFoco)
+  const texto = useSim((s) => s.textoDigitado)
+  const tracos = useSim((s) => s.tracos)
   const focoJanela = JANELAS.find((j) => j.app === foco)
   const janelas = [...JANELAS.slice(0, 3).filter((j) => j.id !== focoJanela?.id), ...(focoJanela ? [focoJanela] : [JANELAS[0]])].slice(-3)
   const doca = ['firefox', 'vscode', 'figma', 'spotify', 'meet', 'obs', 'arquivos'] as const
@@ -39,6 +42,18 @@ export function DesktopFalso() {
           </div>
         </div>
       ))}
+      {tracos.length > 0 && (
+        <div className="df-janela df-ativa df-desenho">
+          <div className="df-titulo"><span className="df-botoes" aria-hidden="true"><i /><i /><i /></span><span className="df-nome">Desenho — Figma</span></div>
+          <svg viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">{tracos.map((t, i) => <path key={i} d={caminho(t)} strokeWidth={larguraDoTraco(t)} />)}</svg>
+        </div>
+      )}
+      {texto && (
+        <div className="df-janela df-ativa df-notas">
+          <div className="df-titulo"><span className="df-botoes" aria-hidden="true"><i /><i /><i /></span><span className="df-nome">Notas</span></div>
+          <p>{texto}<i className="df-caret" /></p>
+        </div>
+      )}
       {sistema !== 'macos' ? (
         <div className="df-barra">
           <span className="df-inicio" aria-hidden="true" />

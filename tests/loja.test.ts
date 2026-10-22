@@ -78,3 +78,29 @@ test('atalhos de liga e desliga guardam o estado', () => {
   useSim.getState().dispararAtalho('mudo')
   expect(useSim.getState().ligados.mudo).toBe(false)
 })
+
+test('digitar e apagar mandam texto para o computador', () => {
+  useSim.getState().digitar('Olá')
+  useSim.getState().digitar(' mundo')
+  expect(useSim.getState().textoDigitado).toBe('Olá mundo')
+  useSim.getState().apagar()
+  expect(useSim.getState().textoDigitado).toBe('Olá mund')
+})
+
+test('opções ligam e desligam', () => {
+  expect(useSim.getState().opcoes.zonas).toBe(false)
+  useSim.getState().setOpcao('zonas', true)
+  expect(useSim.getState().opcoes.zonas).toBe(true)
+})
+
+test('desenhar guarda traços e limpar apaga', () => {
+  useSim.getState().desenhar([{ x: 0.1, y: 0.1, p: 0.5 }, { x: 0.2, y: 0.2, p: 0.5 }])
+  expect(useSim.getState().tracos).toHaveLength(1)
+  useSim.getState().limparDesenho()
+  expect(useSim.getState().tracos).toHaveLength(0)
+})
+
+test('trocar para uma janela põe o app dela em foco', () => {
+  useSim.getState().trocarParaJanela('j5')
+  expect(useSim.getState().appEmFoco).toBe('meet')
+})

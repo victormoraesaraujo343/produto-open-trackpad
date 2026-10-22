@@ -92,12 +92,39 @@
       "status": "revisar",
       "nota": "",
       "variantes": {
-        "giro": "aro"
+        "giro": "arco"
+      },
+      "aberto": false
+    },
+    "11": {
+      "nome": "Ver na prática: giratório com o som",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "mixer": "seleciona"
+      },
+      "aberto": false
+    },
+    "12": {
+      "nome": "Ver na prática: botões de volume do celular",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "laterais": "atalhos"
+      },
+      "aberto": false
+    },
+    "13": {
+      "nome": "Ver na prática: modo travado",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "trava": "segurar"
       },
       "aberto": true
     }
   },
   "alfinetes": [],
   "rodadas": [],
-  "atualizado": "2026-10-22T01:57:32.161Z"
+  "atualizado": "2026-10-22T01:58:46.207Z"
 }

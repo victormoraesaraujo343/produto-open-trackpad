@@ -30,6 +30,11 @@ const ROTAS: Record<string, () => void> = {
   '11': () => celular('mixer', 2),
   '12': () => celular('trackpad'),
   '13': () => celular('trackpad'),
+  '14': () => celular('teclado'),
+  '15': () => celular('mesa'),
+  '16': () => celular('midia', 2),
+  '17': () => { celular('reuniao', 2); useSim.getState().focar('meet') },
+  '18': () => { celular('trackpad'); useSim.getState().setOpcao('zonas', true) },
 }
 
 export function irParaSecao(n: string) {

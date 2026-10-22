@@ -1,6 +1,6 @@
 # Refinamento — app · rodada R1
 
-Gerado pelo painel de Refinamento em 2026-10-22T01:57:32.161Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
+Gerado pelo painel de Refinamento em 2026-10-22T01:58:46.207Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
 
 ## 1 · Acabamento
 
@@ -50,5 +50,20 @@ Variantes vistas: presas: **trava**
 ## 10 · Ver na prática: botão giratório
 
 Status: **Em revisão**  
-Variantes vistas: giro: **aro**
+Variantes vistas: giro: **arco**
+
+## 11 · Ver na prática: giratório com o som
+
+Status: **Em revisão**  
+Variantes vistas: mixer: **seleciona**
+
+## 12 · Ver na prática: botões de volume do celular
+
+Status: **Em revisão**  
+Variantes vistas: laterais: **atalhos**
+
+## 13 · Ver na prática: modo travado
+
+Status: **Em revisão**  
+Variantes vistas: trava: **segurar**
 

@@ -1,10 +1,21 @@
 import type { TelaCelular } from '../../sim/telas'
 
-/* Os modos que a navegação oferece, na ordem fixa (nada muda de lugar). */
-export const MODOS: { tela: TelaCelular; nome: string; icone: string }[] = [
-  { tela: 'trackpad', nome: 'Trackpad', icone: 'trackpad' },
-  { tela: 'atalhos', nome: 'Atalhos', icone: 'atalhos' },
-  { tela: 'mixer', nome: 'Som', icone: 'mixer' },
-  { tela: 'espelho', nome: 'Tela', icone: 'tela' },
-  { tela: 'giro', nome: 'Volume', icone: 'volume' },
+export type Grupo = 'Controlar' | 'Atalhos' | 'Tela' | 'Ponte'
+
+/* Os modos do menu, em grupos e na ordem fixa (nada muda de lugar). */
+export const MODOS: { tela: TelaCelular; nome: string; icone: string; grupo: Grupo }[] = [
+  { tela: 'trackpad', nome: 'Trackpad', icone: 'trackpad', grupo: 'Controlar' },
+  { tela: 'teclado', nome: 'Teclado', icone: 'teclado', grupo: 'Controlar' },
+  { tela: 'voz', nome: 'Voz', icone: 'microfone', grupo: 'Controlar' },
+  { tela: 'mesa', nome: 'Desenho', icone: 'caneta', grupo: 'Controlar' },
+  { tela: 'giro', nome: 'Volume', icone: 'volume', grupo: 'Controlar' },
+  { tela: 'atalhos', nome: 'Atalhos', icone: 'atalhos', grupo: 'Atalhos' },
+  { tela: 'lancador', nome: 'Abrir', icone: 'mais', grupo: 'Atalhos' },
+  { tela: 'janelas', nome: 'Janelas', icone: 'janelas', grupo: 'Atalhos' },
+  { tela: 'mixer', nome: 'Som', icone: 'mixer', grupo: 'Atalhos' },
+  { tela: 'midia', nome: 'Mídia', icone: 'musica', grupo: 'Atalhos' },
+  { tela: 'reuniao', nome: 'Reunião', icone: 'camera', grupo: 'Atalhos' },
+  { tela: 'espelho', nome: 'Espelho', icone: 'tela', grupo: 'Tela' },
 ]
+
+export const GRUPOS: Grupo[] = ['Controlar', 'Atalhos', 'Tela', 'Ponte']

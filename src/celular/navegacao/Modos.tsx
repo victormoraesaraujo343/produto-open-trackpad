@@ -9,7 +9,7 @@ import { nivelAtual, useSim } from '../../sim/loja'
 import { TELAS_CELULAR, type TelaCelular } from '../../sim/telas'
 import { vibrar } from '../../sim/vibrar'
 import { SEGURAR_MS, Traco } from '../aparelho/Trava'
-import { MODOS } from './modos'
+import { GRUPOS, MODOS } from './modos'
 
 export const ABRIR_MODOS = 'otp:abrir-modos'
 const SEGURAR_LISTA_MS = 260
@@ -95,15 +95,26 @@ function MenuModos({ aberto, aoFechar, aoEscolher }: { aberto: boolean; aoFechar
   return (
     <Camada aberta={aberto} aoFechar={aoFechar} className="cel-camada-menu">
       <Modulo className="cel-menu" role="menu" aria-label="Modos">
-        <div className="cel-menu-modos">
-          {modos.map((m) => (
-            <button key={m.tela} type="button" role="menuitem" className={`cel-modo${m.ativo ? ' cel-modo-ativo' : ''}`} aria-current={m.ativo ? 'page' : undefined}
-              disabled={!m.livre} onClick={() => aoEscolher(m.tela)}>
-              <Icone nome={m.icone} />
-              <span>{m.nome}</span>
-              {!m.livre && <small>precisa de conexão melhor</small>}
-            </button>
-          ))}
+        <div className="cel-menu-grupos">
+          {GRUPOS.map((g) => {
+            const doGrupo = modos.filter((m) => m.grupo === g)
+            if (!doGrupo.length) return null
+            return (
+              <section key={g} className="cel-menu-grupo" aria-label={g}>
+                <h3>{g}</h3>
+                <div className="cel-menu-modos">
+                  {doGrupo.map((m) => (
+                    <button key={m.tela} type="button" role="menuitem" className={`cel-modo${m.ativo ? ' cel-modo-ativo' : ''}`} aria-current={m.ativo ? 'page' : undefined}
+                      disabled={!m.livre} onClick={() => aoEscolher(m.tela)}>
+                      <Icone nome={m.icone} />
+                      <span>{m.nome}</span>
+                      {!m.livre && <small>conexão melhor</small>}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )
+          })}
         </div>
         {trava !== 'sem' && (
           <button type="button" role="menuitem" className="cel-menu-travar" data-lab="13"

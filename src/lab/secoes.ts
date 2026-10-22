@@ -18,6 +18,11 @@ export const SECOES = [
   { n: '11', nome: 'Ver na prática: giratório com o som' },
   { n: '12', nome: 'Ver na prática: botões de volume do celular' },
   { n: '13', nome: 'Ver na prática: modo travado' },
+  { n: '14', nome: 'Teclado e voz' },
+  { n: '15', nome: 'Mesa digitalizadora' },
+  { n: '16', nome: 'Mídia, janelas e abrir' },
+  { n: '17', nome: 'Reunião' },
+  { n: '18', nome: 'Zonas no trackpad' },
 ]
 
 export const VARIANTES = {
@@ -35,6 +40,7 @@ export const VARIANTES = {
   mixer: { secao: '11', rotulo: 'Som', opcoes: [['seleciona', 'Toca no app e gira'], ['cada', 'Um giratório por app'], ['segura', 'Barra que vira giratório']] },
   laterais: { secao: '12', rotulo: 'Botões de volume', opcoes: [['atalhos', 'Disparam atalhos'], ['legenda', 'Disparam atalhos, com legenda'], ['sistema', 'Volume do celular, como sempre']] },
   trava: { secao: '13', rotulo: 'Destravar', opcoes: [['segurar', 'Segurar 3 segundos'], ['desenho', 'Desenhar um traço'], ['sem', 'Sem trava']] },
+  teclado: { secao: '14', rotulo: 'Teclado', opcoes: [['centro', 'No centro, entre as laterais'], ['dividido', 'Dividido para os dois polegares']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES

@@ -129,3 +129,7 @@ kbd {
 .k-ligada .k-presa b { color: var(--key-ink-on); }
 .k-tecla-presa { touch-action: none; user-select: none; }
 .k-tecla-presa.k-ligada { transform: translateY(1px); box-shadow: var(--shadow-sm); }
+.k-zona { position: absolute; pointer-events: none; display: grid; place-items: center; font-size: 11px; color: var(--pad-ink); border: 1px dashed var(--hairline); }
+.k-zona-borda { right: 6px; top: 6px; bottom: 70px; width: 34px; border-radius: 6px; }
+.k-zona-borda span { writing-mode: vertical-rl; }
+.k-zona-canto { right: 6px; bottom: 6px; width: 90px; height: 58px; border-radius: 6px; text-align: center; line-height: 1.2; padding: 4px; }

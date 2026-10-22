@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ATALHOS, PERFIS } from '../dados/atalhos'
 import { Aviso } from '../kit/Aviso'
 import { SuperficieTrackpad } from '../kit/SuperficieTrackpad'
@@ -14,6 +14,13 @@ import { TelaGiro } from './controle/TelaGiro'
 import { ComLaterais } from './laterais/ComLaterais'
 import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
+import { TelaMesa, podeVerTela } from './entrada/TelaMesa'
+import { TelaTeclado } from './entrada/TelaTeclado'
+import { TelaVoz } from './entrada/TelaVoz'
+import { TelaJanelas } from './midia/TelaJanelas'
+import { TelaLancador } from './midia/TelaLancador'
+import { TelaMidia } from './midia/TelaMidia'
+import { TelaReuniao } from './midia/TelaReuniao'
 import './celular.css'
 
 const TOQUE_LONGO_MS = 600
@@ -34,8 +41,20 @@ function Voltar() {
 }
 
 /* O que cada modo põe no centro e na última tecla da lateral do sistema. */
-function conteudo(t: TelaCelular): { centro: ReactNode; doModo: ReactNode } {
+function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => void): { centro: ReactNode; doModo: ReactNode } {
   switch (t) {
+    case 'teclado': return { centro: <TelaTeclado />, doModo: <Voltar /> }
+    case 'voz': return { centro: <TelaVoz />, doModo: <Voltar /> }
+    case 'mesa': return {
+      centro: <TelaMesa verTela={verTela && podeVerTela()} />,
+      doModo: podeVerTela()
+        ? <Tecla rotulo={verTela ? 'Esconder a tela' : 'Ver a tela'} icone="tela" ligada={verTela} aoTocar={() => setVerTela(!verTela)} />
+        : <Tecla rotulo="Limpar desenho" icone="fechar" aoTocar={() => useSim.getState().limparDesenho()} />,
+    }
+    case 'midia': return { centro: <TelaMidia />, doModo: <Voltar /> }
+    case 'janelas': return { centro: <TelaJanelas />, doModo: <Voltar /> }
+    case 'lancador': return { centro: <TelaLancador />, doModo: <Voltar /> }
+    case 'reuniao': return { centro: <TelaReuniao />, doModo: <Voltar /> }
     case 'atalhos': return { centro: <TelaAtalhos />, doModo: <Voltar /> }
     case 'mixer': return { centro: <TelaMixer />, doModo: <Voltar /> }
     case 'giro': return { centro: <TelaGiro />, doModo: <Voltar /> }
@@ -62,7 +81,10 @@ export function Celular() {
     return () => window.removeEventListener('keydown', tecla)
   }, [])
 
-  const { centro, doModo } = conteudo(tela)
+  const [verTela, setVerTela] = useState(false)
+  const teclado = useVariante('teclado')
+  const { centro, doModo } = conteudo(tela, verTela, setVerTela)
+  const telaInteira = tela === 'teclado' && teclado === 'dividido'
   return (
     <div className="cel" data-lab="1"
       onPointerDownCapture={(e) => {
@@ -74,7 +96,7 @@ export function Celular() {
       onPointerMoveCapture={(e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) clearTimeout(longo.current) }}
       onPointerUpCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}
       onPointerCancelCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}>
-      {tela === 'conexao' ? <TelaConexao /> : tela === 'espelho' ? <TelaEspelho /> : <ComLaterais centro={centro} doModo={doModo} />}
+      {tela === 'conexao' ? <TelaConexao /> : tela === 'espelho' ? <TelaEspelho /> : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={centro} doModo={doModo} />}
       {laterais === 'legenda' && (
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
           <span>Volume +: {ATALHOS[a].rotulo}</span><span>Volume −: {ATALHOS[b].rotulo}</span>

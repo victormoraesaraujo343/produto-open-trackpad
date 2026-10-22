@@ -3,11 +3,15 @@ import { create } from 'zustand'
 import type { AppId } from '../dados/apps'
 import { ATALHOS, teclasDoSistema } from '../dados/atalhos'
 import type { Sistema } from '../dados/computadores'
+import { JANELAS } from '../dados/janelas'
 import { PRESETS, liberado, nivelDe, type Nivel, type PresetId } from './conexao'
 import { TELAS_CELULAR, type TelaCelular, type TelaPc } from './telas'
 
 export type Plataforma = 'android' | 'iphone'
 export type Dedos = 1 | 2 | 3 | 4
+export interface Ponto { x: number; y: number; p: number }
+/* funções opcionais (o spec pede "opcional por padrão"): ligam e desligam na central e no celular */
+export interface Opcoes { zonas: boolean; noturno: boolean; confianca: boolean; variosPcs: boolean; variosCelulares: boolean; abrirSozinho: boolean; paradoViraPainel: boolean; vibracao: boolean }
 
 interface Estado {
   plataforma: Plataforma
@@ -26,6 +30,9 @@ interface Estado {
   travado: boolean
   ultimoAtalho: { texto: string; em: number } | null
   ligados: Record<string, boolean>
+  textoDigitado: string
+  opcoes: Opcoes
+  tracos: Ponto[][]
 }
 
 interface Acoes {
@@ -44,6 +51,13 @@ interface Acoes {
   mudarVolume(delta: number): void
   travar(sim: boolean): void
   dispararAtalho(id: string): void
+  mostrarNoPc(texto: string): void
+  digitar(t: string): void
+  apagar(): void
+  setOpcao<K extends keyof Opcoes>(k: K, v: Opcoes[K]): void
+  desenhar(traco: Ponto[]): void
+  limparDesenho(): void
+  trocarParaJanela(id: string): void
   reiniciar(): void
 }
 
@@ -64,6 +78,9 @@ const INICIAL: Estado = {
   travado: false,
   ultimoAtalho: null,
   ligados: {},
+  textoDigitado: '',
+  opcoes: { zonas: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true },
+  tracos: [],
 }
 
 const AVISO_MS = 3000
@@ -122,6 +139,17 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
       ultimoAtalho: { texto, em: Date.now() },
       ligados: LIGA_DESLIGA.has(id) ? { ...ligados, [id]: !ligados[id] } : ligados,
     }))
+  },
+  mostrarNoPc: (texto) => set({ ultimoAtalho: { texto, em: Date.now() } }),
+  digitar: (t) => set(({ textoDigitado }) => ({ textoDigitado: (textoDigitado + t).slice(-120) })),
+  apagar: () => set(({ textoDigitado }) => ({ textoDigitado: Array.from(textoDigitado).slice(0, -1).join('') })),
+  setOpcao: (k, v) => set(({ opcoes }) => ({ opcoes: { ...opcoes, [k]: v } })),
+  desenhar: (traco) => set(({ tracos }) => ({ tracos: [...tracos, traco].slice(-60) })),
+  limparDesenho: () => set({ tracos: [] }),
+  trocarParaJanela(id) {
+    const j = JANELAS.find((x) => x.id === id)
+    if (!j) return
+    set({ appEmFoco: j.app, ultimoAtalho: { texto: j.titulo, em: Date.now() } })
   },
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
