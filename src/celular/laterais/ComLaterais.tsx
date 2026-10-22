@@ -1,7 +1,6 @@
 import { IconeApp } from '../../kit/IconeApp'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { APPS } from '../../dados/apps'
-import { PERFIS } from '../../dados/atalhos'
 import { Lateral } from '../../kit/Lateral'
 import { Led } from '../../kit/Led'
 import { TeclaAtalho } from '../../kit/TeclaAtalho'
@@ -28,7 +27,7 @@ export function ComLaterais({ centro, doModo, compacto = false }: { centro: Reac
   const forma = useVariante('trackpad')
   const mao = useSim((s) => s.ajustes.mao)
   const appId = useSim((s) => s.appEmFoco)
-  const ids = PERFIS[appId]
+  const ids = useSim((s) => s.perfis[appId])
   const nomeApp = <span className="cel-cabeca-app"><IconeApp app={appId} tamanho={16} /><span>{APPS[appId].nome}</span></span>
 
   const app = ids.slice(0, 5).map((id) => <TeclaAtalho key={id} id={id} />)

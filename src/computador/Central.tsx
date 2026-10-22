@@ -1,14 +1,16 @@
 import { useState, type ReactNode } from 'react'
 import { APPS, type AppId } from '../dados/apps'
-import { PERFIS } from '../dados/atalhos'
+import { ATALHOS, teclasDoSistema } from '../dados/atalhos'
 import { CELULARES } from '../dados/computadores'
 import { Basculante } from '../kit/Basculante'
+import { Fader } from '../kit/Fader'
 import { Icone } from '../kit/Icone'
+import { IconeApp } from '../kit/IconeApp'
 import { Led } from '../kit/Led'
 import { Poco } from '../kit/Poco'
 import { useVariante } from '../lab/refinamento'
 import { PRESETS, liberado } from '../sim/conexao'
-import { nivelAtual, useSim } from '../sim/loja'
+import { nivelAtual, useSim, type Opcoes } from '../sim/loja'
 import { Janela } from './Janela'
 
 type Secao = 'aparelhos' | 'conexao' | 'atalhos' | 'telas' | 'funcoes' | 'sensacao'
@@ -21,10 +23,18 @@ const SECOES: { id: Secao; nome: string; icone: string }[] = [
   { id: 'sensacao', nome: 'Sensação', icone: 'trackpad' },
 ]
 
-/* Central do OpenTrackpad no computador (seção 8). */
+/* Atalhos que o sistema já tem configurados, por sistema (o que "Importar do sistema" acha). */
+const DO_SISTEMA: Record<'linux' | 'windows' | 'macos', { rotulo: string; teclas: string[] }[]> = {
+  linux: [{ rotulo: 'Captura de região', teclas: ['Super', 'Shift', 'S'] }, { rotulo: 'Abrir o terminal', teclas: ['Ctrl', 'Alt', 'T'] }, { rotulo: 'Visão geral', teclas: ['Super', 'W'] }, { rotulo: 'Bloquear a sessão', teclas: ['Super', 'L'] }],
+  windows: [{ rotulo: 'Ferramenta de Captura', teclas: ['Win', 'Shift', 'S'] }, { rotulo: 'Mostrar a área de trabalho', teclas: ['Win', 'D'] }, { rotulo: 'Explorador de Arquivos', teclas: ['Win', 'E'] }, { rotulo: 'Bloquear', teclas: ['Win', 'L'] }],
+  macos: [{ rotulo: 'Captura de uma área', teclas: ['⌘', 'Shift', '4'] }, { rotulo: 'Mission Control', teclas: ['⌃', '↑'] }, { rotulo: 'Spotlight', teclas: ['⌘', 'Espaço'] }, { rotulo: 'Bloquear a tela', teclas: ['⌃', '⌘', 'Q'] }],
+}
+
+/* Central do OpenTrackpad no computador (seção 8; atalhos na seção 30). */
 export function Central() {
   const forma = useVariante('central')
-  const [secao, setSecao] = useState<Secao>('aparelhos')
+  const secao = useSim((s) => s.secaoCentral) as Secao
+  const setSecao = useSim((s) => s.setSecaoCentral)
   const fechar = () => useSim.getState().irParaPc('area')
 
   if (forma === 'rack') {
@@ -62,10 +72,10 @@ export function Central() {
     </div>
   )
   return (
-    <Janela titulo="OpenTrackpad" aoFechar={fechar} lab="8">
+    <Janela titulo="OpenTrackpad" aoFechar={fechar} largura={780} altura={500} lab="8">
       <div className={`pc-central pc-central-${forma}`}>
         {nav}
-        <div className="pc-conteudo" role="tabpanel" aria-label={SECOES.find((s) => s.id === secao)?.nome}>
+        <div className="pc-conteudo" role="tabpanel" aria-label={SECOES.find((s) => s.id === secao)?.nome} data-lab={secao === 'atalhos' ? '30' : undefined}>
           <h2>{SECOES.find((s) => s.id === secao)?.nome}</h2>
           <Conteudo secao={secao} />
         </div>
@@ -80,26 +90,33 @@ function Linha({ nome, children }: { nome: ReactNode; children: ReactNode }) {
 
 function Conteudo({ secao, compacto = false }: { secao: Secao; compacto?: boolean }) {
   const preset = useSim((s) => s.preset)
+  const opcoes = useSim((s) => s.opcoes)
+  const ajustes = useSim((s) => s.ajustes)
+  const { setOpcao, setAjuste } = useSim.getState()
   const nivel = nivelAtual(preset)
   const p = PRESETS[preset]
-  const [funcoes, setFuncoes] = useState({ confianca: true, variosPcs: false, variosCelulares: false, zonas: false, noturno: false })
-  const [sensacao, setSensacao] = useState({ velocidade: 60, aceleracao: 40, natural: true })
 
   if (secao === 'aparelhos') {
     return (
       <div className="pc-lista">
-        {CELULARES.map((c, i) => (
-          <Linha key={c.id} nome={<><Icone nome="celular" tamanho={16} />{c.nome}</>}>
-            {i === 0 && nivel > 0 ? <><Led aceso /> conectado por {p.rotulo}</> : <><Led aceso={false} /> fora de alcance</>}
+        {CELULARES.slice(0, opcoes.variosCelulares ? 2 : 1).map((c, i) => (
+          <Linha key={c.id} nome={<><Icone nome="celular" tamanho={16} />{c.nome}{opcoes.variosCelulares && <small className="pc-papel">{i === 0 ? 'trackpad' : 'atalhos'}</small>}</>}>
+            {nivel > 0 ? <><Led aceso /> conectado por {i === 0 ? p.rotulo : 'Wi-Fi 6'}</> : <><Led aceso={false} /> fora de alcance</>}
           </Linha>
         ))}
-        <button type="button" className="pc-botao" onClick={() => useSim.getState().irParaPc('pareamento')}>Parear outro celular</button>
+        {!opcoes.variosCelulares && <Linha nome={<><Icone nome="celular" tamanho={16} />{CELULARES[1].nome}</>}><Led aceso={false} /> conhecido, desligado</Linha>}
+        {!compacto && (
+          <div className="pc-acoes-linha">
+            <button type="button" className="pc-botao" onClick={() => useSim.getState().irParaPc('pareamento')}>Parear outro celular</button>
+            <button type="button" className="pc-botao" onClick={() => useSim.getState().irParaPc('assistente')}>Assistente de primeira vez</button>
+          </div>
+        )}
       </div>
     )
   }
   if (secao === 'conexao') {
     const camadas = [
-      { nome: 'Trackpad e atalhos', nivel: 1 as const },
+      { nome: 'Trackpad, teclado e atalhos', nivel: 1 as const },
       { nome: 'Som, informações e microfone', nivel: 2 as const },
       { nome: 'Tela, segundo monitor e câmera', nivel: 3 as const },
     ]
@@ -114,47 +131,118 @@ function Conteudo({ secao, compacto = false }: { secao: Secao; compacto?: boolea
       </div>
     )
   }
-  if (secao === 'atalhos') {
-    return (
-      <div className="pc-lista">
-        {(Object.keys(PERFIS) as AppId[]).slice(0, compacto ? 4 : 10).map((a) => (
-          <Linha key={a} nome={<><i className="pc-cor" style={{ background: APPS[a].cor }} aria-hidden="true" />{APPS[a].nome}</>}>
-            {PERFIS[a].length} atalhos
-          </Linha>
-        ))}
-        <button type="button" className="pc-botao" onClick={() => useSim.getState().avisar('Aperte o atalho no teclado')}>Gravar novo atalho</button>
-      </div>
-    )
-  }
+  if (secao === 'atalhos') return compacto ? <ListaPerfis /> : <EditorAtalhos />
   if (secao === 'telas') {
     const ok = liberado(3, nivel)
     return (
       <div className="pc-lista">
-        {['Espelhar a tela', 'Segundo monitor', 'Uma janela só', 'Monitor vertical'].map((t) => (
+        {['Espelhar a tela', 'Segundo monitor', 'Uma janela só', 'Recorte', 'Monitor vertical'].map((t) => (
           <Linha key={t} nome={t}>{ok ? <><Led aceso /> disponível</> : <><Led aceso={false} /> precisa de cabo rápido ou Wi-Fi recente</>}</Linha>
         ))}
       </div>
     )
   }
   if (secao === 'funcoes') {
-    const nomes: Record<keyof typeof funcoes, string> = { confianca: 'Conectar sozinho aparelhos de confiança', variosPcs: 'Um celular, vários computadores', variosCelulares: 'Vários celulares neste computador', zonas: 'Zonas no trackpad', noturno: 'Modo noturno' }
+    const nomes: [keyof Opcoes, string][] = [['confianca', 'Conectar sozinho a celulares conhecidos'], ['variosPcs', 'Um celular, vários computadores'], ['variosCelulares', 'Vários celulares neste computador'], ['zonas', 'Zonas no trackpad'], ['paradoViraPainel', 'Parado, o celular vira painel'], ['noturno', 'Modo noturno no celular'], ['abrirSozinho', 'Abrir sozinho ao conectar'], ['vibracao', 'Vibrar no celular']]
     return (
       <div className="pc-lista">
-        {(Object.keys(funcoes) as (keyof typeof funcoes)[]).map((k) => (
-          <Linha key={k} nome={nomes[k]}><Basculante ligado={funcoes[k]} rotulo={nomes[k]} aoMudar={(v) => setFuncoes({ ...funcoes, [k]: v })} /></Linha>
+        {nomes.slice(0, compacto ? 4 : nomes.length).map(([k, nome]) => (
+          <Linha key={k} nome={nome}><Basculante ligado={opcoes[k]} rotulo={nome} aoMudar={(v) => setOpcao(k, v)} /></Linha>
         ))}
       </div>
     )
   }
   return (
     <div className="pc-lista">
-      {(['velocidade', 'aceleracao'] as const).map((k) => (
-        <label key={k} className="pc-linha">
-          <span className="pc-linha-nome">{k === 'velocidade' ? 'Velocidade do cursor' : 'Aceleração'}</span>
-          <input id={`pc-${k}`} type="range" min={0} max={100} value={sensacao[k]} onChange={(e) => setSensacao({ ...sensacao, [k]: Number(e.target.value) })} />
-        </label>
+      <Linha nome="Velocidade do cursor"><span className="pc-fader"><Fader orientacao="horizontal" valor={ajustes.velocidade} rotulo="Velocidade do cursor" aoMudar={(v) => setAjuste('velocidade', v)} ativo /></span></Linha>
+      <Linha nome="Aceleração"><span className="pc-fader"><Fader orientacao="horizontal" valor={ajustes.aceleracao} rotulo="Aceleração" aoMudar={(v) => setAjuste('aceleracao', v)} ativo /></span></Linha>
+      <Linha nome="Rolagem natural"><Basculante ligado={ajustes.rolagemNatural} rotulo="Rolagem natural" aoMudar={(v) => setAjuste('rolagemNatural', v)} /></Linha>
+    </div>
+  )
+}
+
+function ListaPerfis() {
+  const perfis = useSim((s) => s.perfis)
+  return (
+    <div className="pc-lista">
+      {(Object.keys(perfis) as AppId[]).slice(0, 4).map((a) => (
+        <Linha key={a} nome={<><IconeApp app={a} tamanho={18} />{APPS[a].nome}</>}>{perfis[a].length} atalhos</Linha>
       ))}
-      <Linha nome="Rolagem natural"><Basculante ligado={sensacao.natural} rotulo="Rolagem natural" aoMudar={(v) => setSensacao({ ...sensacao, natural: v })} /></Linha>
+    </div>
+  )
+}
+
+/* Editor de atalhos por app: a ordem é a ordem das teclas na lateral do celular (as 5
+   primeiras aparecem nela). */
+function EditorAtalhos() {
+  const perfis = useSim((s) => s.perfis)
+  const proprios = useSim((s) => s.atalhosProprios)
+  const sistema = useSim((s) => s.sistema)
+  const [app, setApp] = useState<AppId>(useSim.getState().appEmFoco)
+  const [painel, setPainel] = useState<'nada' | 'biblioteca' | 'importar'>('nada')
+  const [marcados, setMarcados] = useState<number[]>([])
+  const { moverAtalho, removerAtalho, adicionarAtalho, criarAtalho } = useSim.getState()
+  const biblioteca = { ...ATALHOS, ...proprios }
+  const ids = perfis[app]
+  const fora = Object.keys(biblioteca).filter((id) => !ids.includes(id))
+  return (
+    <div className="pc-editor">
+      <div className="pc-apps" role="listbox" aria-label="Apps">
+        {(Object.keys(perfis) as AppId[]).map((a) => (
+          <button key={a} type="button" role="option" aria-selected={a === app} className={a === app ? 'pc-nav-ativo' : ''} onClick={() => { setApp(a); setPainel('nada') }}>
+            <IconeApp app={a} tamanho={20} /><span>{APPS[a].nome}</span>
+          </button>
+        ))}
+      </div>
+      <div className="pc-perfil">
+        <ol className="pc-ordem" aria-label={`Atalhos de ${APPS[app].nome}, na ordem da lateral`}>
+          {ids.map((id, i) => {
+            const a = biblioteca[id]
+            if (!a) return null
+            return (
+              <li key={id} className={i < 5 ? 'pc-na-lateral' : ''}>
+                <span className="pc-pos">{i + 1}</span>
+                <Icone nome={a.icone} tamanho={16} />
+                <span className="pc-ordem-nome">{a.rotulo}</span>
+                <span className="pc-teclas">{teclasDoSistema(a.teclas, sistema).map((t) => <kbd key={t}>{t}</kbd>)}</span>
+                <span className="pc-ordem-acoes">
+                  <button type="button" aria-label={`Subir ${a.rotulo}`} disabled={i === 0} onClick={() => moverAtalho(app, i, -1)}>↑</button>
+                  <button type="button" aria-label={`Descer ${a.rotulo}`} disabled={i === ids.length - 1} onClick={() => moverAtalho(app, i, 1)}>↓</button>
+                  <button type="button" aria-label={`Tirar ${a.rotulo}`} onClick={() => removerAtalho(app, id)}>✕</button>
+                </span>
+              </li>
+            )
+          })}
+        </ol>
+        <p className="pc-dica">Os 5 primeiros ficam na lateral do celular.</p>
+        <div className="pc-acoes-linha">
+          <button type="button" className="pc-botao" aria-expanded={painel === 'biblioteca'} onClick={() => setPainel(painel === 'biblioteca' ? 'nada' : 'biblioteca')}>Adicionar da biblioteca</button>
+          <button type="button" className="pc-botao" aria-expanded={painel === 'importar'} onClick={() => { setPainel(painel === 'importar' ? 'nada' : 'importar'); setMarcados([]) }}>Importar do sistema</button>
+          <button type="button" className="pc-botao pc-botao-principal" onClick={() => { useSim.getState().focar(app); useSim.getState().irParaPc('gravador') }}>Gravar novo atalho</button>
+        </div>
+        {painel === 'biblioteca' && (
+          <div className="pc-biblioteca" role="list" aria-label="Biblioteca">
+            {fora.map((id) => (
+              <button key={id} type="button" role="listitem" onClick={() => adicionarAtalho(app, id)}><Icone nome={biblioteca[id].icone} tamanho={14} />{biblioteca[id].rotulo}</button>
+            ))}
+          </div>
+        )}
+        {painel === 'importar' && (
+          <div className="pc-importar">
+            {DO_SISTEMA[sistema].map((a, i) => (
+              <label key={a.rotulo} className="pc-marcar">
+                <input id={`importar-${i}`} type="checkbox" checked={marcados.includes(i)} onChange={(e) => setMarcados(e.target.checked ? [...marcados, i] : marcados.filter((x) => x !== i))} />
+                <span>{a.rotulo}</span><span className="pc-teclas">{a.teclas.map((t) => <kbd key={t}>{t}</kbd>)}</span>
+              </label>
+            ))}
+            <button type="button" className="pc-botao" disabled={!marcados.length} onClick={() => {
+              for (const i of marcados) adicionarAtalho(app, criarAtalho(DO_SISTEMA[sistema][i].rotulo, DO_SISTEMA[sistema][i].teclas))
+              useSim.getState().avisar(`${marcados.length} atalho${marcados.length > 1 ? 's' : ''} importado${marcados.length > 1 ? 's' : ''}`)
+              setPainel('nada')
+            }}>Importar {marcados.length || ''}</button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -81,3 +81,79 @@
 .pc-em-uso { position: absolute; left: 16px; top: 16px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 .pc-em-uso span { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; font: 500 12px system-ui, sans-serif; color: #fff; background: rgba(20,20,22,0.82); }
 .pc-em-uso i { width: 8px; height: 8px; border-radius: 50%; background: #FF4F1F; box-shadow: 0 0 6px #FF4F1F; }
+
+/* ---------------------------------------------------- R2 · computador */
+.pc-acoes-linha { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pc-acoes-linha .pc-botao { margin-top: 0; }
+.pc-papel { margin-left: 6px; padding: 1px 6px; border-radius: 8px; font-size: 10px; color: var(--ink-2); background: var(--groove); }
+.pc-fader { display: flex; width: 240px; }
+.pc-dica { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); }
+.pc-botao:disabled { opacity: .45; cursor: default; }
+
+/* editor de atalhos */
+.pc-editor { display: grid; grid-template-columns: 170px 1fr; gap: 14px; min-height: 0; }
+.pc-apps { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; max-height: 360px; }
+.pc-apps button { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px; cursor: pointer; text-align: left; font: 500 12px var(--fonte); color: var(--ink-2); border: 1px solid transparent; border-radius: 6px; background: transparent; }
+.pc-apps button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-apps .pc-nav-ativo { color: var(--ink); background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
+.pc-perfil { min-width: 0; display: flex; flex-direction: column; }
+.pc-ordem { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.pc-ordem li { display: grid; grid-template-columns: 22px 18px 1fr auto auto; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-radius: 6px; font-size: 13px; }
+.pc-ordem li.pc-na-lateral { background: rgba(155,226,63,0.06); }
+.pc-pos { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 4px; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--ink-2); background: var(--groove); }
+.pc-na-lateral .pc-pos { color: #0f1a05; background: var(--led); }
+.pc-ordem-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-teclas { display: inline-flex; gap: 3px; }
+.pc-teclas kbd { height: 20px; min-width: 20px; font-size: 10px; }
+.pc-ordem-acoes { display: inline-flex; gap: 2px; }
+.pc-ordem-acoes button { width: 28px; height: 28px; padding: 0; cursor: pointer; border: 0; border-radius: 5px; background: transparent; color: var(--ink-2); font-size: 13px; }
+.pc-ordem-acoes button:hover:not(:disabled) { background: var(--groove); color: var(--ink); }
+.pc-ordem-acoes button:disabled { opacity: .3; cursor: default; }
+.pc-biblioteca { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding: 8px; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); max-height: 120px; overflow-y: auto; }
+.pc-biblioteca button { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; cursor: pointer; font: 500 12px var(--fonte); color: var(--key-ink); border: 1px solid transparent; border-radius: 15px; background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-sm); }
+.pc-importar { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); }
+.pc-marcar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; min-height: 34px; font-size: 13px; cursor: pointer; }
+.pc-marcar input { width: 18px; height: 18px; accent-color: var(--laranja); }
+.pc-importar .pc-botao { align-self: flex-start; }
+
+/* bandeja */
+.pc-fora-bandeja { position: absolute; inset: 0; z-index: 30; }
+.pc-bandeja {
+  position: absolute; right: 12px; bottom: 48px; width: 280px; padding: 8px; display: flex; flex-direction: column; gap: 2px; font-family: var(--fonte); color: var(--ink);
+  border: 1px solid transparent; border-radius: 10px; background: var(--gd) padding-box, var(--mod-face) padding-box, var(--cham) border-box; box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+  animation: pc-abre 160ms cubic-bezier(.2,.8,.2,1);
+}
+.pc-bandeja-macos { top: 30px; bottom: auto; }
+.pc-bandeja-estado { display: flex; align-items: center; gap: 10px; padding: 8px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid rgba(0,0,0,0.3); }
+.pc-bandeja-estado div { display: flex; flex-direction: column; }
+.pc-bandeja-estado b { font-size: 13px; }
+.pc-bandeja-estado span { font-size: 12px; color: var(--ink-2); }
+.pc-bandeja button { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 10px; cursor: pointer; text-align: left; font: 500 13px var(--fonte); color: var(--ink-2); border: 0; border-radius: 6px; background: transparent; }
+.pc-bandeja button:hover, .pc-bandeja button:focus-visible { color: var(--ink); background: var(--groove); }
+.df-otp-mac { margin-right: 12px; border-color: #1d1f22; }
+
+/* gravador */
+.pc-gravador { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.pc-gravador p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.pc-captura { height: 64px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; background: var(--groove); box-shadow: var(--inset-groove); color: var(--ink-3); font-size: 13px; }
+.pc-captura kbd { height: 34px; min-width: 34px; padding: 0 10px; font-size: 15px; color: var(--ink); }
+.pc-captura-cheia { box-shadow: var(--inset-groove), 0 0 0 1px rgba(255,79,31,0.5); }
+.pc-campo { display: grid; grid-template-columns: 60px 1fr; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); }
+.pc-campo input { height: 36px; padding: 0 10px; font: 14px var(--fonte); color: var(--ink); border: 1px solid transparent; border-radius: 6px; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove); }
+.pc-gravador-rodape { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pc-app-destino { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); }
+
+/* assistente */
+.pc-assistente { padding: 18px 24px; display: flex; flex-direction: column; gap: 18px; }
+.pc-passos { margin: 0; padding: 0; list-style: none; display: flex; gap: 18px; font-size: 12px; color: var(--ink-3); }
+.pc-passos li { display: inline-flex; align-items: center; gap: 6px; }
+.pc-passos span { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; background: var(--groove); box-shadow: var(--inset-groove); }
+.pc-passo-atual { color: var(--ink); }
+.pc-passo-atual span { color: #FFF4EE; background: var(--laranja); box-shadow: none; }
+.pc-passo-feito span { color: #0f1a05; background: var(--led); box-shadow: none; }
+.pc-passo { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.pc-passo h2 { margin: 0; font-size: 20px; font-weight: 600; text-wrap: balance; }
+.pc-passo p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); max-width: 52ch; }
+.pc-passo .pc-botao { align-self: flex-start; }
+.pc-dicas { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+.pc-assistente-rodape { justify-content: space-between; }

@@ -19,10 +19,10 @@
       "status": "revisar",
       "nota": "",
       "variantes": {
-        "trackpad": "uma-mao",
+        "trackpad": "app-sistema",
         "mao": "direita"
       },
-      "aberto": true
+      "aberto": false
     },
     "3": {
       "nome": "Trocar de modo",
@@ -40,7 +40,7 @@
       "variantes": {
         "atalhos": "grade"
       },
-      "aberto": false
+      "aberto": true
     },
     "5": {
       "nome": "Tela espelhada e modos de toque",
@@ -126,5 +126,5 @@
   },
   "alfinetes": [],
   "rodadas": [],
-  "atualizado": "2026-10-22T02:21:21.379Z"
+  "atualizado": "2026-10-22T02:22:13.449Z"
 }

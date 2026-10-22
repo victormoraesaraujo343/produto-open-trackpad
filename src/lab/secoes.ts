@@ -33,6 +33,10 @@ export const SECOES = [
   { n: '26', nome: 'Vários computadores' },
   { n: '27', nome: 'Ajustes do celular' },
   { n: '28', nome: 'Aparelho dedicado: escurecer, bateria, calor, noturno' },
+  { n: '29', nome: 'Computador: menu da bandeja' },
+  { n: '30', nome: 'Computador: atalhos por app, biblioteca e importar' },
+  { n: '31', nome: 'Computador: assistente de primeira vez' },
+  { n: '32', nome: 'Computador: gravar atalho' },
 ]
 
 export const VARIANTES = {

@@ -30,7 +30,7 @@ export function DesktopFalso() {
   return (
     <div className={`df df-${sistema}`} style={{ width: DESENHO_COMPUTADOR.largura, height: DESENHO_COMPUTADOR.altura }}>
       {sistema === 'macos' && (
-        <div className="df-menu"><b>{APPS[foco].nome}</b><span>Arquivo</span><span>Editar</span><span>Janela</span><span className="df-dir"><Relogio /></span></div>
+        <div className="df-menu"><b>{APPS[foco].nome}</b><span>Arquivo</span><span>Editar</span><span>Janela</span><span className="df-dir"><button type="button" className="df-otp df-otp-mac" aria-label="Abrir o OpenTrackpad" onClick={() => useSim.getState().irParaPc('bandeja')} /><Relogio /></span></div>
       )}
       {janelas.map((j, i) => (
         <div key={j.id} className={`df-janela${j === janelas[janelas.length - 1] ? ' df-ativa' : ''}`} style={POSICOES[i]}>
@@ -59,7 +59,7 @@ export function DesktopFalso() {
         <div className="df-barra">
           <span className="df-inicio" aria-hidden="true" />
           <span className="df-icones">{doca.map((a) => <span key={a} className={`df-app${a === foco ? ' df-foco' : ''}`} title={APPS[a].nome}><IconeApp app={a} tamanho={24} /></span>)}</span>
-          <span className="df-bandeja"><button type="button" className="df-otp" aria-label="Abrir o OpenTrackpad" onClick={() => useSim.getState().irParaPc('central')} /><Relogio /></span>
+          <span className="df-bandeja"><button type="button" className="df-otp" aria-label="Abrir o OpenTrackpad" onClick={() => useSim.getState().irParaPc('bandeja')} /><Relogio /></span>
         </div>
       ) : (
         <div className="df-doca">{doca.map((a) => <span key={a} className={`df-app${a === foco ? ' df-foco' : ''}`} title={APPS[a].nome}><IconeApp app={a} tamanho={34} /></span>)}</div>

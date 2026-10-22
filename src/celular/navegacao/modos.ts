@@ -11,7 +11,7 @@ export const MODOS: { tela: TelaCelular; nome: string; icone: string; grupo: Gru
   { tela: 'giro', nome: 'Volume', icone: 'volume', grupo: 'Controlar' },
   { tela: 'atalhos', nome: 'Atalhos', icone: 'atalhos', grupo: 'Atalhos' },
   { tela: 'lancador', nome: 'Abrir', icone: 'mais', grupo: 'Atalhos' },
-  { tela: 'janelas', nome: 'Janelas', icone: 'janelas', grupo: 'Atalhos' },
+  { tela: 'janelas', nome: 'Janelas', icone: 'trocar', grupo: 'Atalhos' },
   { tela: 'mixer', nome: 'Som', icone: 'mixer', grupo: 'Atalhos' },
   { tela: 'midia', nome: 'Mídia', icone: 'musica', grupo: 'Atalhos' },
   { tela: 'reuniao', nome: 'Reunião', icone: 'camera', grupo: 'Atalhos' },

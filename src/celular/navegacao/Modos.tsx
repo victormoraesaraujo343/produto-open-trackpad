@@ -67,6 +67,7 @@ export function TeclaModos() {
         clearTimeout(relogio.current)
         if (lista) { const m = modos.find((x) => x.tela === destaque); if (m?.livre) escolher(m.tela); else setLista(false) }
       }}>
+      <span className="cel-modos-icone" aria-hidden="true"><Icone nome={atual?.icone ?? 'atalhos'} tamanho={18} /></span>
       {nome}
     </button>
   )
@@ -96,37 +97,37 @@ function MenuModos({ aberto, aoFechar, aoEscolher }: { aberto: boolean; aoFechar
   return (
     <Camada aberta={aberto} aoFechar={aoFechar} className="cel-camada-menu">
       <Modulo className="cel-menu" role="menu" aria-label="Modos">
-        <div className="cel-menu-grupos">
+        <div className="cel-menu-colunas">
           {GRUPOS.map((g) => {
             const doGrupo = modos.filter((m) => m.grupo === g)
             if (!doGrupo.length) return null
             return (
-              <section key={g} className="cel-menu-grupo" aria-label={g}>
+              <section key={g} className="cel-menu-coluna" aria-label={g}>
                 <h3>{g}</h3>
-                <div className="cel-menu-modos">
-                  {doGrupo.map((m) => (
-                    <button key={m.tela} type="button" role="menuitem" className={`cel-modo${m.ativo ? ' cel-modo-ativo' : ''}`} aria-current={m.ativo ? 'page' : undefined}
-                      disabled={!m.livre} onClick={() => aoEscolher(m.tela)}>
-                      <Icone nome={m.icone} />
-                      <span>{m.nome}</span>
-                      {!m.livre && <small>conexão melhor</small>}
-                    </button>
-                  ))}
-                </div>
+                {doGrupo.map((m) => (
+                  <button key={m.tela} type="button" role="menuitem" className={`cel-item-modo${m.ativo ? ' cel-modo-ativo' : ''}`} aria-current={m.ativo ? 'page' : undefined}
+                    disabled={!m.livre} onClick={() => aoEscolher(m.tela)}>
+                    <Icone nome={m.icone} tamanho={18} />
+                    <span className="cel-item-nome">{m.nome}</span>
+                    {m.ativo && <Led aceso />}
+                    {!m.livre && <small>conexão</small>}
+                  </button>
+                ))}
               </section>
             )
           })}
-        </div>
-        <div className="cel-menu-rodape">
-        <button type="button" role="menuitem" className="cel-menu-travar" data-lab="27" onClick={() => { useSim.getState().irPara('ajustes'); aoFechar() }}>
-          <Icone nome="ajustes" tamanho={18} /><span>Ajustes</span>
-        </button>
-        {trava !== 'sem' && (
-          <button type="button" role="menuitem" className="cel-menu-travar" data-lab="13"
-            onClick={() => { useSim.getState().travar(true); aoFechar(); vibrar(12); useSim.getState().avisar('Travado: o celular fica só no OpenTrackpad') }}>
-            <Icone nome="cadeado" tamanho={18} /><span>Travar no OpenTrackpad</span>
-          </button>
-        )}
+          <div className="cel-menu-acoes">
+            <button type="button" className="cel-acao-menu" aria-label="Fechar" onClick={aoFechar}><Icone nome="fechar" tamanho={18} /></button>
+            <button type="button" role="menuitem" className="cel-acao-menu" data-lab="27" aria-label="Ajustes" onClick={() => { useSim.getState().irPara('ajustes'); aoFechar() }}>
+              <Icone nome="ajustes" tamanho={18} /><span>Ajustes</span>
+            </button>
+            {trava !== 'sem' && (
+              <button type="button" role="menuitem" className="cel-acao-menu" data-lab="13" aria-label="Travar no OpenTrackpad"
+                onClick={() => { useSim.getState().travar(true); aoFechar(); vibrar(12); useSim.getState().avisar('Travado: o celular fica só no OpenTrackpad') }}>
+                <Icone nome="cadeado" tamanho={18} /><span>Travar</span>
+              </button>
+            )}
+          </div>
         </div>
       </Modulo>
     </Camada>

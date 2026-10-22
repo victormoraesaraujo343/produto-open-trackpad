@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ATALHOS, PERFIS } from '../dados/atalhos'
+import { ATALHOS } from '../dados/atalhos'
 import { Aviso } from '../kit/Aviso'
 import { SuperficieTrackpad } from '../kit/SuperficieTrackpad'
 import { Tecla } from '../kit/Tecla'
@@ -40,7 +40,7 @@ export function apertarBotaoLateral(qual: 'mais' | 'menos') {
   const forma = variante('laterais')
   const s = useSim.getState()
   if (forma === 'sistema') { s.avisar(`Volume do celular ${qual === 'mais' ? 'mais alto' : 'mais baixo'}`); return }
-  const [a, b] = PERFIS[s.appEmFoco]
+  const [a, b] = s.perfis[s.appEmFoco]
   s.dispararAtalho(qual === 'mais' ? a : b)
   vibrar(8)
 }
@@ -97,7 +97,9 @@ export function Celular() {
   const laterais = useVariante('laterais')
   const longo = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const dedos = useRef(new Set<number>())
-  const [a, b] = PERFIS[useSim((s) => s.appEmFoco)]
+  const [a, b] = useSim((s) => s.perfis[s.appEmFoco])
+  const proprios = useSim((s) => s.atalhosProprios)
+  const nomeAtalho = (id: string) => (ATALHOS[id] ?? proprios[id])?.rotulo ?? '—'
 
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
@@ -146,7 +148,7 @@ export function Celular() {
         : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={centro} doModo={doModo} compacto={tela === 'teclado'} />}
       {laterais === 'legenda' && (
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
-          <span>Volume +: {ATALHOS[a].rotulo}</span><span>Volume −: {ATALHOS[b].rotulo}</span>
+          <span>Volume +: {nomeAtalho(a)}</span><span>Volume −: {nomeAtalho(b)}</span>
         </div>
       )}
       {escuro && (

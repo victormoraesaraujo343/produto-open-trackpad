@@ -13,7 +13,8 @@ const ESTADOS: Record<string, { nome: string; ligado: string; desligado: string 
 /* Tecla que dispara um atalho da biblioteca. As de liga e desliga mostram o LED e o estado
    também em texto, para não depender só da cor. */
 export function TeclaAtalho({ id, combinacao = false, className }: { id: string; combinacao?: boolean; className?: string }) {
-  const a = ATALHOS[id]
+  const proprio = useSim((s) => s.atalhosProprios[id])
+  const a = ATALHOS[id] ?? proprio
   const ligado = useSim((s) => !!s.ligados[id])
   const sistema = useSim((s) => s.sistema)
   const disparar = useSim((s) => s.dispararAtalho)

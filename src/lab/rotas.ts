@@ -44,6 +44,10 @@ const ROTAS: Record<string, () => void> = {
   '26': () => { useSim.getState().setOpcao('variosPcs', true); celular('computadores') },
   '27': () => celular('ajustes'),
   '28': () => { celular('trackpad'); useSim.getState().setSaude('bateria') },
+  '29': () => { garantirNivel(1); useSim.getState().irParaPc('bandeja') },
+  '30': () => { garantirNivel(1); useSim.getState().setSecaoCentral('atalhos'); useSim.getState().irParaPc('central') },
+  '31': () => useSim.getState().irParaPc('assistente'),
+  '32': () => { garantirNivel(1); useSim.getState().irParaPc('gravador') },
   '18': () => { celular('trackpad'); useSim.getState().setOpcao('zonas', true) },
 }
 

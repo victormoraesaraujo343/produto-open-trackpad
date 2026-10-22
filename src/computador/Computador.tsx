@@ -3,6 +3,9 @@ import { DesktopFalso } from '../bancada/DesktopFalso'
 import { useSim } from '../sim/loja'
 import { Central } from './Central'
 import { Pareamento } from './Pareamento'
+import { Assistente } from './Assistente'
+import { Bandeja } from './Bandeja'
+import { Gravador } from './Gravador'
 import './computador.css'
 
 function useRecente(em: number | undefined, ms: number) {
@@ -35,11 +38,18 @@ export function Computador() {
       <div className="pc-janelas">
         {telaPc === 'central' && <Central />}
         {telaPc === 'pareamento' && <Pareamento />}
+        {telaPc === 'assistente' && <Assistente />}
+        {telaPc === 'gravador' && <Gravador />}
       </div>
       {(camera || mic) && (
         <div className="pc-em-uso" role="status">
           {camera && <span><i />Câmera do OpenTrackpad em uso</span>}
           {mic && <span><i />Microfone do OpenTrackpad em uso</span>}
+        </div>
+      )}
+      {telaPc === 'bandeja' && (
+        <div className="pc-fora-bandeja" onClick={() => useSim.getState().irParaPc('area')}>
+          <div onClick={(e) => e.stopPropagation()}><Bandeja /></div>
         </div>
       )}
       {presas.length > 0 && (

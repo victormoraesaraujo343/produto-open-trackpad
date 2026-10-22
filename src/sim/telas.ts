@@ -34,6 +34,9 @@ export const TELAS_PC = {
   area: { nome: 'Área de trabalho' },
   central: { nome: 'Central do OpenTrackpad' },
   pareamento: { nome: 'Parear um celular' },
+  bandeja: { nome: 'Menu da bandeja' },
+  assistente: { nome: 'Assistente de primeira vez' },
+  gravador: { nome: 'Gravar atalho' },
 } as const satisfies Record<string, { nome: string }>
 
 export type TelaPc = keyof typeof TELAS_PC

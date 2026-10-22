@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { PERFIS } from '../../dados/atalhos'
 import { Icone } from '../../kit/Icone'
 import { TeclaAtalho } from '../../kit/TeclaAtalho'
 import { useVariante } from '../../lab/refinamento'
@@ -14,7 +13,7 @@ const POR_PAGINA = 6
 /* Painel de atalhos (seção 4): os atalhos do app em foco, em quatro arranjos. */
 export function TelaAtalhos() {
   const forma = useVariante('atalhos')
-  const ids = PERFIS[useSim((s) => s.appEmFoco)]
+  const ids = useSim((s) => s.perfis[s.appEmFoco])
   const [pagina, setPagina] = useState(0)
 
   if (forma === 'largas') {
