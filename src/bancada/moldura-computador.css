@@ -1,0 +1,9 @@
+.pc-area { position: relative; flex: 1; min-width: 0; min-height: 0; display: grid; place-items: center; overflow: hidden; }
+.pc-encaixe { position: relative; flex: none; }
+.pc-monitor {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #1b1c1f 0%, #0d0e10 100%);
+  box-shadow: 0 0 0 1px #2c2d31, 0 30px 70px rgba(0, 0, 0, 0.4);
+}
+.pc-tela { position: relative; overflow: hidden; border-radius: 3px; background: #24313d; }
