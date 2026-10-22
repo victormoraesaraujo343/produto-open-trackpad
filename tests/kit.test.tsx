@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Camada } from '../src/kit/Camada'
+import { Fader } from '../src/kit/Fader'
 import { Lateral } from '../src/kit/Lateral'
 import { Tecla } from '../src/kit/Tecla'
 
@@ -36,4 +37,15 @@ test('Lateral dupla tem dez posições', () => {
 test('Lateral mostra a cabeça acima das posições', () => {
   render(<Lateral lado="direita" rotulo="Sistema" cabeca={<span>Cabo USB 3</span>} />)
   expect(screen.getByText('Cabo USB 3')).toBeInTheDocument()
+})
+
+test('Fader sobe e desce pelo teclado, entre 0 e 100', async () => {
+  const aoMudar = vi.fn()
+  render(<Fader valor={98} aoMudar={aoMudar} rotulo="Alto-falantes" orientacao="vertical" />)
+  const f = screen.getByRole('slider', { name: 'Alto-falantes' })
+  f.focus()
+  await userEvent.keyboard('{ArrowUp}')
+  expect(aoMudar).toHaveBeenLastCalledWith(100)
+  await userEvent.keyboard('{ArrowDown}')
+  expect(aoMudar).toHaveBeenLastCalledWith(96)
 })

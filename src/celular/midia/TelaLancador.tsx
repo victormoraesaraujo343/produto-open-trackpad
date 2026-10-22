@@ -1,4 +1,5 @@
-import { APPS, type AppId } from '../../dados/apps'
+import { IconeApp } from '../../kit/IconeApp'
+import type { AppId } from '../../dados/apps'
 import { Icone } from '../../kit/Icone'
 import { useSim } from '../../sim/loja'
 import { vibrar } from '../../sim/vibrar'
@@ -25,7 +26,7 @@ export function TelaLancador() {
           if (it.app) s.focar(it.app)
           s.mostrarNoPc(`Abrindo ${it.nome}`)
         }}>
-          <span className="cel-lancar-icone" style={{ background: it.app ? APPS[it.app].cor : 'var(--groove)' }}><Icone nome={it.icone} tamanho={18} /></span>
+          {it.app ? <IconeApp app={it.app} tamanho={42} /> : <span className="cel-lancar-icone"><Icone nome={it.icone} tamanho={20} /></span>}
           <span className="k-rotulo">{it.nome}</span>
         </button>
       ))}

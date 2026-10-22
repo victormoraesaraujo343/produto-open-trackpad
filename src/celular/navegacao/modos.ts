@@ -16,6 +16,11 @@ export const MODOS: { tela: TelaCelular; nome: string; icone: string; grupo: Gru
   { tela: 'midia', nome: 'Mídia', icone: 'musica', grupo: 'Atalhos' },
   { tela: 'reuniao', nome: 'Reunião', icone: 'camera', grupo: 'Atalhos' },
   { tela: 'espelho', nome: 'Espelho', icone: 'tela', grupo: 'Tela' },
+  { tela: 'monitor', nome: 'Monitor', icone: 'computador', grupo: 'Tela' },
+  { tela: 'janela', nome: 'Uma janela', icone: 'janelas', grupo: 'Tela' },
+  { tela: 'recorte', nome: 'Recorte', icone: 'lupa', grupo: 'Tela' },
+  { tela: 'vertical', nome: 'Vertical', icone: 'celular', grupo: 'Tela' },
+  { tela: 'painel', nome: 'Informações', icone: 'info', grupo: 'Tela' },
 ]
 
 export const GRUPOS: Grupo[] = ['Controlar', 'Atalhos', 'Tela', 'Ponte']

@@ -133,3 +133,46 @@ kbd {
 .k-zona-borda { right: 6px; top: 6px; bottom: 70px; width: 34px; border-radius: 6px; }
 .k-zona-borda span { writing-mode: vertical-rl; }
 .k-zona-canto { right: 6px; bottom: 6px; width: 90px; height: 58px; border-radius: 6px; text-align: center; line-height: 1.2; padding: 4px; }
+
+/* --------------------------------------------------------- ícone de app */
+.k-icone-app {
+  flex: none; display: inline-grid; place-items: center; color: #fff;
+  background: radial-gradient(120% 90% at 30% 15%, rgba(255,255,255,0.35), rgba(255,255,255,0) 55%), var(--cor);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 2px 5px rgba(0,0,0,0.4);
+}
+.k-icone-app svg { stroke-width: 1.7; }
+
+/* ---------------------------------------------------------------- fader */
+.k-fader { position: relative; display: flex; touch-action: none; cursor: grab; }
+.k-fader-vertical { flex: 1; min-height: 0; width: 100%; justify-content: center; padding: 14px 0; }
+.k-fader-horizontal { flex: 1; min-width: 0; height: 44px; align-items: center; padding: 0 16px; }
+.k-fenda {
+  position: relative; border: 1px solid transparent; border-radius: 4px;
+  background: linear-gradient(180deg, var(--sw-a), var(--sw-b)) padding-box, var(--cham-in) border-box; box-shadow: inset 0 1px 3px rgba(0,0,0,0.65);
+}
+.k-fader-vertical .k-fenda { width: 8px; height: 100%; }
+.k-fader-horizontal .k-fenda { height: 8px; width: 100%; }
+.k-nivel { position: absolute; left: 1px; bottom: 1px; border-radius: 3px; background: var(--ink-4); }
+.k-fader-vertical .k-nivel { right: 1px; }
+.k-fader-horizontal .k-nivel { top: 1px; }
+.k-nivel.k-vivo { background: linear-gradient(0deg, #6FA81E, #A9EE4A); box-shadow: 0 0 6px rgba(155,226,63,0.5); }
+.k-fader-horizontal .k-nivel.k-vivo { background: linear-gradient(90deg, #6FA81E, #A9EE4A); }
+.k-marcas { position: absolute; display: flex; justify-content: space-between; pointer-events: none; }
+.k-fader-vertical .k-marcas { left: 14px; top: 0; bottom: 0; flex-direction: column; }
+.k-fader-vertical .k-marcas i { width: 5px; height: 1px; background: var(--ink-4); }
+.k-fader-vertical .k-marcas i:nth-child(odd) { width: 9px; }
+.k-fader-horizontal .k-marcas { top: 14px; left: 0; right: 0; }
+.k-fader-horizontal .k-marcas i { width: 1px; height: 5px; background: var(--ink-4); }
+.k-fader-horizontal .k-marcas i:nth-child(odd) { height: 9px; }
+.k-tampa {
+  position: absolute; display: flex; align-items: center; justify-content: center; gap: 3px;
+  border: 1px solid transparent; border-radius: 5px;
+  background: linear-gradient(180deg, #4A4D52 0%, #2E3034 100%) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key), 0 4px 8px rgba(0,0,0,0.35);
+}
+.k-fader-vertical .k-tampa { left: 50%; width: 38px; height: 22px; margin-left: -19px; margin-bottom: -11px; flex-direction: column; }
+.k-fader-vertical .k-tampa i { width: 22px; height: 1px; background: rgba(255,255,255,0.28); }
+.k-fader-horizontal .k-tampa { top: 50%; width: 22px; height: 34px; margin-top: -17px; margin-left: -11px; }
+.k-fader-horizontal .k-tampa i { width: 1px; height: 18px; background: rgba(255,255,255,0.28); }
+[data-acabamento="claro"] .k-tampa { background: linear-gradient(180deg, #E8E9E5 0%, #C9CAC5 100%) padding-box, var(--cham) border-box; }
+[data-acabamento="claro"] .k-tampa i { background: rgba(0,0,0,0.25) !important; }
+.k-fader-mudo .k-tampa { opacity: .7; }

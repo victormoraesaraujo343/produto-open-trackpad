@@ -4,7 +4,7 @@ import { Aviso } from '../kit/Aviso'
 import { SuperficieTrackpad } from '../kit/SuperficieTrackpad'
 import { Tecla } from '../kit/Tecla'
 import { useVariante, variante } from '../lab/refinamento'
-import { useSim } from '../sim/loja'
+import { mostrarDescanso, useSim } from '../sim/loja'
 import type { TelaCelular } from '../sim/telas'
 import { vibrar } from '../sim/vibrar'
 import { TelaAtalhos } from './atalhos/TelaAtalhos'
@@ -14,6 +14,9 @@ import { TelaGiro } from './controle/TelaGiro'
 import { ComLaterais } from './laterais/ComLaterais'
 import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
+import { JanelaUnica, MonitorExtra, Recorte } from './tela/Conteudos'
+import { TelaPainel } from './tela/TelaPainel'
+import { TelaVertical } from './tela/TelaVertical'
 import { TelaMesa, podeVerTela } from './entrada/TelaMesa'
 import { TelaTeclado } from './entrada/TelaTeclado'
 import { TelaVoz } from './entrada/TelaVoz'
@@ -24,6 +27,7 @@ import { TelaReuniao } from './midia/TelaReuniao'
 import './celular.css'
 
 const TOQUE_LONGO_MS = 600
+const PARADO_MS = 20000
 
 /* Botões de volume do celular (seção 12). No navegador, os de verdade não chegam à página:
    valem os desenhados na moldura e as setas ↑/↓ do teclado. */
@@ -51,6 +55,7 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
         ? <Tecla rotulo={verTela ? 'Esconder a tela' : 'Ver a tela'} icone="tela" ligada={verTela} aoTocar={() => setVerTela(!verTela)} />
         : <Tecla rotulo="Limpar desenho" icone="fechar" aoTocar={() => useSim.getState().limparDesenho()} />,
     }
+    case 'painel': return { centro: <TelaPainel />, doModo: <Voltar /> }
     case 'midia': return { centro: <TelaMidia />, doModo: <Voltar /> }
     case 'janelas': return { centro: <TelaJanelas />, doModo: <Voltar /> }
     case 'lancador': return { centro: <TelaLancador />, doModo: <Voltar /> }
@@ -83,6 +88,15 @@ export function Celular() {
 
   const [verTela, setVerTela] = useState(false)
   const teclado = useVariante('teclado')
+  const descanso = useSim(mostrarDescanso)
+  useEffect(() => {
+    if (descanso) return
+    let t = setTimeout(() => useSim.getState().ficarOcioso(), PARADO_MS)
+    const mexeu = () => { clearTimeout(t); t = setTimeout(() => useSim.getState().ficarOcioso(), PARADO_MS) }
+    window.addEventListener('pointerdown', mexeu)
+    window.addEventListener('keydown', mexeu)
+    return () => { clearTimeout(t); window.removeEventListener('pointerdown', mexeu); window.removeEventListener('keydown', mexeu) }
+  }, [descanso, tela])
   const { centro, doModo } = conteudo(tela, verTela, setVerTela)
   const telaInteira = tela === 'teclado' && teclado === 'dividido'
   return (
@@ -96,10 +110,22 @@ export function Celular() {
       onPointerMoveCapture={(e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) clearTimeout(longo.current) }}
       onPointerUpCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}
       onPointerCancelCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}>
-      {tela === 'conexao' ? <TelaConexao /> : tela === 'espelho' ? <TelaEspelho /> : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={centro} doModo={doModo} />}
+      {tela === 'conexao' ? <TelaConexao />
+        : tela === 'espelho' ? <TelaEspelho />
+        : tela === 'monitor' ? <TelaEspelho conteudo={<MonitorExtra />} lab="19" cursorProprio />
+        : tela === 'janela' ? <TelaEspelho conteudo={<JanelaUnica />} lab="20" cursorProprio />
+        : tela === 'recorte' ? <TelaEspelho conteudo={<Recorte />} lab="20" />
+        : tela === 'vertical' ? <TelaVertical />
+        : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={centro} doModo={doModo} />}
       {laterais === 'legenda' && (
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
           <span>Volume +: {ATALHOS[a].rotulo}</span><span>Volume −: {ATALHOS[b].rotulo}</span>
+        </div>
+      )}
+      {descanso && (
+        <div className="cel-camada-descanso" role="button" tabIndex={0} aria-label="Celular parado. Toque para voltar"
+          onPointerDown={(e) => { e.stopPropagation(); useSim.getState().tocar() }} onKeyDown={() => useSim.getState().tocar()}>
+          <TelaPainel descanso />
         </div>
       )}
       <Aviso />

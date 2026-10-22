@@ -36,3 +36,6 @@
 .mc-laterais button:active { transform: translateY(2px); }
 .mc-laterais button::after { content: ''; position: absolute; inset: -14px -4px -6px; }
 .mc-laterais button { position: relative; }
+.mc-empe .mc-camera { left: 50%; top: 7px; margin: 0 0 0 -3.5px; }
+.mc-empe .mc-laterais { display: none; }
+@media (orientation: portrait) and (max-width: 780px) { .mc-cheia.mc-empe .mc-encaixe { display: block; } .mc-cheia.mc-empe .mc-vire { display: none; } }

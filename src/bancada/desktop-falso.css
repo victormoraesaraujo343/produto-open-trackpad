@@ -28,8 +28,8 @@
 .df-inicio { width: 22px; height: 22px; border-radius: 5px; background: linear-gradient(135deg, #8fb3ff, #3d6cd6); }
 .df-linux .df-inicio { border-radius: 50%; background: linear-gradient(135deg, #5ad1ff, #1d7fd6); }
 .df-icones { display: inline-flex; gap: 8px; }
-.df-icones i, .df-doca i { width: 24px; height: 24px; border-radius: 6px; display: block; opacity: 0.85; }
-.df-icones i.df-foco, .df-doca i.df-foco { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.75); }
+.df-app { display: inline-flex; border-radius: 7px; opacity: 0.88; }
+.df-app.df-foco { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.75); }
 .df-bandeja { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; }
 .df-otp { width: 18px; height: 14px; padding: 0; border-radius: 3px; border: 1.5px solid #e6e6e6; background: transparent; position: relative; cursor: pointer; }
 .df-otp::after { content: ''; position: absolute; right: -4px; top: 2px; width: 3px; height: 3px; border-radius: 50%; background: #9BE23F; box-shadow: 0 0 4px #9BE23F; }
@@ -37,7 +37,7 @@
 .df-menu { position: absolute; left: 0; right: 0; top: 0; height: 24px; display: flex; align-items: center; gap: 16px; padding: 0 14px; background: rgba(240,240,240,0.75); backdrop-filter: blur(10px); }
 .df-dir { margin-left: auto; }
 .df-doca { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); display: flex; gap: 10px; padding: 8px 12px; border-radius: 16px; background: rgba(240,240,240,0.4); backdrop-filter: blur(10px); }
-.df-doca i { width: 34px; height: 34px; border-radius: 9px; }
+
 .df-cursor { position: absolute; margin: -1px 0 0 -1px; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4)); }
 .df-desenho { left: 300px; top: 70px; width: 480px; height: 330px; }
 .df-desenho svg { display: block; width: 100%; height: calc(100% - 30px); background: #fff; }

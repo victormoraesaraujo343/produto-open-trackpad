@@ -1,3 +1,4 @@
+import { IconeApp } from '../../kit/IconeApp'
 import type { ReactNode } from 'react'
 import { APPS } from '../../dados/apps'
 import { PERFIS } from '../../dados/atalhos'
@@ -19,7 +20,7 @@ export function ComLaterais({ centro, doModo }: { centro: ReactNode; doModo?: Re
   const mao = useVariante('mao')
   const appId = useSim((s) => s.appEmFoco)
   const ids = PERFIS[appId]
-  const nomeApp = <span className="cel-cabeca-app"><i style={{ background: APPS[appId].cor }} aria-hidden="true" /><span>{APPS[appId].nome}</span></span>
+  const nomeApp = <span className="cel-cabeca-app"><IconeApp app={appId} tamanho={16} /><span>{APPS[appId].nome}</span></span>
 
   const app = ids.slice(0, 5).map((id) => <TeclaAtalho key={id} id={id} />)
   const sistema = [

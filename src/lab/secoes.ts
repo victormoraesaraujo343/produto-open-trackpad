@@ -15,7 +15,7 @@ export const SECOES = [
   { n: '8', nome: 'Central do computador' },
   { n: '9', nome: 'Ver na prática: teclas presas (nas laterais)' },
   { n: '10', nome: 'Ver na prática: botão giratório' },
-  { n: '11', nome: 'Ver na prática: giratório com o som' },
+  { n: '11', nome: 'Mesa de som: saídas, entradas e apps' },
   { n: '12', nome: 'Ver na prática: botões de volume do celular' },
   { n: '13', nome: 'Ver na prática: modo travado' },
   { n: '14', nome: 'Teclado e voz' },
@@ -23,6 +23,11 @@ export const SECOES = [
   { n: '16', nome: 'Mídia, janelas e abrir' },
   { n: '17', nome: 'Reunião' },
   { n: '18', nome: 'Zonas no trackpad' },
+  { n: '19', nome: 'Segundo monitor' },
+  { n: '20', nome: 'Uma janela e recorte' },
+  { n: '21', nome: 'Monitor vertical' },
+  { n: '22', nome: 'Painel de informações' },
+  { n: '23', nome: 'Tela de descanso' },
 ]
 
 export const VARIANTES = {
@@ -37,10 +42,11 @@ export const VARIANTES = {
   central: { secao: '8', rotulo: 'Central', opcoes: [['lateral', 'Barra lateral'], ['abas', 'Abas no topo'], ['rack', 'Módulos lado a lado']] },
   presas: { secao: '9', rotulo: 'Teclas presas', opcoes: [['trava', 'Toque prende, toque solta'], ['segurar', 'Presa enquanto o dedo está em cima'], ['misto', 'Segurar prende; dois toques travam']] },
   giro: { secao: '10', rotulo: 'Giratório', opcoes: [['arco', 'Arco no canto do polegar'], ['aro', 'Contorno do trackpad'], ['roda', 'Roda onde o dedo pousa']] },
-  mixer: { secao: '11', rotulo: 'Som', opcoes: [['seleciona', 'Toca no app e gira'], ['cada', 'Um giratório por app'], ['segura', 'Barra que vira giratório']] },
+  mixer: { secao: '11', rotulo: 'Mesa de som', opcoes: [['vertical', 'Faders na vertical, todos os canais'], ['horizontal', 'Faders na horizontal, por grupo'], ['giratorio', 'Giratório (para comparar)']] },
   laterais: { secao: '12', rotulo: 'Botões de volume', opcoes: [['atalhos', 'Disparam atalhos'], ['legenda', 'Disparam atalhos, com legenda'], ['sistema', 'Volume do celular, como sempre']] },
   trava: { secao: '13', rotulo: 'Destravar', opcoes: [['segurar', 'Segurar 3 segundos'], ['desenho', 'Desenhar um traço'], ['sem', 'Sem trava']] },
   teclado: { secao: '14', rotulo: 'Teclado', opcoes: [['centro', 'No centro, entre as laterais'], ['dividido', 'Dividido para os dois polegares']] },
+  descanso: { secao: '23', rotulo: 'Descanso', opcoes: [['painel', 'Painel de informações, escurecido'], ['relogio', 'Só o relógio']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES

@@ -91,7 +91,9 @@ conexão; [M] médio, conexão estável; [P] pesado, cabo rápido ou Wi-Fi recen
 - Lançador de apps, pastas, sites e arquivos [L]
 - Mixer de áudio por app e troca de saída de som [M]
 - Controle de mídia com capa [M]
-- Lista de janelas abertas para trocar com um toque [M]
+- Lista de janelas abertas para trocar com um toque, **por ícone e não por texto**
+  (menos espaço, reconhecimento imediato): o computador reconhece o ícone do
+  app de cada janela aberta e o envia ao celular (decisão do dono, 2026-10-21) [M]
 - Modo reunião (mutar, câmera, levantar a mão, sair) [M]
 - Montar os painéis no computador; o celular só mostra [L]
 

@@ -29,3 +29,8 @@ export function nivelDe(c: { mbps: number; atrasoMs: number }): Nivel {
 export function liberado(exigido: 1 | 2 | 3, atual: Nivel): boolean {
   return atual >= exigido
 }
+
+/* Telas pesadas perdem nitidez em vez de travar quando a conexão é mais fraca. */
+export function qualidadeDe(c: { mbps: number }): 'alta' | 'média' {
+  return c.mbps >= 150 ? 'alta' : 'média'
+}

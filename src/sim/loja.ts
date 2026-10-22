@@ -33,6 +33,7 @@ interface Estado {
   textoDigitado: string
   opcoes: Opcoes
   tracos: Ponto[][]
+  orientacao: 'deitado' | 'empe'
 }
 
 interface Acoes {
@@ -81,6 +82,7 @@ const INICIAL: Estado = {
   textoDigitado: '',
   opcoes: { zonas: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true },
   tracos: [],
+  orientacao: 'deitado',
 }
 
 const AVISO_MS = 3000
@@ -101,7 +103,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     if (n === 0) return set({ preset: p, tela: 'conexao', teclasPresas: [] })
     if (tela === 'conexao') return set({ preset: p, tela: 'trackpad' })
     if (!cabe(tela, n)) {
-      set({ preset: p, tela: 'trackpad' })
+      set({ preset: p, tela: 'trackpad', orientacao: 'deitado' })
       return get().avisar('A conexão piorou. Voltamos ao trackpad.')
     }
     set({ preset: p })
@@ -110,7 +112,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   irPara(t) {
     if (get().travado) return
     if (!cabe(t, nivelAtual(get().preset))) return
-    set({ tela: t, ocioso: false })
+    set({ tela: t, ocioso: false, orientacao: t === 'vertical' ? 'empe' : 'deitado' })
   },
 
   irParaPc: (t) => set({ telaPc: t }),
@@ -153,3 +155,6 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   },
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
+
+/* Parado, o celular vira painel de informações (opção "parado vira painel"). */
+export const mostrarDescanso = (s: { ocioso: boolean; opcoes: Opcoes }) => s.ocioso && s.opcoes.paradoViraPainel

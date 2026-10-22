@@ -205,38 +205,46 @@
 .cel-anel-valor-texto { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); }
 .cel-anel-botao small { font-size: 10px; color: var(--ink-3); }
 
-/* ------------------------------------------------------------- som */
-.cel-mixer { display: flex; gap: 10px; align-items: stretch; min-height: 0; position: relative; }
-.cel-mixer-lista { flex: 1; min-width: 0; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
-.cel-canal { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 6px 0 12px; cursor: pointer; border: 1px solid transparent; border-radius: 5px; }
-.cel-canal-sel { background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
-.cel-canal-cor { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-.cel-canal-nome { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cel-nivel { display: inline-flex; gap: 2px; flex: none; }
-.cel-nivel i { width: 4px; height: 14px; border-radius: 1px; background: var(--tick-off); }
-.cel-nivel i.aceso { background: var(--ink-2); }
-.cel-canal-sel .cel-nivel i.aceso { background: var(--led); }
+/* ------------------------------------------------------- mesa de som */
+.cel-mesa-som { display: flex; min-height: 0; }
+.cel-mesa-vertical { gap: 8px; }
+.cel-grupo-som { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 6px 6px 4px; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); }
+.cel-grupo-som h3 { margin: 0; font-size: 11px; font-weight: 500; color: var(--ink-3); text-align: center; }
+.cel-tiras { flex: 1; min-height: 0; display: flex; gap: 4px; }
+.cel-tira { width: 48px; display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; }
+.cel-tira .cel-canal-valor { font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cel-tira .cel-mudo { width: 44px; height: 32px; }
+.cel-canal-cabeca {
+  position: relative; width: 44px; height: 36px; display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--ink-2);
+  border: 1px solid transparent; border-radius: 6px; background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key);
+}
+.cel-canal-cabeca:disabled { cursor: default; background: transparent; box-shadow: none; }
+.cel-canal-cabeca .k-led { position: absolute; top: 3px; right: 3px; transform: scale(.8); }
 .cel-mudo {
-  flex: none; width: 48px; height: 44px; display: grid; place-items: center; cursor: pointer; color: var(--ink-2);
+  flex: none; width: 44px; height: 40px; display: grid; place-items: center; cursor: pointer; color: var(--ink-2);
   border: 1px solid transparent; border-radius: 5px; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove);
 }
 .cel-mudo.k-ligada { color: var(--laranja); }
-.cel-mixer-giro { flex: none; display: grid; place-items: center; width: 214px; touch-action: none; cursor: grab; border-radius: 50%; }
-.cel-mixer-cada { justify-content: space-around; align-items: center; }
-.cel-knob { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
-.cel-knob > [role="slider"] { touch-action: none; cursor: grab; border-radius: 50%; }
-.cel-knob-nome { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; max-width: 170px; }
-.cel-knob-nome i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-.cel-knob-nome span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cel-mixer-segura { flex-direction: column; gap: 8px; justify-content: center; padding-bottom: 20px; }
-.cel-barra {
-  display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 6px 0 14px; touch-action: none; cursor: pointer;
-  border: 1px solid transparent; border-radius: 6px; background: var(--well-face) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-well);
+.cel-mesa-horizontal { flex-direction: column; gap: 8px; }
+.cel-segmentos { flex: none; display: flex; gap: 4px; padding: 4px; border-radius: 7px; background: var(--groove); box-shadow: var(--inset-groove); }
+.cel-segmentos button {
+  position: relative; flex: 1; height: 38px; cursor: pointer; font: 500 13px var(--fonte); color: var(--ink-3);
+  border: 1px solid transparent; border-radius: 5px; background: transparent;
 }
-.cel-barra .cel-canal-nome { flex: none; width: 150px; }
-.cel-barra-trilho { flex: 1; height: 8px; border-radius: 4px; background: var(--groove); box-shadow: var(--inset-groove); overflow: hidden; }
-.cel-barra-trilho span { display: block; height: 100%; background: var(--ink-3); border-radius: 4px; }
-.cel-barra-valor { width: 46px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.cel-segmentos .cel-modo-ativo { color: var(--ink); background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
+.cel-segmentos .cel-modo-ativo::after { content: ''; position: absolute; left: 30%; right: 30%; bottom: 4px; height: 2px; border-radius: 1px; background: var(--laranja); }
+.cel-faixas { flex: 1; min-height: 0; padding: 6px 10px; display: flex; flex-direction: column; justify-content: space-around; }
+.cel-faixa-h { display: flex; align-items: center; gap: 10px; min-height: 56px; }
+.cel-faixa-h .cel-canal-nome { width: 92px; flex: none; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel-faixa-h .cel-canal-valor { width: 40px; text-align: right; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.cel-mixer { display: flex; gap: 10px; align-items: stretch; min-height: 0; position: relative; }
+.cel-mixer-lista { flex: 1; min-width: 0; padding: 6px; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; }
+.cel-canal { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; cursor: pointer; border: 1px solid transparent; border-radius: 5px; color: var(--ink-2); }
+.cel-canal-sel { color: var(--ink); background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
+.cel-canal-nome { flex: 1; min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel-canal-valor { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.cel-mixer-giro { flex: none; display: grid; place-items: center; width: 210px; touch-action: none; cursor: grab; border-radius: 50%; }
 
 /* ------------------------------------------------- trava (desenho) */
 .cel-desenho { padding: 18px 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -323,21 +331,21 @@
 .cel-midia-botoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; height: 60px; }
 .cel-espelhar { display: inline-flex; transform: scaleX(-1); }
 
-/* janelas */
-.cel-janelas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; }
+/* janelas (por ícone) */
+.cel-janelas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 10px; }
 .cel-janela {
-  display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; padding: 0 12px; cursor: pointer; text-align: left;
-  border: 1px solid transparent; border-radius: 6px; background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key); color: var(--key-ink);
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; padding: 6px; cursor: pointer;
+  border: 1px solid transparent; border-radius: 8px; background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key); color: var(--key-ink);
 }
 .cel-janela-foco { background: var(--key-face-on) padding-box, var(--cham) border-box; box-shadow: var(--shadow-sm), inset 0 -2px 0 var(--laranja); }
-.cel-janela-app { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-3); }
-.cel-janela-app i { width: 8px; height: 8px; border-radius: 2px; }
-.cel-janela-titulo { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.cel-janela .k-led { position: absolute; top: 7px; right: 8px; }
+.cel-janela-nome { font-size: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.cel-janela-qtd { position: absolute; top: 8px; left: 8px; min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: var(--ink); background: var(--groove); box-shadow: var(--inset-groove); }
 
 /* abrir */
 .cel-lancador { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .cel-lancar { gap: 8px; }
-.cel-lancar-icone { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.35); }
+.cel-lancar-icone { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; color: var(--ink-2); background: var(--groove); box-shadow: var(--inset-groove); }
 .cel-lancar .k-rotulo { font-size: 13px; color: var(--key-ink); }
 
 /* reunião */
@@ -352,3 +360,74 @@
 .cel-reuniao-botao.k-ligada { color: var(--laranja); }
 .cel-reuniao-sair { color: #FFF4EE; background: linear-gradient(180deg, #C2351A, #9E2A12) padding-box, var(--cham-org) border-box; }
 .cel-reuniao-sair .k-presa b, .cel-reuniao-sair .k-presa small { color: #FFF4EE; }
+
+/* ===================================================== R2 · tela */
+.cel-espelho-imagem .cel-qualidade {
+  position: absolute; left: 8px; top: 8px; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
+  color: #F2F3EF; background: rgba(12,13,14,0.7); pointer-events: none;
+}
+.cel-qualidade-media > div:first-child { filter: blur(0.6px) saturate(.9); }
+.cel-cursor-proprio { position: absolute; margin: -1px 0 0 -1px; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
+
+/* conteúdos de imagem (desenhados a 1024 × 640, como o computador) */
+.ct-tela { position: relative; font-family: system-ui, sans-serif; color: #1d1f22; }
+.ct-extra { background: radial-gradient(120% 90% at 80% 10%, #3f5a6e 0%, #24313d 55%, #172028 100%); }
+.ct-unica { background: #f4f4f2; }
+.ct-janela { position: absolute; overflow: hidden; border-radius: 8px; background: #f4f4f2; box-shadow: 0 16px 40px rgba(0,0,0,0.45); display: flex; flex-direction: column; }
+.ct-titulo { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 14px; font-size: 15px; font-weight: 500; background: #e3e3e0; border-bottom: 1px solid #d0d0cc; }
+.ct-chat { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 20px; font-size: 18px; }
+.ct-chat p { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.ct-chat b { font-size: 15px; color: #5865F2; }
+.ct-chat .ct-eu b { color: #1f8a4c; }
+.ct-chat-grande { font-size: 26px; gap: 22px; padding: 28px 36px; }
+.ct-chat-grande b { font-size: 20px; }
+.ct-campo { margin-top: auto; padding: 14px 16px; border-radius: 8px; background: #e6e6e3; color: #7a7c78; }
+.ct-player { flex: 1; display: flex; align-items: center; gap: 18px; padding: 20px; font-size: 20px; }
+.ct-player div { display: flex; flex-direction: column; gap: 4px; }
+.ct-player span { color: #6a6d69; font-size: 16px; }
+.ct-capa { width: 110px; height: 110px; border-radius: 8px; background: radial-gradient(circle at 30% 25%, #F5C26B 0%, #D9643A 38%, #5B2A6E 100%); }
+.ct-recorte-rotulo { position: absolute; right: 16px; bottom: 16px; padding: 6px 12px; border-radius: 12px; font-size: 18px; color: #fff; background: rgba(12,13,14,0.75); }
+
+/* vertical */
+.cel-vertical { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+.cel-vertical-imagem { flex: 1; min-height: 0; position: relative; overflow: hidden; border-radius: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,0.6); }
+.ct-empe { position: absolute; inset: 0; display: flex; flex-direction: column; background: #f4f4f2; }
+.ct-empe .ct-chat { font-size: 15px; gap: 14px; padding: 16px; }
+.ct-empe .ct-chat b { font-size: 12px; }
+.cel-vertical-barra { flex: none; height: 64px; display: flex; }
+.cel-vertical-barra > * { flex: 1; flex-direction: row; gap: 8px; }
+
+/* painel de informações */
+.cel-painel { position: relative; display: flex; min-height: 0; }
+.cel-painel-grade { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: 8px; min-height: 0; }
+.cel-bloco { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; min-width: 0; min-height: 0; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); }
+.cel-bloco-hora { justify-content: center; }
+.cel-hora { font-size: 40px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+.cel-data { font-size: 12px; color: var(--ink-2); }
+.cel-bloco-titulo { font-size: 11px; font-weight: 500; color: var(--ink-3); }
+.cel-reuniao-prox { font-size: 14px; }
+.cel-bloco .cel-tecla-texto { min-height: 44px; margin-top: auto; }
+.cel-bloco-notificacoes { overflow: hidden; }
+.cel-medida { display: grid; grid-template-columns: 84px 1fr 86px; align-items: center; gap: 8px; font-size: 11px; }
+.cel-medida-nome { color: var(--ink-2); }
+.cel-medida-trilho { height: 6px; border-radius: 3px; background: var(--groove); box-shadow: var(--inset-groove); overflow: hidden; }
+.cel-medida-trilho i { display: block; height: 100%; background: var(--ink-3); }
+.cel-medida-trilho i.alto { background: var(--ambar); }
+.cel-medida-valor { text-align: right; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cel-notificacao { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; min-width: 0; }
+.cel-notificacao div { display: flex; flex-direction: column; min-width: 0; }
+.cel-notificacao b { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel-notificacao span { font-size: 11px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel-notificacao small { font-size: 10px; color: var(--ink-3); }
+
+/* descanso: escuro, e o conteúdo derivando devagar para a tela não marcar */
+.cel-camada-descanso { position: absolute; inset: 0; z-index: 50; display: flex; padding: 16px; background: #050506; cursor: pointer; }
+.cel-camada-descanso > * { flex: 1; }
+.cel-descanso { filter: brightness(.55); }
+.cel-descanso .cel-bloco { background: #0f1012; box-shadow: none; }
+.cel-deriva { animation: cel-deriva 90s ease-in-out infinite alternate; }
+@keyframes cel-deriva { 0% { transform: translate(0, 0); } 33% { transform: translate(6px, -4px); } 66% { transform: translate(-5px, 5px); } 100% { transform: translate(4px, 3px); } }
+.cel-descanso-relogio { display: grid; place-items: center; }
+.cel-descanso-relogio .cel-deriva { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cel-hora-grande { font-size: 96px; font-weight: 500; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.cel-descanso-dica { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); font-size: 11px; color: var(--ink-3); }

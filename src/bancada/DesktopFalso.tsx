@@ -1,3 +1,4 @@
+import { IconeApp } from '../kit/IconeApp'
 import { APPS } from '../dados/apps'
 import { JANELAS } from '../dados/janelas'
 import { useSim } from '../sim/loja'
@@ -57,11 +58,11 @@ export function DesktopFalso() {
       {sistema !== 'macos' ? (
         <div className="df-barra">
           <span className="df-inicio" aria-hidden="true" />
-          <span className="df-icones">{doca.map((a) => <i key={a} className={a === foco ? 'df-foco' : ''} style={{ background: APPS[a].cor }} title={APPS[a].nome} />)}</span>
+          <span className="df-icones">{doca.map((a) => <span key={a} className={`df-app${a === foco ? ' df-foco' : ''}`} title={APPS[a].nome}><IconeApp app={a} tamanho={24} /></span>)}</span>
           <span className="df-bandeja"><button type="button" className="df-otp" aria-label="Abrir o OpenTrackpad" onClick={() => useSim.getState().irParaPc('central')} /><Relogio /></span>
         </div>
       ) : (
-        <div className="df-doca">{doca.map((a) => <i key={a} className={a === foco ? 'df-foco' : ''} style={{ background: APPS[a].cor }} title={APPS[a].nome} />)}</div>
+        <div className="df-doca">{doca.map((a) => <span key={a} className={`df-app${a === foco ? ' df-foco' : ''}`} title={APPS[a].nome}><IconeApp app={a} tamanho={34} /></span>)}</div>
       )}
       <svg className="df-cursor" style={{ left: `${cursor.x * 100}%`, top: `${cursor.y * 100}%` }} width="18" height="24" viewBox="0 0 18 24" aria-hidden="true">
         <path d="M1 1v19l5-5 3.5 7.5 3-1.4L9 13.8h7z" fill="#fff" stroke="#000" strokeWidth="1.2" strokeLinejoin="round" />
