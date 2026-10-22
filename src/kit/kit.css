@@ -208,3 +208,4 @@ kbd {
 .k-alt-segmento span { min-width: 44px; display: grid; place-items: center; padding: 0 6px; border-radius: 5px; font: 500 11px var(--fonte); color: var(--ink-3); }
 .k-alt-segmento .k-alt-escolhido { color: var(--ink); background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
 .k-alt-segmento span:last-child.k-alt-escolhido { box-shadow: var(--shadow-key), inset 0 -2px 0 var(--laranja); }
+.k-rastro { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }

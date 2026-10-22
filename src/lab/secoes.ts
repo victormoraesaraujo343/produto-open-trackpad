@@ -60,6 +60,7 @@ export const VARIANTES = {
   lateraisTeclado: { secao: '14', rotulo: 'Laterais no teclado', opcoes: [['icones', 'Viram ícones; crescem ao tocar'], ['recolhidas', 'Recolhidas na borda; abrem por cima'], ['normais', 'Normais (para comparar)']] },
   menuModos: { secao: '3', rotulo: 'Menu de modos', opcoes: [['colunas', 'Uma coluna por grupo'], ['abas', 'Grupos como abas, modos grandes'], ['icones', 'Grade de ícones'], ['gaveta', 'Gaveta saindo da lateral']] },
   alternador: { secao: '34', rotulo: 'Liga e desliga', opcoes: [['tecla', 'Tecla de trava que afunda'], ['trilho', 'Trilho com pino'], ['segmento', 'Desl. / Lig. lado a lado'], ['basculante', 'Basculante (o atual)']] },
+  rastro: { secao: '35', rotulo: 'Rastro', opcoes: [['grade', 'Grade de pontos que acende e apaga'], ['ondas', 'Ondas suaves'], ['cometa', 'Cometa que segue o dedo']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES

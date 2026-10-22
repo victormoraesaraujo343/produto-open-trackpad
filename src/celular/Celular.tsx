@@ -156,7 +156,7 @@ export function Celular() {
         : tela === 'janela' ? <TelaEspelho conteudo={<JanelaUnica />} lab="20" cursorProprio />
         : tela === 'recorte' ? <TelaEspelho conteudo={<Recorte />} lab="20" />
         : tela === 'vertical' ? <TelaVertical />
-        : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={centro} doModo={doModo} compacto={tela === 'teclado'} />}
+        : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={<div key={tela} className="cel-troca-modo">{centro}</div>} doModo={doModo} compacto={tela === 'teclado'} />}
       {laterais === 'legenda' && (
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
           <span>Volume +: {nomeAtalho(a)}</span><span>Volume −: {nomeAtalho(b)}</span>

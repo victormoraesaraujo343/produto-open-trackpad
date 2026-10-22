@@ -37,6 +37,7 @@ export function TelaAjustes() {
         <Linha nome="Aceleração"><Fader orientacao="horizontal" valor={a.aceleracao} rotulo="Aceleração" aoMudar={(v) => setAjuste('aceleracao', v)} ativo /></Linha>
         <Linha nome="Rolagem natural"><Basculante ligado={a.rolagemNatural} rotulo="Rolagem natural" aoMudar={(v) => setAjuste('rolagemNatural', v)} /></Linha>
         {chave('zonas', 'Zonas no trackpad', 'Borda rola, canto faz clique direito')}
+        {chave('rastro', 'Rastro no trackpad', 'Pontos que acendem em volta do dedo')}
       </section>
       <section aria-label="Aparelho">
         <h3>Aparelho</h3>

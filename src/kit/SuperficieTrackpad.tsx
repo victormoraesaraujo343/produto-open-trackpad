@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useSim } from '../sim/loja'
 import { vibrar } from '../sim/vibrar'
+import { Rastro } from './Rastro'
 import './kit.css'
 
 const TOQUE_MS = 260
@@ -27,6 +28,7 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
   const [gesto, setGesto] = useState<string | null>(null)
   const dedosSimulados = useSim((s) => s.dedos)
   const zonas = useSim((s) => s.opcoes.zonas)
+  const rastro = useSim((s) => s.opcoes.rastro)
   const maxDedos = useRef(0)
   const zona = useRef<'borda' | 'canto' | null>(null)
   const { moverCursor, tocar } = useSim.getState()
@@ -98,6 +100,7 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
         }
       }}
       onPointerCancel={(e) => { ponteiros.current.delete(e.pointerId); setDedos([...ponteiros.current.values()]); inicio.current = null; clearTimeout(relogioFirme.current) }}>
+      {rastro && <Rastro alvo={ref} />}
       {dedos.map((d, i) => <span key={i} className="k-dedo" style={{ left: d.x, top: d.y }} />)}
       {aneis.map((a) => <span key={a.id} className={`k-anel${a.firme ? ' k-firme' : ''}`} style={{ left: a.x, top: a.y }} />)}
       {zonas && <div className="k-zona k-zona-borda" data-lab="18" aria-hidden="true"><span>rolar</span></div>}

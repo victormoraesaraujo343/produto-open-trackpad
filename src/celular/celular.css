@@ -646,3 +646,7 @@
 .cel-descanso-foto .cel-deriva { align-self: end; justify-self: start; align-items: flex-start; padding: 0 0 20px 24px; }
 .cel-descanso-foto .cel-hora-grande { font-size: 64px; color: #EDEFEA; }
 .cel-descanso-foto .cel-data { color: #D5D8D2; }
+/* troca de modo: o centro entra com um fade curto e um deslize de 4 px (#4) */
+.cel-troca-modo { flex: 1; min-width: 0; display: flex; animation: cel-troca 170ms cubic-bezier(.2,.8,.2,1); }
+.cel-troca-modo > * { flex: 1; min-width: 0; }
+@keyframes cel-troca { from { opacity: 0; transform: translateY(4px); } }
