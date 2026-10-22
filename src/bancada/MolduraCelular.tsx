@@ -18,7 +18,7 @@ export function MolduraCelular({ children, telaCheia = false }: { children: Reac
       <div className="mc-encaixe" style={{ width: desenho.largura * k, height: desenho.altura * k }}>
         <div className="mc-aparelho" style={{ width: desenho.largura, height: desenho.altura, transform: `scale(${k})` }}>
           {!telaCheia && <span className="mc-camera" aria-hidden="true" />}
-          <div className="mc-tela" style={{ width: DESENHO_CELULAR.largura, height: DESENHO_CELULAR.altura }}>
+          <div className="mc-tela" data-tela-celular style={{ width: DESENHO_CELULAR.largura, height: DESENHO_CELULAR.altura }}>
             {children}
           </div>
         </div>

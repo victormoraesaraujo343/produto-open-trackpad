@@ -1,0 +1,41 @@
+.df { position: relative; overflow: hidden; font-family: system-ui, sans-serif; font-size: 12px; color: #1d1f22;
+  background: radial-gradient(120% 90% at 20% 10%, #3f5a6e 0%, #24313d 55%, #172028 100%); }
+.df-macos { background: radial-gradient(120% 90% at 70% 10%, #6b5a86 0%, #3a3456 55%, #1f1d33 100%); }
+.df-windows { background: radial-gradient(120% 90% at 50% 100%, #2b6cb0 0%, #1a3e6e 55%, #0f2140 100%); }
+
+.df-janela { position: absolute; border-radius: 8px; overflow: hidden; background: #f4f4f2; box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.2); opacity: 0.93; }
+.df-ativa { opacity: 1; box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.25); }
+.df-titulo { height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: #e3e3e0; border-bottom: 1px solid #d0d0cc; }
+.df-linux .df-titulo, .df-windows .df-titulo { flex-direction: row-reverse; }
+.df-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: #3a3d40; }
+.df-macos .df-nome { text-align: center; }
+.df-botoes { display: inline-flex; gap: 6px; }
+.df-botoes i { width: 11px; height: 11px; border-radius: 50%; background: #c4c4c0; display: block; }
+.df-macos .df-botoes i:nth-child(1) { background: #ff5f57; }
+.df-macos .df-botoes i:nth-child(2) { background: #febc2e; }
+.df-macos .df-botoes i:nth-child(3) { background: #28c840; }
+.df-windows .df-botoes i, .df-linux .df-botoes i { border-radius: 2px; width: 10px; height: 2px; background: #6a6d70; }
+.df-corpo { height: calc(100% - 30px); display: flex; }
+.df-corpo::before { content: ''; width: 56px; background: color-mix(in srgb, var(--cor) 22%, #ececea); border-right: 1px solid #ddd; }
+.df-linhas { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.df-linhas i { display: block; height: 9px; border-radius: 4px; background: #dcdcd8; }
+.df-linhas i:nth-child(1) { width: 60%; background: color-mix(in srgb, var(--cor) 55%, #dcdcd8); }
+.df-linhas i:nth-child(2) { width: 85%; } .df-linhas i:nth-child(3) { width: 72%; } .df-linhas i:nth-child(4) { width: 40%; } .df-linhas i:nth-child(5) { width: 66%; }
+
+.df-barra { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; background: rgba(20,22,26,0.88); color: #e6e6e6; }
+.df-windows .df-barra { justify-content: center; background: rgba(32,32,36,0.85); }
+.df-windows .df-bandeja { position: absolute; right: 12px; }
+.df-inicio { width: 22px; height: 22px; border-radius: 5px; background: linear-gradient(135deg, #8fb3ff, #3d6cd6); }
+.df-linux .df-inicio { border-radius: 50%; background: linear-gradient(135deg, #5ad1ff, #1d7fd6); }
+.df-icones { display: inline-flex; gap: 8px; }
+.df-icones i, .df-doca i { width: 24px; height: 24px; border-radius: 6px; display: block; opacity: 0.85; }
+.df-icones i.df-foco, .df-doca i.df-foco { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.75); }
+.df-bandeja { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; }
+.df-otp { width: 14px; height: 10px; border-radius: 2px; border: 1.5px solid #e6e6e6; position: relative; }
+.df-otp::after { content: ''; position: absolute; right: -4px; top: 2px; width: 3px; height: 3px; border-radius: 50%; background: #9BE23F; box-shadow: 0 0 4px #9BE23F; }
+.df-relogio { font-variant-numeric: tabular-nums; }
+.df-menu { position: absolute; left: 0; right: 0; top: 0; height: 24px; display: flex; align-items: center; gap: 16px; padding: 0 14px; background: rgba(240,240,240,0.75); backdrop-filter: blur(10px); }
+.df-dir { margin-left: auto; }
+.df-doca { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); display: flex; gap: 10px; padding: 8px 12px; border-radius: 16px; background: rgba(240,240,240,0.4); backdrop-filter: blur(10px); }
+.df-doca i { width: 34px; height: 34px; border-radius: 9px; }
+.df-cursor { position: absolute; margin: -1px 0 0 -1px; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4)); }
