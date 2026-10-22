@@ -1,4 +1,5 @@
 import { Bancada } from './bancada/Bancada'
+import { BarraSimulacao } from './bancada/BarraSimulacao'
 import { MolduraCelular } from './bancada/MolduraCelular'
 
 function TelaDoCelular() {
@@ -13,5 +14,5 @@ export default function App() {
   if (location.pathname.startsWith('/celular')) {
     return <MolduraCelular telaCheia><TelaDoCelular /></MolduraCelular>
   }
-  return <Bancada celular={<TelaDoCelular />} computador={<TelaDoComputador />} />
+  return <Bancada barra={<BarraSimulacao />} celular={<TelaDoCelular />} computador={<TelaDoComputador />} />
 }

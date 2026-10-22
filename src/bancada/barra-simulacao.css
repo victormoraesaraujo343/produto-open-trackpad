@@ -1,0 +1,14 @@
+.bs { flex: none; border-bottom: 1px solid var(--chrome-line); background: var(--chrome-face); font-size: 12px; }
+.bs-linha { display: flex; align-items: center; gap: 10px 22px; padding: 8px 16px; overflow-x: auto; white-space: nowrap; }
+.bs-grupo { display: inline-flex; align-items: center; gap: 8px; }
+.bs-rotulo { color: var(--chrome-ink-2); }
+.bs-seg { display: inline-flex; border: 1px solid var(--chrome-line); border-radius: 6px; overflow: hidden; }
+.bs-seg button { border: 0; background: transparent; padding: 4px 9px; cursor: pointer; color: var(--chrome-ink-2); }
+.bs-seg button + button { border-left: 1px solid var(--chrome-line); }
+.bs-seg button[aria-pressed="true"] { background: var(--chrome-ink); color: var(--chrome-bg); }
+.bs select { font: inherit; color: var(--chrome-ink); background: var(--chrome-bg); border: 1px solid var(--chrome-line); border-radius: 6px; padding: 3px 6px; }
+.bs-nivel { font-variant-numeric: tabular-nums; border-radius: 4px; padding: 2px 6px; background: var(--chrome-line); color: var(--chrome-ink); }
+.bs-n3 { background: #2f6b1f; color: #e8f6d8; }
+.bs-n2 { background: #6b5a1f; color: #f6eed8; }
+.bs-n1 { background: #6b2f1f; color: #f6dfd8; }
+.bs-marca { margin-left: auto; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--chrome-ink-2); }
