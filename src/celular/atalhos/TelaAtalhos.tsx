@@ -4,7 +4,6 @@ import { Icone } from '../../kit/Icone'
 import { TeclaAtalho } from '../../kit/TeclaAtalho'
 import { useVariante } from '../../lab/refinamento'
 import { useSim } from '../../sim/loja'
-import { AppEmFoco } from './AppEmFoco'
 
 const GRUPOS: { nome: string; ids: string[] }[] = [
   { nome: 'Editar', ids: ['copiar', 'colar', 'desfazer', 'refazer'] },
@@ -21,7 +20,6 @@ export function TelaAtalhos() {
   if (forma === 'largas') {
     return (
       <div className="cel-atalhos" data-lab="4">
-        <AppEmFoco />
         <div className="cel-grade cel-grade-largas">{ids.map((id) => <TeclaAtalho key={id} id={id} combinacao />)}</div>
       </div>
     )
@@ -32,7 +30,6 @@ export function TelaAtalhos() {
     const colunas = [...GRUPOS, { nome: 'Deste app', ids: doApp }].filter((g) => g.ids.length)
     return (
       <div className="cel-atalhos" data-lab="4">
-        <AppEmFoco />
         <div className="cel-colunas">
           {colunas.map((g) => (
             <section key={g.nome} className="cel-coluna" aria-label={g.nome}>
@@ -51,8 +48,7 @@ export function TelaAtalhos() {
     return (
       <div className="cel-atalhos" data-lab="4">
         <div className="cel-atalhos-topo">
-          <AppEmFoco />
-          <span className="cel-pagina-texto">Página {p + 1} de {total}</span>
+            <span className="cel-pagina-texto">Página {p + 1} de {total}</span>
         </div>
         <div className="cel-paginas">
           <button type="button" className="cel-seta" aria-label="Página anterior" disabled={p === 0} onClick={() => setPagina(p - 1)}><Icone nome="voltar" /></button>
@@ -69,7 +65,6 @@ export function TelaAtalhos() {
 
   return (
     <div className="cel-atalhos" data-lab="4">
-      <AppEmFoco />
       <div className="cel-grade cel-grade-4">{ids.map((id) => <TeclaAtalho key={id} id={id} />)}</div>
     </div>
   )

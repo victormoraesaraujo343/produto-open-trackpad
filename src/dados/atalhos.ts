@@ -4,6 +4,7 @@ import type { AppId } from './apps'
 export interface Atalho { id: string; rotulo: string; teclas: string[]; icone: string }
 
 export const ATALHOS: Record<string, Atalho> = {
+  cliqueDireito: { id: 'cliqueDireito', rotulo: 'Clique direito', teclas: ['Clique direito'], icone: 'clique' },
   copiar: { id: 'copiar', rotulo: 'Copiar', teclas: ['mod', 'C'], icone: 'copiar' },
   colar: { id: 'colar', rotulo: 'Colar', teclas: ['mod', 'V'], icone: 'colar' },
   desfazer: { id: 'desfazer', rotulo: 'Desfazer', teclas: ['mod', 'Z'], icone: 'desfazer' },

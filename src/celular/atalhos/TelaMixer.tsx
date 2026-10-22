@@ -58,7 +58,7 @@ export function TelaMixer() {
       </Poco>
       <div className="cel-mixer-giro" role="slider" tabIndex={0} aria-label={`Volume de ${APPS[atual.app].nome}`} aria-valuenow={atual.volume} aria-valuemin={0} aria-valuemax={100}
         onKeyDown={teclado(sel)} {...giroSel}>
-        <Anel valor={atual.mudo ? 0 : atual.volume} tamanho={250} rotulo={APPS[atual.app].nome} detalhe={atual.mudo ? 'no mudo' : 'gire para ajustar'} />
+        <Anel valor={atual.mudo ? 0 : atual.volume} tamanho={210} rotulo={APPS[atual.app].nome} detalhe={atual.mudo ? 'no mudo' : 'gire para ajustar'} />
       </div>
     </div>
   )
@@ -66,7 +66,7 @@ export function TelaMixer() {
 
 /* Nível em segmentos: o comprimento diz o valor, não só a cor. */
 function Nivel({ valor }: { valor: number }) {
-  return <span className="cel-nivel" aria-label={`${valor}%`}>{Array.from({ length: 10 }, (_, i) => <i key={i} className={i < Math.round(valor / 10) ? 'aceso' : ''} />)}</span>
+  return <span className="cel-nivel" aria-label={`${valor}%`}>{Array.from({ length: 8 }, (_, i) => <i key={i} className={i < Math.round(valor / 12.5) ? 'aceso' : ''} />)}</span>
 }
 
 function Knob({ canal, aoPasso, teclado, mudo }: { canal: CanalApp; aoPasso: (d: number) => void; teclado: (e: React.KeyboardEvent) => void; mudo: React.ReactNode }) {
@@ -74,7 +74,7 @@ function Knob({ canal, aoPasso, teclado, mudo }: { canal: CanalApp; aoPasso: (d:
   return (
     <div className="cel-knob">
       <div role="slider" tabIndex={0} aria-label={`Volume de ${APPS[canal.app].nome}`} aria-valuenow={canal.volume} aria-valuemin={0} aria-valuemax={100} onKeyDown={teclado} {...giro}>
-        <Anel valor={canal.mudo ? 0 : canal.volume} tamanho={140} detalhe={canal.mudo ? 'no mudo' : undefined} />
+        <Anel valor={canal.mudo ? 0 : canal.volume} tamanho={112} detalhe={canal.mudo ? 'no mudo' : undefined} />
       </div>
       <div className="cel-knob-nome"><i style={{ background: APPS[canal.app].cor }} aria-hidden="true" /><span>{APPS[canal.app].nome}</span>{mudo}</div>
     </div>

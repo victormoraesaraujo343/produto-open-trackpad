@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { ATALHOS, PERFIS } from '../dados/atalhos'
 import { Aviso } from '../kit/Aviso'
+import { SuperficieTrackpad } from '../kit/SuperficieTrackpad'
+import { Tecla } from '../kit/Tecla'
 import { useVariante, variante } from '../lab/refinamento'
 import { useSim } from '../sim/loja'
 import type { TelaCelular } from '../sim/telas'
@@ -9,22 +11,10 @@ import { TelaAtalhos } from './atalhos/TelaAtalhos'
 import { TelaMixer } from './atalhos/TelaMixer'
 import { TelaConexao } from './conexao/TelaConexao'
 import { TelaGiro } from './controle/TelaGiro'
-import { TelaPresas } from './controle/TelaPresas'
-import { ABRIR_MODOS, Modos } from './navegacao/Modos'
+import { ComLaterais } from './laterais/ComLaterais'
+import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
-import { TelaTrackpad } from './trackpad/TelaTrackpad'
 import './celular.css'
-
-const TELAS: Record<TelaCelular, () => React.ReactNode> = {
-  trackpad: () => <TelaTrackpad />,
-  atalhos: () => <TelaAtalhos />,
-  mixer: () => <TelaMixer />,
-  espelho: () => <TelaEspelho />,
-  presas: () => <TelaPresas />,
-  giro: () => <TelaGiro />,
-  conexao: () => <TelaConexao />,
-  ajustes: () => <TelaTrackpad />,
-}
 
 const TOQUE_LONGO_MS = 600
 
@@ -39,14 +29,28 @@ export function apertarBotaoLateral(qual: 'mais' | 'menos') {
   vibrar(8)
 }
 
-/* O celular inteiro: faixa do topo (modos, conexão, trava) e a tela do modo atual. */
+function Voltar() {
+  return <Tecla rotulo="Voltar ao trackpad" icone="trackpad" aoTocar={() => useSim.getState().irPara('trackpad')} />
+}
+
+/* O que cada modo põe no centro e na última tecla da lateral do sistema. */
+function conteudo(t: TelaCelular): { centro: ReactNode; doModo: ReactNode } {
+  switch (t) {
+    case 'atalhos': return { centro: <TelaAtalhos />, doModo: <Voltar /> }
+    case 'mixer': return { centro: <TelaMixer />, doModo: <Voltar /> }
+    case 'giro': return { centro: <TelaGiro />, doModo: <Voltar /> }
+    case 'espelho': return { centro: null, doModo: null }
+    default: return { centro: <SuperficieTrackpad />, doModo: <Tecla rotulo="Mais atalhos" icone="atalhos" aoTocar={() => useSim.getState().irPara('atalhos')} /> }
+  }
+}
+
+/* O celular inteiro: sem faixa no topo; tudo nas laterais (ou no menu de modos). */
 export function Celular() {
   const tela = useSim((s) => s.tela)
   const laterais = useVariante('laterais')
   const longo = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const dedos = useRef(new Set<number>())
-  const appEmFoco = useSim((s) => s.appEmFoco)
-  const [a, b] = PERFIS[appEmFoco]
+  const [a, b] = PERFIS[useSim((s) => s.appEmFoco)]
 
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
@@ -58,6 +62,7 @@ export function Celular() {
     return () => window.removeEventListener('keydown', tecla)
   }, [])
 
+  const { centro, doModo } = conteudo(tela)
   return (
     <div className="cel" data-lab="1"
       onPointerDownCapture={(e) => {
@@ -69,8 +74,7 @@ export function Celular() {
       onPointerMoveCapture={(e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) clearTimeout(longo.current) }}
       onPointerUpCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}
       onPointerCancelCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}>
-      <Modos />
-      <div className="cel-conteudo">{TELAS[tela]()}</div>
+      {tela === 'conexao' ? <TelaConexao /> : tela === 'espelho' ? <TelaEspelho /> : <ComLaterais centro={centro} doModo={doModo} />}
       {laterais === 'legenda' && (
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
           <span>Volume +: {ATALHOS[a].rotulo}</span><span>Volume −: {ATALHOS[b].rotulo}</span>

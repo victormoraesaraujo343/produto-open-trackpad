@@ -6,6 +6,5 @@ export const MODOS: { tela: TelaCelular; nome: string; icone: string }[] = [
   { tela: 'atalhos', nome: 'Atalhos', icone: 'atalhos' },
   { tela: 'mixer', nome: 'Som', icone: 'mixer' },
   { tela: 'espelho', nome: 'Tela', icone: 'tela' },
-  { tela: 'presas', nome: 'Teclas presas', icone: 'segurar' },
   { tela: 'giro', nome: 'Volume', icone: 'volume' },
 ]

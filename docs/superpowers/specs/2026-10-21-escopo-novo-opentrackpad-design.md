@@ -237,6 +237,13 @@ O detalhamento está em `docs/ARCHITECTURE.md`, `docs/TESTING.md` e
   destaque, disco, faders, organização dos painéis. As telas e os controles
   novos nascem do zero no laboratório. A identidade minimalista da v0.2
   (grafite e verde-limão) também sai.
+- **Laterais fixas em volta de um centro no formato do trackpad do MacBook**
+  (decisão do dono, 2026-10-21). O celular deitado é largo demais para um
+  trackpad bom; o centro fica com a proporção do trackpad do MacBook (cerca de
+  1,6 : 1, a mesma 16:10 da tela do computador) e sobram duas laterais com
+  funções sempre à mão. Vale para o trackpad, o espelho e o segundo monitor:
+  o centro troca, as laterais ficam no mesmo lugar. O **conceito** vem da v1;
+  o desenho das laterais é novo, na identidade.
 - **Usabilidade e acessibilidade valem acima do estilo.** Alvo de toque de
   pelo menos 48 dp no celular (44 px no computador); contraste WCAG AA (4,5:1
   para texto, 3:1 para ícones e bordas de controle); estado nunca só por cor

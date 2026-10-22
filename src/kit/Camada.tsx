@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import './kit.css'
 
 const EVENTOS = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend'] as const
@@ -22,9 +23,12 @@ export function Camada({ aberta, aoFechar, children, className = '' }: { aberta:
     return () => { for (const t of EVENTOS) raiz.removeEventListener(t, barrar, true) }
   }, [aberta])
   if (!aberta) return null
-  return (
+  /* sempre por cima da tela inteira do celular, de onde quer que seja aberta */
+  const tela = document.querySelector('[data-tela-celular]')
+  const camada = (
     <div ref={ref} className={`k-camada ${className}`} onClick={(e) => { if (e.target === e.currentTarget) aoFechar() }}>
       {children}
     </div>
   )
+  return tela ? createPortal(camada, tela) : camada
 }

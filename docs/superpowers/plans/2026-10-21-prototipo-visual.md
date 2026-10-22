@@ -282,10 +282,10 @@ Seções da R1 (cada uma com **pelo menos 3 variações reais, diferentes na est
 | n | Seção | Variações (proposta primeiro) |
 |---|---|---|
 | 1 | Acabamento | alumínio escuro · alumínio claro · escuro com trackpad claro · claro com trilhos escuros |
-| 2 | Trackpad principal | trackpad ocupando a tela, atalhos chamados por gesto da borda · trackpad com uma faixa de atalhos do app em foco · trackpad e painel lado a lado, divisão ajustável |
+| 2 | Trackpad principal (centro 16:10, laterais fixas — decisão do dono) | esquerda com os atalhos do app em foco, direita com o sistema (clique direito, teclas presas, trocar janela, volume) · uma lateral dupla só do lado da mão, trackpad deslocado · teclas só na metade de baixo (alcance do polegar), em cima informação |
 | 3 | Como trocar de modo (trackpad, atalhos, tela, mesa, teclado) | barra de modos que surge da borda · seletor fixo de modos no topo · toque longo com dois dedos abre os modos |
 | 4 | Painel de atalhos | grade de teclas quadradas · teclas largas com nome · mesa de som (faixas verticais) · páginas que deslizam de lado |
-| 5 | Tela espelhada e modos de toque | alternador flutuante (toque direto / trackpad) · chave no trilho · gesto de três dedos com aviso |
+| 5 | Tela espelhada e modos de toque (mesmo centro 16:10 e mesmas laterais) | alternador na lateral (toque direto / trackpad) · alternador flutuante sobre a imagem · gesto de três dedos com aviso |
 | 6 | Parear pela primeira vez | QR grande no computador e câmera no celular · lista de computadores achados · passo a passo por tipo de conexão |
 | 7 | Estado da conexão | LED com o tipo de conexão · medidor de sinal L/M/P · nada à vista até piorar |
 | 8 | Central do computador | barra lateral · abas no topo · painel de equipamento (módulos lado a lado) |

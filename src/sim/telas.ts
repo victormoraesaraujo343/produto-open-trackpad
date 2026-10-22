@@ -7,7 +7,6 @@ export const TELAS_CELULAR = {
   atalhos: { nome: 'Atalhos', nivel: 1, area: 'atalhos' },
   espelho: { nome: 'Tela espelhada', nivel: 3, area: 'tela' },
   mixer: { nome: 'Som', nivel: 2, area: 'atalhos' },
-  presas: { nome: 'Teclas presas', nivel: 1, area: 'controle' },
   giro: { nome: 'Volume', nivel: 1, area: 'controle' },
   conexao: { nome: 'Conexão', nivel: 1, area: 'conexao' },
   ajustes: { nome: 'Ajustes', nivel: 1, area: 'ajustes' },

@@ -25,7 +25,7 @@ const ROTAS: Record<string, () => void> = {
   '6': () => { const s = useSim.getState(); s.travar(false); s.conectar('nenhuma'); s.irParaPc('pareamento') },
   '7': () => celular('trackpad'),
   '8': () => { garantirNivel(1); useSim.getState().irParaPc('central') },
-  '9': () => celular('presas'),
+  '9': () => celular('trackpad'),
   '10': () => celular('giro'),
   '11': () => celular('mixer', 2),
   '12': () => celular('trackpad'),

@@ -104,3 +104,28 @@ kbd {
   box-shadow: 4px 0 6px rgba(0,0,0,0.25); transition: transform var(--medio), box-shadow var(--medio);
 }
 .k-basculante.k-ligada .k-bas-face { transform: perspective(160px) rotateY(9deg); transform-origin: right center; box-shadow: -4px 0 6px rgba(0,0,0,0.25); color: var(--ink); }
+
+/* --------------------------------------------------------------- lateral */
+.k-lateral {
+  flex: none; display: flex; flex-direction: column; gap: 6px; padding: 6px;
+  border: 1px solid transparent; border-radius: 10px;
+  background: var(--gd) padding-box, var(--well-face) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-well);
+}
+.k-lugares { flex: 1; min-height: 0; display: grid; grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.k-lateral-dupla .k-lugares { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; }
+.k-cabeca { flex: none; height: 22px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 4px; min-width: 0; font-size: 11px; font-weight: 500; color: var(--ink-2); white-space: nowrap; overflow: hidden; }
+.k-cabeca > * { min-width: 0; }
+.k-lugar { min-height: 0; min-width: 0; display: flex; }
+.k-lugar > * { flex: 1; min-width: 0; }
+.k-lugar > .k-tecla, .k-lugar > * > .k-tecla { flex-direction: column; justify-content: center; gap: 2px; padding: 3px 6px; }
+.k-lugar .k-tecla .k-rotulo { padding: 0; text-align: center; white-space: normal; font-size: 11.5px; line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.k-lugar .k-tecla > svg { width: 17px; height: 17px; flex: none; }
+.k-lugar .k-presa { align-items: center; text-align: center; }
+.k-lugar > .k-tecla > svg { flex: none; }
+.k-lugar > .k-tecla .k-led-canto { top: 5px; right: 6px; }
+.k-presa { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.k-presa b { font-size: 14px; font-weight: 600; color: var(--key-ink); }
+.k-presa small { font-size: 11px; color: var(--key-lbl); }
+.k-ligada .k-presa b { color: var(--key-ink-on); }
+.k-tecla-presa { touch-action: none; user-select: none; }
+.k-tecla-presa.k-ligada { transform: translateY(1px); box-shadow: var(--shadow-sm); }

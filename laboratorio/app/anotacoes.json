@@ -1,0 +1,103 @@
+{
+  "rodada": {
+    "numero": 1,
+    "aberta_em": "2026-10-22T01:53:40.139Z"
+  },
+  "geral": "",
+  "secoes": {
+    "1": {
+      "nome": "Acabamento",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "acabamento": "escuro"
+      },
+      "aberto": false
+    },
+    "2": {
+      "nome": "Trackpad principal",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "trackpad": "app-sistema",
+        "mao": "direita"
+      },
+      "aberto": false
+    },
+    "3": {
+      "nome": "Trocar de modo",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "modos": "tecla"
+      },
+      "aberto": false
+    },
+    "4": {
+      "nome": "Painel de atalhos",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "atalhos": "grade"
+      },
+      "aberto": false
+    },
+    "5": {
+      "nome": "Tela espelhada e modos de toque",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "espelho": "lateral"
+      },
+      "aberto": false
+    },
+    "6": {
+      "nome": "Parear pela primeira vez",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "pareamento": "qr"
+      },
+      "aberto": false
+    },
+    "7": {
+      "nome": "Estado da conexão",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "indicador": "led"
+      },
+      "aberto": false
+    },
+    "8": {
+      "nome": "Central do computador",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "central": "lateral"
+      },
+      "aberto": false
+    },
+    "9": {
+      "nome": "Ver na prática: teclas presas (nas laterais)",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "presas": "trava"
+      },
+      "aberto": false
+    },
+    "10": {
+      "nome": "Ver na prática: botão giratório",
+      "status": "revisar",
+      "nota": "",
+      "variantes": {
+        "giro": "aro"
+      },
+      "aberto": true
+    }
+  },
+  "alfinetes": [],
+  "rodadas": [],
+  "atualizado": "2026-10-22T01:57:32.161Z"
+}
