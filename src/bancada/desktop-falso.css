@@ -31,7 +31,7 @@
 .df-icones i, .df-doca i { width: 24px; height: 24px; border-radius: 6px; display: block; opacity: 0.85; }
 .df-icones i.df-foco, .df-doca i.df-foco { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.75); }
 .df-bandeja { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; }
-.df-otp { width: 14px; height: 10px; border-radius: 2px; border: 1.5px solid #e6e6e6; position: relative; }
+.df-otp { width: 18px; height: 14px; padding: 0; border-radius: 3px; border: 1.5px solid #e6e6e6; background: transparent; position: relative; cursor: pointer; }
 .df-otp::after { content: ''; position: absolute; right: -4px; top: 2px; width: 3px; height: 3px; border-radius: 50%; background: #9BE23F; box-shadow: 0 0 4px #9BE23F; }
 .df-relogio { font-variant-numeric: tabular-nums; }
 .df-menu { position: absolute; left: 0; right: 0; top: 0; height: 24px; display: flex; align-items: center; gap: 16px; padding: 0 14px; background: rgba(240,240,240,0.75); backdrop-filter: blur(10px); }

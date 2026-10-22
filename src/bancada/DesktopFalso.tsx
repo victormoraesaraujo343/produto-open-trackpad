@@ -43,7 +43,7 @@ export function DesktopFalso() {
         <div className="df-barra">
           <span className="df-inicio" aria-hidden="true" />
           <span className="df-icones">{doca.map((a) => <i key={a} className={a === foco ? 'df-foco' : ''} style={{ background: APPS[a].cor }} title={APPS[a].nome} />)}</span>
-          <span className="df-bandeja"><span className="df-otp" title="OpenTrackpad" /><Relogio /></span>
+          <span className="df-bandeja"><button type="button" className="df-otp" aria-label="Abrir o OpenTrackpad" onClick={() => useSim.getState().irParaPc('central')} /><Relogio /></span>
         </div>
       ) : (
         <div className="df-doca">{doca.map((a) => <i key={a} className={a === foco ? 'df-foco' : ''} style={{ background: APPS[a].cor }} title={APPS[a].nome} />)}</div>

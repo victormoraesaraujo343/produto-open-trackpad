@@ -80,3 +80,27 @@
   position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
   font-size: 12px; font-weight: 500; color: var(--pad-ink); pointer-events: none; white-space: nowrap;
 }
+
+/* ------------------------------------------------- combinação de teclas */
+.k-combo { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 0 12px; }
+.k-combo-nome { font-size: 13px; font-weight: 500; color: var(--key-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.k-combo-teclas { display: inline-flex; gap: 4px; flex: none; }
+kbd {
+  font: 500 11px var(--fonte); color: var(--ink-2); min-width: 22px; height: 22px; padding: 0 6px;
+  display: inline-grid; place-items: center; border-radius: 4px; background: var(--groove); box-shadow: var(--inset-groove);
+}
+
+/* ------------------------------------------------------------ basculante */
+.k-basculante {
+  position: relative; min-width: 112px; min-height: 44px; padding: 0; cursor: pointer;
+  border: 1px solid transparent; border-radius: 6px;
+  background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove);
+}
+.k-bas-face {
+  position: absolute; inset: 3px; display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  border: 1px solid transparent; border-radius: 4px; font-size: 12px; font-weight: 500; color: var(--ink-3);
+  background: var(--key-face) padding-box, var(--cham-sm) border-box;
+  transform: perspective(160px) rotateY(-9deg); transform-origin: left center;
+  box-shadow: 4px 0 6px rgba(0,0,0,0.25); transition: transform var(--medio), box-shadow var(--medio);
+}
+.k-basculante.k-ligada .k-bas-face { transform: perspective(160px) rotateY(9deg); transform-origin: right center; box-shadow: -4px 0 6px rgba(0,0,0,0.25); color: var(--ink); }

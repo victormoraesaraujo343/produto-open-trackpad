@@ -15,7 +15,7 @@ type Ponto = { x: number; y: number }
    com mouse, usa os "dedos" escolhidos na barra de simulação.
    1 dedo move o cursor do computador falso (com aceleração: rápido anda mais),
    2 rolam, 3 e 4 deslizam entre áreas e janelas. Toque curto = clique; segurar = clique firme. */
-export function SuperficieTrackpad() {
+export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const ponteiros = useRef(new Map<number, Ponto>())
   const inicio = useRef<{ t: number; x: number; y: number; andou: number; firme: boolean } | null>(null)
@@ -49,7 +49,7 @@ export function SuperficieTrackpad() {
         if (ponteiros.current.size === 1) {
           inicio.current = { t: Date.now(), x: p.x, y: p.y, andou: 0, firme: false }
           clearTimeout(relogioFirme.current)
-          relogioFirme.current = setTimeout(() => {
+          if (cliqueFirme) relogioFirme.current = setTimeout(() => {
             const i = inicio.current
             if (i && i.andou < TOQUE_PX && quantos() === 1) { i.firme = true; vibrar([8, 40, 6]); anel({ x: i.x, y: i.y }, true); useSim.getState().avisar('Clique firme') }
           }, FIRME_MS)

@@ -1,14 +1,39 @@
-/* Seções e variações do painel de Refinamento.
-   A PRIMEIRA opção de cada variação é a proposta; as outras são alternativas reais (não só cor trocada).
+/* Seções e variações do painel de Refinamento — rodada R1 (telas-chave).
+   A PRIMEIRA opção de cada variação é a proposta; as outras são alternativas reais.
+   Nenhuma reproduz tela da v1: da v1 só vem a identidade (cores, materiais, tipografia).
    Cada seção é marcada na tela com data-lab="<n>"; a variação é lida com useVariante('<chave>').
    Protocolo do painel: laboratorio/refinamento/README.md */
 
 export const SECOES = [
   { n: '1', nome: 'Acabamento' },
+  { n: '2', nome: 'Trackpad principal' },
+  { n: '3', nome: 'Trocar de modo' },
+  { n: '4', nome: 'Painel de atalhos' },
+  { n: '5', nome: 'Tela espelhada e modos de toque' },
+  { n: '6', nome: 'Parear pela primeira vez' },
+  { n: '7', nome: 'Estado da conexão' },
+  { n: '8', nome: 'Central do computador' },
+  { n: '9', nome: 'Ver na prática: teclas presas' },
+  { n: '10', nome: 'Ver na prática: botão giratório' },
+  { n: '11', nome: 'Ver na prática: giratório com o som' },
+  { n: '12', nome: 'Ver na prática: botões de volume do celular' },
+  { n: '13', nome: 'Ver na prática: modo travado' },
 ]
 
 export const VARIANTES = {
-  acabamento: { secao: '1', rotulo: 'Acabamento', opcoes: [['escuro', 'Alumínio escuro'], ['claro', 'Alumínio claro']] },
+  acabamento: { secao: '1', rotulo: 'Acabamento', opcoes: [['escuro', 'Alumínio escuro'], ['claro', 'Alumínio claro'], ['escuro-pad-claro', 'Escuro com trackpad claro']] },
+  trackpad: { secao: '2', rotulo: 'Trackpad', opcoes: [['gesto', 'Trackpad inteiro, atalhos pela borda'], ['faixa', 'Faixa de atalhos do app em foco'], ['dividido', 'Trackpad e painel lado a lado']] },
+  modos: { secao: '3', rotulo: 'Modos', opcoes: [['borda', 'Barra que desce do topo'], ['topo', 'Seletor fixo no topo'], ['doisdedos', 'Toque longo com dois dedos']] },
+  atalhos: { secao: '4', rotulo: 'Atalhos', opcoes: [['grade', 'Grade de teclas'], ['largas', 'Teclas largas com a combinação'], ['grupos', 'Colunas por grupo'], ['paginas', 'Páginas de lado']] },
+  espelho: { secao: '5', rotulo: 'Alternar toque', opcoes: [['flutuante', 'Alternador flutuante'], ['chave', 'Chave na borda'], ['gesto', 'Três dedos alternam']] },
+  pareamento: { secao: '6', rotulo: 'Parear', opcoes: [['qr', 'QR no computador'], ['lista', 'Computadores por perto'], ['passos', 'Escolher a conexão primeiro']] },
+  indicador: { secao: '7', rotulo: 'Indicador', opcoes: [['led', 'LED com o tipo de conexão'], ['medidor', 'Medidor de sinal'], ['silencioso', 'Só aparece quando piora']] },
+  central: { secao: '8', rotulo: 'Central', opcoes: [['lateral', 'Barra lateral'], ['abas', 'Abas no topo'], ['rack', 'Módulos lado a lado']] },
+  presas: { secao: '9', rotulo: 'Teclas presas', opcoes: [['trava', 'Toque prende, toque solta'], ['segurar', 'Presa enquanto o dedo está em cima'], ['faixa', 'Faixa da borda segura Shift']] },
+  giro: { secao: '10', rotulo: 'Giratório', opcoes: [['arco', 'Arco no canto do polegar'], ['aro', 'Contorno do trackpad'], ['roda', 'Roda onde o dedo pousa']] },
+  mixer: { secao: '11', rotulo: 'Som', opcoes: [['seleciona', 'Toca no app e gira'], ['cada', 'Um giratório por app'], ['segura', 'Barra que vira giratório']] },
+  laterais: { secao: '12', rotulo: 'Botões de volume', opcoes: [['atalhos', 'Disparam atalhos'], ['legenda', 'Disparam atalhos, com legenda'], ['sistema', 'Volume do celular, como sempre']] },
+  trava: { secao: '13', rotulo: 'Destravar', opcoes: [['segurar', 'Segurar 3 segundos'], ['desenho', 'Desenhar um traço'], ['sem', 'Sem trava']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES

@@ -1,6 +1,7 @@
 /* Estado simulado que o celular e o computador falso compartilham. */
 import { create } from 'zustand'
 import type { AppId } from '../dados/apps'
+import { ATALHOS, teclasDoSistema } from '../dados/atalhos'
 import type { Sistema } from '../dados/computadores'
 import { PRESETS, liberado, nivelDe, type Nivel, type PresetId } from './conexao'
 import { TELAS_CELULAR, type TelaCelular, type TelaPc } from './telas'
@@ -19,6 +20,12 @@ interface Estado {
   dedos: Dedos
   aviso: string | null
   ocioso: boolean
+  teclasPresas: string[]
+  volume: number
+  osdVolume: number
+  travado: boolean
+  ultimoAtalho: { texto: string; em: number } | null
+  ligados: Record<string, boolean>
 }
 
 interface Acoes {
@@ -33,6 +40,10 @@ interface Acoes {
   avisar(texto: string): void
   tocar(): void
   ficarOcioso(): void
+  alternarPresa(tecla: string): void
+  mudarVolume(delta: number): void
+  travar(sim: boolean): void
+  dispararAtalho(id: string): void
   reiniciar(): void
 }
 
@@ -47,9 +58,17 @@ const INICIAL: Estado = {
   dedos: 1,
   aviso: null,
   ocioso: false,
+  teclasPresas: [],
+  volume: 40,
+  osdVolume: 0,
+  travado: false,
+  ultimoAtalho: null,
+  ligados: {},
 }
 
 const AVISO_MS = 3000
+/* atalhos que ligam e desligam algo no computador: a tecla mostra o estado */
+const LIGA_DESLIGA = new Set(['mudo', 'camera', 'gravar', 'mao'])
 const prender = (v: number) => Math.min(1, Math.max(0, v))
 export const nivelAtual = (p: PresetId): Nivel => nivelDe(PRESETS[p])
 const cabe = (t: TelaCelular, n: Nivel) => (t === 'conexao' ? true : n > 0 && liberado(TELAS_CELULAR[t].nivel, n))
@@ -62,7 +81,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   conectar(p) {
     const n = nivelAtual(p)
     const { tela } = get()
-    if (n === 0) return set({ preset: p, tela: 'conexao' })
+    if (n === 0) return set({ preset: p, tela: 'conexao', teclasPresas: [] })
     if (tela === 'conexao') return set({ preset: p, tela: 'trackpad' })
     if (!cabe(tela, n)) {
       set({ preset: p, tela: 'trackpad' })
@@ -72,6 +91,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   },
 
   irPara(t) {
+    if (get().travado) return
     if (!cabe(t, nivelAtual(get().preset))) return
     set({ tela: t, ocioso: false })
   },
@@ -91,5 +111,17 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
 
   tocar: () => { if (get().ocioso) set({ ocioso: false }) },
   ficarOcioso: () => set({ ocioso: true }),
+  alternarPresa: (tecla) => set(({ teclasPresas }) => ({ teclasPresas: teclasPresas.includes(tecla) ? teclasPresas.filter((t) => t !== tecla) : [...teclasPresas, tecla] })),
+  mudarVolume: (delta) => set(({ volume }) => ({ volume: Math.min(100, Math.max(0, volume + delta)), osdVolume: Date.now() })),
+  travar: (sim) => set({ travado: sim }),
+  dispararAtalho(id) {
+    const a = ATALHOS[id]
+    if (!a) return
+    const texto = teclasDoSistema(a.teclas, get().sistema).join(' + ')
+    set(({ ligados }) => ({
+      ultimoAtalho: { texto, em: Date.now() },
+      ligados: LIGA_DESLIGA.has(id) ? { ...ligados, [id]: !ligados[id] } : ligados,
+    }))
+  },
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))

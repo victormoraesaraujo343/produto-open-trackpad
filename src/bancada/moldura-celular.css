@@ -26,3 +26,13 @@
   .mc-cheia .mc-vire { display: block; font-size: 15px; color: var(--chrome-ink); }
 }
 .mc-cheia { position: fixed; inset: 0; background: #000; }
+/* botões de volume na borda de cima (o celular está deitado) */
+.mc-laterais { position: absolute; top: -9px; right: 150px; display: flex; gap: 6px; }
+.mc-laterais button {
+  width: 64px; height: 9px; padding: 0; border: 0; border-radius: 3px 3px 0 0; cursor: pointer;
+  background: linear-gradient(180deg, #4a4b4f 0%, #1c1d20 100%); box-shadow: 0 0 0 1px #0d0e10;
+}
+.mc-laterais button:hover { background: linear-gradient(180deg, #5a5b60 0%, #26272b 100%); }
+.mc-laterais button:active { transform: translateY(2px); }
+.mc-laterais button::after { content: ''; position: absolute; inset: -14px -4px -6px; }
+.mc-laterais button { position: relative; }
