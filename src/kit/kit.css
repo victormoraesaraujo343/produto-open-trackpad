@@ -176,3 +176,35 @@ kbd {
 [data-acabamento="claro"] .k-tampa { background: linear-gradient(180deg, #E8E9E5 0%, #C9CAC5 100%) padding-box, var(--cham) border-box; }
 [data-acabamento="claro"] .k-tampa i { background: rgba(0,0,0,0.25) !important; }
 .k-fader-mudo .k-tampa { opacity: .7; }
+
+/* ------------------------------------------------ liga e desliga (#8) */
+/* tecla de trava: em relevo quando desligada; afundada, com o LED aceso, quando ligada */
+.k-alt-tecla {
+  width: 56px; height: 44px; padding: 0; cursor: pointer; display: grid; place-items: center; flex: none;
+  border: 1px solid transparent; border-radius: 7px; background: var(--key-face) padding-box, var(--cham) border-box;
+  box-shadow: var(--shadow-key), 0 3px 0 rgba(0,0,0,0.35); transform: translateY(-2px); transition: transform var(--curto), box-shadow var(--curto);
+}
+.k-alt-tecla.k-ligada { transform: translateY(1px); background: var(--key-face-on) padding-box, var(--cham) border-box; box-shadow: var(--shadow-sm), inset 0 1px 3px rgba(0,0,0,0.45); }
+.k-alt-tecla .k-led { transform: scale(1.25); }
+/* trilho: o pino de metal corre e leva o LED */
+.k-alt-trilho {
+  position: relative; width: 64px; height: 44px; padding: 0; cursor: pointer; flex: none; border: 0; background: transparent;
+}
+.k-alt-trilho::before {
+  content: ''; position: absolute; left: 4px; right: 4px; top: 50%; height: 14px; margin-top: -7px; border-radius: 7px;
+  border: 1px solid transparent; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove);
+}
+.k-alt-pino {
+  position: absolute; top: 50%; left: 2px; width: 30px; height: 26px; margin-top: -13px; display: grid; place-items: center;
+  border: 1px solid transparent; border-radius: 8px; background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key);
+  transition: left 180ms cubic-bezier(.3,.8,.3,1);
+}
+.k-alt-trilho.k-ligada .k-alt-pino { left: 32px; }
+/* segmento: duas metades, a escolhida em relevo */
+.k-alt-segmento {
+  display: inline-flex; gap: 3px; padding: 3px; height: 40px; cursor: pointer; flex: none;
+  border: 1px solid transparent; border-radius: 7px; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove);
+}
+.k-alt-segmento span { min-width: 44px; display: grid; place-items: center; padding: 0 6px; border-radius: 5px; font: 500 11px var(--fonte); color: var(--ink-3); }
+.k-alt-segmento .k-alt-escolhido { color: var(--ink); background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
+.k-alt-segmento span:last-child.k-alt-escolhido { box-shadow: var(--shadow-key), inset 0 -2px 0 var(--laranja); }

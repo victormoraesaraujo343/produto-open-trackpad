@@ -9,12 +9,15 @@ import { TELAS_CELULAR, type TelaCelular, type TelaPc } from './telas'
 
 export type Plataforma = 'android' | 'iphone'
 export type Dedos = 1 | 2 | 3 | 4
+export type Lado = 'esquerda' | 'direita'
+export interface Bloco { id: string; ligado: boolean }
+export type JeitoDescanso = 'relogio' | 'painel' | 'foto' | 'escuro'
 export type Saude = 'ok' | 'bateria' | 'quente'
 export interface Ajustes { mao: 'direita' | 'esquerda'; girado: boolean; velocidade: number; aceleracao: number; rolagemNatural: boolean; limitarCarga: boolean }
 export interface Copia { id: number; texto: string; origem: string; em: number }
 export interface Ponto { x: number; y: number; p: number }
 /* funções opcionais (o spec pede "opcional por padrão"): ligam e desligam na central e no celular */
-export interface Opcoes { zonas: boolean; noturno: boolean; confianca: boolean; variosPcs: boolean; variosCelulares: boolean; abrirSozinho: boolean; paradoViraPainel: boolean; vibracao: boolean }
+export interface Opcoes { zonas: boolean; noturno: boolean; confianca: boolean; variosPcs: boolean; variosCelulares: boolean; abrirSozinho: boolean; paradoViraPainel: boolean; vibracao: boolean; rastro: boolean }
 
 interface Estado {
   plataforma: Plataforma
@@ -47,6 +50,10 @@ interface Estado {
   perfis: Record<AppId, string[]>
   atalhosProprios: Record<string, Atalho>
   secaoCentral: string
+  /* o que vai em cada lateral, por app: 5 à esquerda; à direita, as posições 2 a 4 (a 1 é Modos e a 5 muda com o modo) */
+  laterais: Record<AppId, { esquerda: string[]; direita: string[] }>
+  blocosPainel: Bloco[]
+  descanso: { jeito: JeitoDescanso; blocos: Bloco[] }
 }
 
 interface Acoes {
@@ -83,6 +90,10 @@ interface Acoes {
   adicionarAtalho(app: AppId, id: string): void
   criarAtalho(rotulo: string, teclas: string[]): string
   setSecaoCentral(s: string): void
+  trocarNaLateral(app: AppId, lado: Lado, posicao: number, item: string): void
+  alternarBloco(onde: 'painel' | 'descanso', id: string): void
+  moverBloco(onde: 'painel' | 'descanso', id: string, direcao: -1 | 1): void
+  setJeitoDescanso(j: JeitoDescanso): void
   reiniciar(): void
 }
 
@@ -104,7 +115,7 @@ const INICIAL: Estado = {
   ultimoAtalho: null,
   ligados: {},
   textoDigitado: '',
-  opcoes: { zonas: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true },
+  opcoes: { zonas: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true, rastro: false },
   tracos: [],
   orientacao: 'deitado',
   transferencia: [
@@ -119,6 +130,9 @@ const INICIAL: Estado = {
   perfis: PERFIS,
   atalhosProprios: {},
   secaoCentral: 'aparelhos',
+  laterais: Object.fromEntries((Object.keys(PERFIS) as AppId[]).map((a) => [a, { esquerda: PERFIS[a].slice(0, 5), direita: ['cliqueDireito', 'presa:Ctrl', 'presa:Shift'] }])) as Record<AppId, { esquerda: string[]; direita: string[] }>,
+  blocosPainel: ['hora', 'maquina', 'reuniao', 'notificacoes', 'musica', 'rede'].map((id) => ({ id, ligado: !['musica', 'rede'].includes(id) })),
+  descanso: { jeito: 'relogio', blocos: ['hora', 'maquina', 'reuniao', 'notificacoes', 'musica', 'rede'].map((id) => ({ id, ligado: id === 'hora' })) },
   ajustes: { mao: 'direita', girado: false, velocidade: 60, aceleracao: 40, rolagemNatural: true, limitarCarga: true },
 }
 
@@ -225,6 +239,24 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     return id
   },
   setSecaoCentral: (secaoCentral) => set({ secaoCentral }),
+  trocarNaLateral: (app, lado, posicao, item) => set(({ laterais }) => {
+    const l = [...laterais[app][lado]]
+    l[posicao] = item
+    return { laterais: { ...laterais, [app]: { ...laterais[app], [lado]: l } } }
+  }),
+  alternarBloco: (onde, id) => set((st) => {
+    const lista = (onde === 'painel' ? st.blocosPainel : st.descanso.blocos).map((b) => (b.id === id ? { ...b, ligado: !b.ligado } : b))
+    return onde === 'painel' ? { blocosPainel: lista } : { descanso: { ...st.descanso, blocos: lista } }
+  }),
+  moverBloco: (onde, id, d) => set((st) => {
+    const lista = [...(onde === 'painel' ? st.blocosPainel : st.descanso.blocos)]
+    const i = lista.findIndex((b) => b.id === id)
+    const j = i + d
+    if (i < 0 || j < 0 || j >= lista.length) return {}
+    ;[lista[i], lista[j]] = [lista[j], lista[i]]
+    return onde === 'painel' ? { blocosPainel: lista } : { descanso: { ...st.descanso, blocos: lista } }
+  }),
+  setJeitoDescanso: (jeito) => set((st) => ({ descanso: { ...st.descanso, jeito } })),
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
 

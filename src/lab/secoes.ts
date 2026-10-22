@@ -37,6 +37,9 @@ export const SECOES = [
   { n: '30', nome: 'Computador: atalhos por app, biblioteca e importar' },
   { n: '31', nome: 'Computador: assistente de primeira vez' },
   { n: '32', nome: 'Computador: gravar atalho' },
+  { n: '33', nome: 'Remapear as laterais por app (#5)' },
+  { n: '34', nome: 'Botões de liga e desliga (#8)' },
+  { n: '35', nome: 'Animações: rastro no trackpad (#4)' },
 ]
 
 export const VARIANTES = {
@@ -57,6 +60,7 @@ export const VARIANTES = {
   lateraisTeclado: { secao: '14', rotulo: 'Laterais no teclado', opcoes: [['icones', 'Viram ícones; crescem ao tocar'], ['recolhidas', 'Recolhidas na borda; abrem por cima'], ['normais', 'Normais (para comparar)']] },
   descanso: { secao: '23', rotulo: 'Descanso', opcoes: [['painel', 'Painel de informações, escurecido'], ['relogio', 'Só o relógio']] },
   menuModos: { secao: '3', rotulo: 'Menu de modos', opcoes: [['colunas', 'Uma coluna por grupo'], ['abas', 'Grupos como abas, modos grandes'], ['icones', 'Grade de ícones'], ['gaveta', 'Gaveta saindo da lateral']] },
+  alternador: { secao: '34', rotulo: 'Liga e desliga', opcoes: [['tecla', 'Tecla de trava que afunda'], ['trilho', 'Trilho com pino'], ['segmento', 'Desl. / Lig. lado a lado'], ['basculante', 'Basculante (o atual)']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES

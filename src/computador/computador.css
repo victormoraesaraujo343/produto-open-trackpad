@@ -157,3 +157,9 @@
 .pc-passo .pc-botao { align-self: flex-start; }
 .pc-dicas { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
 .pc-assistente-rodape { justify-content: space-between; }
+.pc-laterais { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-width: 0; }
+.pc-laterais section { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pc-laterais h3 { margin: 0 0 2px; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.pc-posicao { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 8px; min-height: 40px; font-size: 13px; }
+.pc-posicao select { grid-column: 2 / span 2; min-width: 0; height: 36px; padding: 0 8px; font: 13px var(--fonte); color: var(--ink); border: 1px solid transparent; border-radius: 6px; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove); }
+.pc-fixa { color: var(--ink-3); }

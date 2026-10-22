@@ -10,14 +10,16 @@ import { Led } from '../kit/Led'
 import { Poco } from '../kit/Poco'
 import { useVariante } from '../lab/refinamento'
 import { PRESETS, liberado } from '../sim/conexao'
-import { nivelAtual, useSim, type Opcoes } from '../sim/loja'
+import { nivelAtual, useSim, type Lado, type Opcoes } from '../sim/loja'
+import { nomeDoItem, opcoesDeItem } from '../celular/laterais/itens'
 import { Janela } from './Janela'
 
-type Secao = 'aparelhos' | 'conexao' | 'atalhos' | 'telas' | 'funcoes' | 'sensacao'
+type Secao = 'aparelhos' | 'conexao' | 'atalhos' | 'laterais' | 'telas' | 'funcoes' | 'sensacao'
 const SECOES: { id: Secao; nome: string; icone: string }[] = [
   { id: 'aparelhos', nome: 'Aparelhos', icone: 'celular' },
   { id: 'conexao', nome: 'Conexão', icone: 'wifi' },
   { id: 'atalhos', nome: 'Atalhos', icone: 'atalhos' },
+  { id: 'laterais', nome: 'Laterais', icone: 'laterais' },
   { id: 'telas', nome: 'Telas', icone: 'tela' },
   { id: 'funcoes', nome: 'Funções', icone: 'ajustes' },
   { id: 'sensacao', nome: 'Sensação', icone: 'trackpad' },
@@ -132,6 +134,7 @@ function Conteudo({ secao, compacto = false }: { secao: Secao; compacto?: boolea
     )
   }
   if (secao === 'atalhos') return compacto ? <ListaPerfis /> : <EditorAtalhos />
+  if (secao === 'laterais') return <EditorLaterais compacto={compacto} />
   if (secao === 'telas') {
     const ok = liberado(3, nivel)
     return (
@@ -214,7 +217,7 @@ function EditorAtalhos() {
             )
           })}
         </ol>
-        <p className="pc-dica">Os 5 primeiros ficam na lateral do celular.</p>
+        <p className="pc-dica">Esta é a ordem do modo Atalhos no celular. As laterais se ajustam em Laterais.</p>
         <div className="pc-acoes-linha">
           <button type="button" className="pc-botao" aria-expanded={painel === 'biblioteca'} onClick={() => setPainel(painel === 'biblioteca' ? 'nada' : 'biblioteca')}>Adicionar da biblioteca</button>
           <button type="button" className="pc-botao" aria-expanded={painel === 'importar'} onClick={() => { setPainel(painel === 'importar' ? 'nada' : 'importar'); setMarcados([]) }}>Importar do sistema</button>
@@ -246,6 +249,46 @@ function EditorAtalhos() {
             }}>Importar {marcados.length || ''}</button>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+/* Laterais por app (issue #5): as 5 posições da esquerda e as 3 livres da direita.
+   Modos (posição 1 da direita) e a última (muda com o modo) ficam fixas. */
+function EditorLaterais({ compacto = false }: { compacto?: boolean }) {
+  const laterais = useSim((s) => s.laterais)
+  const perfis = useSim((s) => s.perfis)
+  const proprios = useSim((s) => s.atalhosProprios)
+  const [app, setApp] = useState<AppId>(useSim.getState().appEmFoco)
+  const opcoes = opcoesDeItem(perfis[app], proprios)
+  const seletor = (lado: Lado, i: number) => (
+    <select id={`lateral-${app}-${lado}-${i}`} aria-label={`Lateral ${lado}, posição ${lado === 'direita' ? i + 2 : i + 1}`} value={laterais[app][lado][i]}
+      onChange={(e) => useSim.getState().trocarNaLateral(app, lado, i, e.target.value)}>
+      {opcoes.map((o) => <option key={o} value={o}>{nomeDoItem(o, proprios)}</option>)}
+    </select>
+  )
+  if (compacto) return <ListaPerfis />
+  return (
+    <div className="pc-editor" data-lab="33">
+      <div className="pc-apps" role="listbox" aria-label="Apps">
+        {(Object.keys(laterais) as AppId[]).map((a) => (
+          <button key={a} type="button" role="option" aria-selected={a === app} className={a === app ? 'pc-nav-ativo' : ''} onClick={() => setApp(a)}>
+            <IconeApp app={a} tamanho={20} /><span>{APPS[a].nome}</span>
+          </button>
+        ))}
+      </div>
+      <div className="pc-laterais">
+        <section aria-label="Lateral esquerda">
+          <h3>Esquerda</h3>
+          {[0, 1, 2, 3, 4].map((i) => <label key={i} className="pc-posicao"><span className="pc-pos">{i + 1}</span>{seletor('esquerda', i)}</label>)}
+        </section>
+        <section aria-label="Lateral direita">
+          <h3>Direita</h3>
+          <div className="pc-posicao pc-fixa"><span className="pc-pos">1</span><span>Modos</span><Icone nome="cadeado" tamanho={14} /></div>
+          {[0, 1, 2].map((i) => <label key={i} className="pc-posicao"><span className="pc-pos">{i + 2}</span>{seletor('direita', i)}</label>)}
+          <div className="pc-posicao pc-fixa"><span className="pc-pos">5</span><span>Muda com o modo</span><Icone nome="cadeado" tamanho={14} /></div>
+        </section>
       </div>
     </div>
   )

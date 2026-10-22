@@ -602,3 +602,18 @@
 .cel-menu-acoes-linha { flex-direction: row; }
 .cel-menu-acoes-linha .cel-acao-menu { flex: 1; height: 48px; flex-direction: row; gap: 6px; }
 .cel-menu-acoes-linha .cel-acao-menu:first-child { height: 48px; }
+
+/* lateral remapeável (#5) */
+.k-lugar-item { display: flex; flex: 1; min-width: 0; }
+.k-lugar-item > .k-tecla { flex: 1; min-width: 0; }
+.cel-trocar { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; animation: cel-surge-menu 180ms cubic-bezier(.2,.8,.2,1); }
+.cel-trocar-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--ink-2); }
+.cel-trocar-topo b { color: var(--ink); font-weight: 600; }
+.cel-trocar-topo .cel-acao-menu { width: 64px; height: 44px; flex: none; }
+.cel-trocar-opcoes { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 48px; gap: 6px; }
+.cel-trocar-opcoes button {
+  position: relative; display: flex; align-items: center; gap: 8px; padding: 0 10px; min-width: 0; cursor: pointer; text-align: left;
+  font: 500 12px var(--fonte); color: var(--key-ink); border: 1px solid transparent; border-radius: 6px; background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key);
+}
+.cel-trocar-opcoes button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel-trocar-opcoes .cel-modo-ativo { color: var(--ink); box-shadow: var(--shadow-key), inset 0 -2px 0 var(--laranja); }

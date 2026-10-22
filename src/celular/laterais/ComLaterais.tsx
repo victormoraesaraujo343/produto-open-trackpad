@@ -3,8 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { APPS } from '../../dados/apps'
 import { Lateral } from '../../kit/Lateral'
 import { Led } from '../../kit/Led'
-import { TeclaAtalho } from '../../kit/TeclaAtalho'
-import { TeclaPresa } from '../../kit/TeclaPresa'
+import { TeclaDaLateral } from './TeclaDaLateral'
 import { useVariante } from '../../lab/refinamento'
 import { useSim } from '../../sim/loja'
 import { Indicador } from '../conexao/Indicador'
@@ -27,15 +26,12 @@ export function ComLaterais({ centro, doModo, compacto = false }: { centro: Reac
   const forma = useVariante('trackpad')
   const mao = useSim((s) => s.ajustes.mao)
   const appId = useSim((s) => s.appEmFoco)
-  const ids = useSim((s) => s.perfis[appId])
   const nomeApp = <span className="cel-cabeca-app"><IconeApp app={appId} tamanho={16} /><span>{APPS[appId].nome}</span></span>
 
-  const app = ids.slice(0, 5).map((id) => <TeclaAtalho key={id} id={id} />)
+  const app = [0, 1, 2, 3, 4].map((i) => <TeclaDaLateral key={`e${i}`} lado="esquerda" posicao={i} />)
   const sistema = [
     <TeclaModos key="modos" />,
-    <TeclaAtalho key="cd" id="cliqueDireito" />,
-    <TeclaPresa key="ctrl" tecla="Ctrl" />,
-    <TeclaPresa key="shift" tecla="Shift" />,
+    ...[0, 1, 2].map((i) => <TeclaDaLateral key={`d${i}`} lado="direita" posicao={i} />),
     <span key="modo" className="k-lugar-modo">{doModo}</span>,
   ]
 
