@@ -49,7 +49,8 @@ export const VARIANTES = {
   mixer: { secao: '11', rotulo: 'Mesa de som', opcoes: [['vertical', 'Faders na vertical, todos os canais'], ['horizontal', 'Faders na horizontal, por grupo'], ['giratorio', 'Giratório (para comparar)']] },
   laterais: { secao: '12', rotulo: 'Botões de volume', opcoes: [['atalhos', 'Disparam atalhos'], ['legenda', 'Disparam atalhos, com legenda'], ['sistema', 'Volume do celular, como sempre']] },
   trava: { secao: '13', rotulo: 'Destravar', opcoes: [['segurar', 'Segurar 3 segundos'], ['desenho', 'Desenhar um traço'], ['sem', 'Sem trava']] },
-  teclado: { secao: '14', rotulo: 'Teclado', opcoes: [['centro', 'No centro, entre as laterais'], ['dividido', 'Dividido para os dois polegares']] },
+  teclado: { secao: '14', rotulo: 'Teclado', opcoes: [['centro', 'Inteiro, entre as laterais'], ['dividido', 'Dividido para os dois polegares']] },
+  lateraisTeclado: { secao: '14', rotulo: 'Laterais no teclado', opcoes: [['icones', 'Viram ícones; crescem ao tocar'], ['recolhidas', 'Recolhidas na borda; abrem por cima'], ['normais', 'Normais (para comparar)']] },
   descanso: { secao: '23', rotulo: 'Descanso', opcoes: [['painel', 'Painel de informações, escurecido'], ['relogio', 'Só o relógio']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 

@@ -1,7 +1,7 @@
 /* Estado simulado que o celular e o computador falso compartilham. */
 import { create } from 'zustand'
 import type { AppId } from '../dados/apps'
-import { ATALHOS, teclasDoSistema } from '../dados/atalhos'
+import { ATALHOS, PERFIS, teclasDoSistema, type Atalho } from '../dados/atalhos'
 import type { Sistema } from '../dados/computadores'
 import { JANELAS } from '../dados/janelas'
 import { PRESETS, liberado, nivelDe, type Nivel, type PresetId } from './conexao'
@@ -44,6 +44,9 @@ interface Estado {
   micEmUso: boolean
   saude: Saude
   ajustes: Ajustes
+  perfis: Record<AppId, string[]>
+  atalhosProprios: Record<string, Atalho>
+  secaoCentral: string
 }
 
 interface Acoes {
@@ -75,6 +78,11 @@ interface Acoes {
   usarMicrofone(sim: boolean): void
   setSaude(s: Saude): void
   setAjuste<K extends keyof Ajustes>(k: K, v: Ajustes[K]): void
+  moverAtalho(app: AppId, indice: number, direcao: -1 | 1): void
+  removerAtalho(app: AppId, id: string): void
+  adicionarAtalho(app: AppId, id: string): void
+  criarAtalho(rotulo: string, teclas: string[]): string
+  setSecaoCentral(s: string): void
   reiniciar(): void
 }
 
@@ -108,6 +116,9 @@ const INICIAL: Estado = {
   cameraEmUso: false,
   micEmUso: false,
   saude: 'ok',
+  perfis: PERFIS,
+  atalhosProprios: {},
+  secaoCentral: 'aparelhos',
   ajustes: { mao: 'direita', girado: false, velocidade: 60, aceleracao: 40, rolagemNatural: true, limitarCarga: true },
 }
 
@@ -162,7 +173,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   mudarVolume: (delta) => set(({ volume }) => ({ volume: Math.min(100, Math.max(0, volume + delta)), osdVolume: Date.now() })),
   travar: (sim) => set({ travado: sim }),
   dispararAtalho(id) {
-    const a = ATALHOS[id]
+    const a = ATALHOS[id] ?? get().atalhosProprios[id]
     if (!a) return
     const texto = teclasDoSistema(a.teclas, get().sistema).join(' + ')
     set(({ ligados }) => ({
@@ -196,6 +207,21 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
     if (saude === 'quente') get().avisar('Celular quente: o brilho foi reduzido')
   },
   setAjuste: (k, v) => set(({ ajustes }) => ({ ajustes: { ...ajustes, [k]: v } })),
+  moverAtalho: (app, i, d) => set(({ perfis }) => {
+    const l = [...perfis[app]]
+    const j = i + d
+    if (j < 0 || j >= l.length) return {}
+    ;[l[i], l[j]] = [l[j], l[i]]
+    return { perfis: { ...perfis, [app]: l } }
+  }),
+  removerAtalho: (app, id) => set(({ perfis }) => ({ perfis: { ...perfis, [app]: perfis[app].filter((x) => x !== id) } })),
+  adicionarAtalho: (app, id) => set(({ perfis }) => (perfis[app].includes(id) ? {} : { perfis: { ...perfis, [app]: [...perfis[app], id] } })),
+  criarAtalho(rotulo, teclas) {
+    const id = `proprio-${Date.now().toString(36)}`
+    set(({ atalhosProprios }) => ({ atalhosProprios: { ...atalhosProprios, [id]: { id, rotulo, teclas, icone: 'atalhos' } } }))
+    return id
+  },
+  setSecaoCentral: (secaoCentral) => set({ secaoCentral }),
   reiniciar: () => { clearTimeout(relogioAviso); set({ ...INICIAL }) },
 }))
 

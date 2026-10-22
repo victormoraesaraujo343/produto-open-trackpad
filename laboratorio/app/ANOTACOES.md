@@ -1,6 +1,6 @@
 # Refinamento — app · rodada R1
 
-Gerado pelo painel de Refinamento em 2026-10-22T01:58:46.207Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
+Gerado pelo painel de Refinamento em 2026-10-22T02:21:21.379Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
 
 ## 1 · Acabamento
 
@@ -10,7 +10,7 @@ Variantes vistas: acabamento: **escuro**
 ## 2 · Trackpad principal
 
 Status: **Em revisão**  
-Variantes vistas: trackpad: **app-sistema** · mao: **direita**
+Variantes vistas: trackpad: **uma-mao** · mao: **direita**
 
 ## 3 · Trocar de modo
 

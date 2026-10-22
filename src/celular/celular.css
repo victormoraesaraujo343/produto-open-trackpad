@@ -501,3 +501,34 @@
 .cel-tec-recuo { flex: 0.5; }
 .cel-tecla-tec { position: relative; }
 .cel-tec-alt { position: absolute; top: 3px; right: 5px; font-size: 10px; line-height: 1; color: var(--ink-3); }
+
+/* laterais compactas no teclado: o teclado precisa da largura */
+.cel-centro-livre { flex: 1; aspect-ratio: auto; }
+.cel-lado-compacto { position: relative; flex: none; display: flex; z-index: 20; }
+.cel-lado-icones { width: 58px; }
+.cel-lado-recolhidas { width: 20px; }
+.cel-lado-conteudo { position: absolute; top: 0; bottom: 0; display: flex; width: 58px; transition: width 180ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms; }
+.cel-lado-esquerda .cel-lado-conteudo { left: 0; }
+.cel-lado-direita .cel-lado-conteudo { right: 0; }
+.cel-lado-conteudo > .k-lateral { flex: 1; min-width: 0; }
+/* ícones: só o ícone e o nome curto em cima; ao tocar, cresce por cima do teclado */
+.cel-lado-icones:not(.cel-lado-aberto) .k-rotulo, .cel-lado-icones:not(.cel-lado-aberto) .k-presa small, .cel-lado-icones:not(.cel-lado-aberto) .k-cabeca span span { display: none; }
+.cel-lado-icones:not(.cel-lado-aberto) .k-presa b { font-size: 12px; }
+.cel-lado-icones:not(.cel-lado-aberto) .k-lugar .k-tecla { padding: 2px; }
+.cel-lado-aberto .cel-lado-conteudo { width: 132px; box-shadow: 0 10px 30px rgba(0,0,0,0.55); }
+/* recolhidas: só a alça; abrem por cima */
+.cel-lado-recolhidas .cel-lado-conteudo { width: 132px; visibility: hidden; opacity: 0; transform: translateX(var(--sai, -12px)); transition: opacity 160ms, transform 160ms, visibility 160ms; }
+.cel-lado-direita.cel-lado-recolhidas .cel-lado-conteudo { --sai: 12px; }
+.cel-lado-recolhidas.cel-lado-aberto .cel-lado-conteudo { visibility: visible; opacity: 1; transform: none; box-shadow: 0 10px 30px rgba(0,0,0,0.55); }
+.cel-alca-lateral {
+  position: absolute; inset: 0; padding: 0; cursor: pointer; display: grid; place-items: center;
+  border: 1px solid transparent; border-radius: 8px; background: var(--well-face) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-well);
+}
+.cel-alca-lateral::after { content: ''; position: absolute; inset: 0 -14px; }
+.cel-lado-esquerda .cel-alca-lateral::after { right: -14px; left: 0; }
+.cel-lado-direita .cel-alca-lateral::after { left: -14px; right: 0; }
+.cel-alca-lateral i { width: 4px; height: 44px; border-radius: 2px; background: var(--ink-4); }
+.cel-lado-icones:has(.k-lateral-dupla) { width: 100px; }
+.cel-lado-icones:has(.k-lateral-dupla) .cel-lado-conteudo { width: 100px; }
+.cel-lado-compacto:has(.k-lateral-dupla).cel-lado-aberto .cel-lado-conteudo,
+.cel-lado-recolhidas:has(.k-lateral-dupla) .cel-lado-conteudo { width: 250px; }

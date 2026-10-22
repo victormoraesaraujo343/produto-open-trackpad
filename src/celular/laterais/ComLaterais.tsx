@@ -1,5 +1,5 @@
 import { IconeApp } from '../../kit/IconeApp'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { APPS } from '../../dados/apps'
 import { PERFIS } from '../../dados/atalhos'
 import { Lateral } from '../../kit/Lateral'
@@ -11,11 +11,20 @@ import { useSim } from '../../sim/loja'
 import { Indicador } from '../conexao/Indicador'
 import { TeclaModos } from '../navegacao/Modos'
 
-/* Todo modo usa este arranjo (seção 2): centro com a proporção do trackpad do MacBook
+/* No teclado (`compacto`), as laterais encolhem para o teclado ter a largura: o primeiro toque
+   só as abre por cima; o segundo usa a tecla. Fecham sozinhas.
+   Todo modo usa este arranjo (seção 2): centro com a proporção do trackpad do MacBook
    (16:10, a mesma da tela do computador), na altura inteira, e laterais fixas com o que se
    usa toda hora. Nada no topo: com o celular deitado, a altura é o espaço que falta.
    `doModo` é a única tecla que muda com o modo, sempre na última posição da lateral do sistema. */
-export function ComLaterais({ centro, doModo }: { centro: ReactNode; doModo?: ReactNode }) {
+export function ComLaterais({ centro, doModo, compacto = false }: { centro: ReactNode; doModo?: ReactNode; compacto?: boolean }) {
+  const formaCompacta = useVariante('lateraisTeclado')
+  const recolher = compacto && formaCompacta !== 'normais' ? formaCompacta : null
+  const [aberta, setAberta] = useState<'esquerda' | 'direita' | null>(null)
+  const relogio = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const engolir = useRef(false)
+  useEffect(() => () => clearTimeout(relogio.current), [])
+  const abrir = (lado: 'esquerda' | 'direita') => { clearTimeout(relogio.current); setAberta(lado); relogio.current = setTimeout(() => setAberta(null), 2600) }
   const forma = useVariante('trackpad')
   const mao = useSim((s) => s.ajustes.mao)
   const appId = useSim((s) => s.appEmFoco)
@@ -44,6 +53,27 @@ export function ComLaterais({ centro, doModo }: { centro: ReactNode; doModo?: Re
     const a = <Lateral lado="esquerda" rotulo="Atalhos do app em foco" cabeca={nomeApp}>{app}</Lateral>
     const s = <Lateral lado="direita" rotulo="Sistema" cabeca={<><Indicador /><Saude /></>}>{sistema}</Lateral>
     ;[esquerda, direita] = mao === 'esquerda' ? [s, a] : [a, s]
+  }
+
+  if (recolher) {
+    const lado = (no: ReactNode, l: 'esquerda' | 'direita') => no && (
+      <div className={`cel-lado-compacto cel-lado-${recolher} cel-lado-${l}${aberta === l ? ' cel-lado-aberto' : ''}`}
+        onPointerDownCapture={(e) => { if (aberta !== l) { e.stopPropagation(); engolir.current = true } abrir(l) }}
+        onClickCapture={(e) => { if (engolir.current) { e.stopPropagation(); e.preventDefault(); engolir.current = false } }}
+        onFocusCapture={() => abrir(l)}>
+        {recolher === 'recolhidas' && aberta !== l && (
+          <button type="button" className="cel-alca-lateral" aria-label={`Abrir a lateral ${l}`} onClick={() => abrir(l)}><i /></button>
+        )}
+        <div className="cel-lado-conteudo">{no}</div>
+      </div>
+    )
+    return (
+      <div className={`cel-laterais cel-laterais-compactas cel-laterais-${forma}`} data-lab="2">
+        {lado(esquerda, 'esquerda')}
+        <div className="cel-centro cel-centro-livre">{centro}</div>
+        {lado(direita, 'direita')}
+      </div>
+    )
   }
 
   return (
