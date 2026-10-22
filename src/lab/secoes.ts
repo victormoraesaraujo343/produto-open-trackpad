@@ -4,43 +4,53 @@
    Cada seção é marcada na tela com data-lab="<n>"; a variação é lida com useVariante('<chave>').
    Protocolo do painel: laboratorio/refinamento/README.md */
 
+/* Agrupadas pelo uso do OpenTrackpad. O número de cada seção não muda: as anotações e o
+   data-lab das telas apontam para ele. */
 export const SECOES = [
-  { n: '1', nome: 'Acabamento' },
-  { n: '2', nome: 'Trackpad principal' },
-  { n: '3', nome: 'Trocar de modo' },
-  { n: '4', nome: 'Painel de atalhos' },
-  { n: '5', nome: 'Tela espelhada e modos de toque' },
-  { n: '6', nome: 'Parear pela primeira vez' },
-  { n: '7', nome: 'Estado da conexão' },
-  { n: '8', nome: 'Central do computador' },
-  { n: '9', nome: 'Ver na prática: teclas presas (nas laterais)' },
-  { n: '10', nome: 'Ver na prática: botão giratório' },
-  { n: '11', nome: 'Mesa de som: saídas, entradas e apps' },
-  { n: '12', nome: 'Ver na prática: botões de volume do celular' },
-  { n: '13', nome: 'Ver na prática: modo travado' },
-  { n: '14', nome: 'Teclado e voz' },
-  { n: '15', nome: 'Mesa digitalizadora' },
-  { n: '16', nome: 'Mídia, janelas e abrir' },
-  { n: '17', nome: 'Reunião' },
-  { n: '18', nome: 'Zonas no trackpad' },
-  { n: '19', nome: 'Segundo monitor' },
-  { n: '20', nome: 'Uma janela e recorte' },
-  { n: '21', nome: 'Monitor vertical' },
-  { n: '22', nome: 'Painel de informações' },
-  { n: '23', nome: 'Tela de descanso' },
-  { n: '24', nome: 'Área de transferência' },
-  { n: '25', nome: 'Câmera e microfone do celular' },
-  { n: '26', nome: 'Vários computadores' },
-  { n: '27', nome: 'Ajustes do celular' },
-  { n: '28', nome: 'Aparelho dedicado: escurecer, bateria, calor, noturno' },
-  { n: '29', nome: 'Computador: menu da bandeja' },
-  { n: '30', nome: 'Computador: atalhos por app, biblioteca e importar' },
-  { n: '31', nome: 'Computador: assistente de primeira vez' },
-  { n: '32', nome: 'Computador: gravar atalho' },
-  { n: '33', nome: 'Remapear as laterais por app (#5)' },
-  { n: '34', nome: 'Botões de liga e desliga (#8)' },
-  { n: '35', nome: 'Animações: rastro no trackpad (#4)' },
-  { n: '36', nome: 'Monitor de recursos (#11)' },
+  // Base visual
+  { n: '1', nome: 'Acabamento', grupo: 'Base visual' },
+  { n: '34', nome: 'Liga e desliga (#8)', grupo: 'Base visual' },
+  { n: '35', nome: 'Rastro no trackpad (#4)', grupo: 'Base visual' },
+  // Celular · laterais e navegação
+  { n: '2', nome: 'Arranjo das laterais', grupo: 'Celular · laterais e navegação' },
+  { n: '33', nome: 'Laterais por app (#5)', grupo: 'Celular · laterais e navegação' },
+  { n: '3', nome: 'Trocar de modo', grupo: 'Celular · laterais e navegação' },
+  { n: '7', nome: 'Estado da conexão', grupo: 'Celular · laterais e navegação' },
+  { n: '9', nome: 'Teclas presas', grupo: 'Celular · laterais e navegação' },
+  { n: '12', nome: 'Botões de volume do celular', grupo: 'Celular · laterais e navegação' },
+  { n: '13', nome: 'Modo travado', grupo: 'Celular · laterais e navegação' },
+  // Celular · controlar
+  { n: '14', nome: 'Teclado e voz', grupo: 'Celular · controlar' },
+  { n: '10', nome: 'Giratório de volume', grupo: 'Celular · controlar' },
+  { n: '15', nome: 'Desenho', grupo: 'Celular · controlar' },
+  { n: '18', nome: 'Zonas no trackpad', grupo: 'Celular · controlar' },
+  // Celular · atalhos e som
+  { n: '4', nome: 'Painel de atalhos', grupo: 'Celular · atalhos e som' },
+  { n: '11', nome: 'Mesa de som', grupo: 'Celular · atalhos e som' },
+  { n: '16', nome: 'Mídia, janelas e abrir', grupo: 'Celular · atalhos e som' },
+  { n: '17', nome: 'Reunião', grupo: 'Celular · atalhos e som' },
+  // Celular · tela
+  { n: '5', nome: 'Tela espelhada', grupo: 'Celular · tela' },
+  { n: '19', nome: 'Segundo monitor', grupo: 'Celular · tela' },
+  { n: '20', nome: 'Uma janela e recorte', grupo: 'Celular · tela' },
+  { n: '21', nome: 'Monitor vertical', grupo: 'Celular · tela' },
+  { n: '22', nome: 'Painel de informações (#6)', grupo: 'Celular · tela' },
+  { n: '36', nome: 'Monitor de recursos (#11)', grupo: 'Celular · tela' },
+  { n: '23', nome: 'Tela de descanso (#7)', grupo: 'Celular · tela' },
+  // Celular · ponte e conexão
+  { n: '6', nome: 'Parear pela primeira vez', grupo: 'Celular · ponte e conexão' },
+  { n: '24', nome: 'Área de transferência', grupo: 'Celular · ponte e conexão' },
+  { n: '25', nome: 'Câmera e microfone', grupo: 'Celular · ponte e conexão' },
+  { n: '26', nome: 'Vários computadores', grupo: 'Celular · ponte e conexão' },
+  // Celular · aparelho
+  { n: '27', nome: 'Ajustes do celular', grupo: 'Celular · aparelho' },
+  { n: '28', nome: 'Escurecer, bateria e calor', grupo: 'Celular · aparelho' },
+  // Computador
+  { n: '8', nome: 'Central', grupo: 'Computador' },
+  { n: '30', nome: 'Atalhos por app', grupo: 'Computador' },
+  { n: '29', nome: 'Menu da bandeja', grupo: 'Computador' },
+  { n: '31', nome: 'Primeira vez', grupo: 'Computador' },
+  { n: '32', nome: 'Gravar atalho', grupo: 'Computador' },
 ]
 
 export const VARIANTES = {

@@ -158,6 +158,7 @@ export function criarRefinamento({ pagina, secoes: SECOES, variantes: VARIANTES,
     const e = estado.secoes[s.n] ?? {};
     if (ui.filtro === "todas") return true;
     if (ui.filtro === "alfinetes") return alfinetesDe(s.n).some((a) => !a.resolvido);
+    if (ui.filtro.startsWith("g:")) return s.grupo === ui.filtro.slice(2);
     return (e.status ?? "revisar") === ui.filtro;
   }
   function itemDeSecao(s) {
@@ -222,7 +223,9 @@ export function criarRefinamento({ pagina, secoes: SECOES, variantes: VARIANTES,
     $(".rf-barra i + i").style.width = `${(prontas / total) * 100}%`;
     $("[data-contagem]").innerHTML = `<b>${aprovadas}</b>/${total} aprovadas${prontas ? ` · <b class="pronta">${prontas} pronta${prontas > 1 ? "s" : ""}</b>` : ""}`;
     const sel = $("[data-filtro]");
-    sel.innerHTML = FILTROS.map(([id, nome]) => `<option value="${id}"${ui.filtro === id ? " selected" : ""}>${nome}</option>`).join("");
+    /* grupos de seções (o projeto declara `grupo` em cada seção): também viram filtro */
+    const grupos = [...new Set(SECOES.map((s) => s.grupo).filter(Boolean))];
+    sel.innerHTML = [...FILTROS, ...grupos.map((g) => [`g:${g}`, g])].map(([id, nome]) => `<option value="${esc(id)}"${ui.filtro === id ? " selected" : ""}>${esc(nome)}</option>`).join("");
     sel.hidden = ui.aba !== "secoes";
     const pedido = estado.pedidoDeRevisao && !estado.pedidoDeRevisao.atendido;
     $("[data-pedido]").hidden = !pedido;
@@ -230,7 +233,9 @@ export function criarRefinamento({ pagina, secoes: SECOES, variantes: VARIANTES,
     painel.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.aba === ui.aba)));
     if (ui.aba === "secoes") {
       const vis = SECOES.filter(passaFiltro);
-      lista.innerHTML = (ui.filtro === "todas" ? itemGeral() : "") + (vis.length ? vis.map(itemDeSecao).join("") : `<p class="rf-vazio">Nada neste filtro.</p>`);
+      let grupoAtual = null;
+      const comGrupos = vis.map((s) => { const cab = s.grupo && s.grupo !== grupoAtual ? `<h3 class="rf-grupo">${esc(s.grupo)}</h3>` : ""; grupoAtual = s.grupo; return cab + itemDeSecao(s); }).join("");
+      lista.innerHTML = (ui.filtro === "todas" ? itemGeral() : "") + (vis.length ? comGrupos : `<p class="rf-vazio">Nada neste filtro.</p>`);
     } else lista.innerHTML = listaDeRodadas();
     lista.scrollTop = rolagem;
     $("[data-numerar]").setAttribute("aria-pressed", String(ui.numerar));
