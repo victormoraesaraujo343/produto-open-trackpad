@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ATALHOS } from '../dados/atalhos'
 import { Aviso } from '../kit/Aviso'
 import { SuperficieTrackpad } from '../kit/SuperficieTrackpad'
 import { Tecla } from '../kit/Tecla'
-import { useVariante, variante } from '../lab/refinamento'
-import { mostrarDescanso, nivelAtual, useSim } from '../sim/loja'
+import { mostrarDescanso, useSim } from '../sim/loja'
 import type { TelaCelular } from '../sim/telas'
 import { vibrar } from '../sim/vibrar'
 import { TelaAtalhos } from './atalhos/TelaAtalhos'
@@ -12,7 +11,6 @@ import { TelaMixer } from './atalhos/TelaMixer'
 import { TelaConexao } from './conexao/TelaConexao'
 import { TelaGiro } from './controle/TelaGiro'
 import { ComLaterais } from './laterais/ComLaterais'
-import { ABRIR_MODOS } from './navegacao/Modos'
 import { TelaEspelho } from './tela/TelaEspelho'
 import { JanelaUnica, MonitorExtra, Recorte } from './tela/Conteudos'
 import { TelaPainel } from './tela/TelaPainel'
@@ -23,7 +21,7 @@ import { TelaComputadores } from './ponte/TelaComputadores'
 import { TelaMicrofone } from './ponte/TelaMicrofone'
 import { TelaTransferencia } from './ponte/TelaTransferencia'
 import { TelaVertical } from './tela/TelaVertical'
-import { TelaMesa, podeVerTela } from './entrada/TelaMesa'
+import { ChaveModoMesa, TelaMesa, podeVerTela } from './entrada/TelaMesa'
 import { TelaTeclado } from './entrada/TelaTeclado'
 import { TelaVoz } from './entrada/TelaVoz'
 import { TelaJanelas } from './midia/TelaJanelas'
@@ -32,31 +30,16 @@ import { TelaMidia } from './midia/TelaMidia'
 import { TelaReuniao } from './midia/TelaReuniao'
 import './celular.css'
 
-const TOQUE_LONGO_MS = 600
 const PARADO_MS = 20000
 
 /* Botões de volume do celular (seção 12). No navegador, os de verdade não chegam à página:
    valem os desenhados na moldura e as setas ↑/↓ do teclado. */
 export function apertarBotaoLateral(qual: 'mais' | 'menos') {
-  const forma = variante('laterais')
   const s = useSim.getState()
-  if (forma === 'sistema') { s.avisar(`Volume do celular ${qual === 'mais' ? 'mais alto' : 'mais baixo'}`); return }
+  if (s.ajustes.botoesVolume === 'sistema') { s.avisar(`Volume do celular ${qual === 'mais' ? 'mais alto' : 'mais baixo'}`); return }
   const [a, b] = s.perfis[s.appEmFoco]
   s.dispararAtalho(qual === 'mais' ? a : b)
   vibrar(8)
-}
-
-/* Reunião completa (combinação): a câmera do celular, o mudo e o tempo na mesma tela. */
-function CameraNaReuniao() {
-  const emUso = useSim((s) => s.cameraEmUso)
-  const pode = useSim((s) => nivelAtual(s.preset) >= 3)
-  if (!pode) return null
-  return (
-    <button type="button" className={`cel-reuniao-camera${emUso ? ' k-ligada' : ''}`} aria-pressed={emUso} onClick={() => useSim.getState().usarCamera(!emUso)}>
-      <span className={`cel-mini-camera${emUso ? ' no-ar' : ''}`} aria-hidden="true" />
-      <span>{emUso ? 'Câmera do celular no ar' : 'Usar a câmera do celular'}</span>
-    </button>
-  )
 }
 
 function Voltar() {
@@ -69,10 +52,8 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
     case 'teclado': return { centro: <TelaTeclado />, doModo: <Voltar /> }
     case 'voz': return { centro: <TelaVoz />, doModo: <Voltar /> }
     case 'mesa': return {
-      centro: <TelaMesa verTela={verTela && podeVerTela()} />,
-      doModo: podeVerTela()
-        ? <Tecla rotulo={verTela ? 'Esconder a tela' : 'Ver a tela'} icone="tela" ligada={verTela} aoTocar={() => setVerTela(!verTela)} />
-        : <Tecla rotulo="Limpar desenho" icone="fechar" aoTocar={() => useSim.getState().limparDesenho()} />,
+      centro: <TelaMesa verTela={verTela && podeVerTela()} aoVerTela={podeVerTela() ? () => setVerTela(!verTela) : undefined} />,
+      doModo: <ChaveModoMesa />,
     }
     case 'transferencia': return { centro: <TelaTransferencia />, doModo: <Voltar /> }
     case 'camera': return { centro: <TelaCamera />, doModo: <Voltar /> }
@@ -92,7 +73,7 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
     case 'midia': return { centro: <TelaMidia />, doModo: <Voltar /> }
     case 'janelas': return { centro: <TelaJanelas />, doModo: <Voltar /> }
     case 'lancador': return { centro: <TelaLancador />, doModo: <Voltar /> }
-    case 'reuniao': return { centro: <TelaReuniao extra={<CameraNaReuniao />} />, doModo: <Voltar /> }
+    case 'reuniao': return { centro: <TelaReuniao />, doModo: <Voltar /> }
     case 'atalhos': return { centro: <TelaAtalhos />, doModo: <Voltar /> }
     case 'mixer': return { centro: <TelaMixer />, doModo: <Voltar /> }
     case 'giro': return { centro: <TelaGiro />, doModo: <Voltar /> }
@@ -104,10 +85,7 @@ function conteudo(t: TelaCelular, verTela: boolean, setVerTela: (v: boolean) => 
 /* O celular inteiro: sem faixa no topo; tudo nas laterais (ou no menu de modos). */
 export function Celular() {
   const tela = useSim((s) => s.tela)
-  const laterais = useVariante('laterais')
-  const longo = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const dedos = useRef(new Map<number, { x: number; y: number }>())
-  const formaModos = useVariante('modos')
+  const botoes = useSim((s) => s.ajustes.botoesVolume)
   const [a, b] = useSim((s) => s.perfis[s.appEmFoco])
   const proprios = useSim((s) => s.atalhosProprios)
   const nomeAtalho = (id: string) => (ATALHOS[id] ?? proprios[id])?.rotulo ?? '—'
@@ -124,7 +102,6 @@ export function Celular() {
   }, [])
 
   const [verTela, setVerTela] = useState(false)
-  const teclado = useVariante('teclado')
   const descanso = useSim(mostrarDescanso)
   useSim((s) => s.monitor.vista)
   const escuro = useSim((s) => s.ocioso && (!s.opcoes.paradoViraPainel || s.descanso.jeito === 'escuro'))
@@ -141,31 +118,16 @@ export function Celular() {
   }, [descanso, tela])
   const [editarPainel, setEditarPainel] = useState(false)
   const { centro, doModo } = conteudo(tela, verTela, setVerTela, editarPainel, setEditarPainel)
-  const telaInteira = tela === 'teclado' && teclado === 'dividido'
   return (
-    <div className={`cel${noturno ? ' cel-noturno' : ''}${quente ? ' cel-quente' : ''}${girado ? ' cel-girado' : ''}`} data-lab="1"
-      onPointerDownCapture={(e) => {
-        clearTimeout(longo.current)
-        const noTrackpad = !!(e.target as HTMLElement).closest('.k-superficie')
-        if (!noTrackpad) { dedos.current.clear(); return }
-        dedos.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
-        const n = e.pointerType === 'mouse' ? useSim.getState().dedos : dedos.current.size
-        if (formaModos === 'doisdedos' && n >= 2) longo.current = setTimeout(() => { vibrar(12); window.dispatchEvent(new Event(ABRIR_MODOS)) }, TOQUE_LONGO_MS)
-      }}
-      onPointerMoveCapture={(e) => {
-        const ini = dedos.current.get(e.pointerId)
-        if (ini && Math.hypot(e.clientX - ini.x, e.clientY - ini.y) > 10) clearTimeout(longo.current)
-      }}
-      onPointerUpCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}
-      onPointerCancelCapture={(e) => { dedos.current.delete(e.pointerId); clearTimeout(longo.current) }}>
+    <div className={`cel${noturno ? ' cel-noturno' : ''}${quente ? ' cel-quente' : ''}${girado ? ' cel-girado' : ''}`} data-lab="1">
       {tela === 'conexao' ? <TelaConexao />
         : tela === 'espelho' ? <TelaEspelho />
         : tela === 'monitor' ? <TelaEspelho conteudo={<MonitorExtra />} lab="19" cursorProprio />
         : tela === 'janela' ? <TelaEspelho conteudo={<JanelaUnica />} lab="20" cursorProprio />
         : tela === 'recorte' ? <TelaEspelho conteudo={<Recorte />} lab="20" />
         : tela === 'vertical' ? <TelaVertical />
-        : telaInteira ? <div className="cel-inteira">{centro}</div> : <ComLaterais centro={<div key={tela} className="cel-troca-modo">{centro}</div>} doModo={doModo} compacto={tela === 'teclado'} />}
-      {laterais === 'legenda' && (
+        : <ComLaterais centro={<div key={tela} className="cel-troca-modo">{centro}</div>} doModo={doModo} compacto={tela === 'teclado'} />}
+      {botoes === 'legenda' && (
         <div className="cel-legenda-laterais" data-lab="12" aria-hidden="true">
           <span>Volume +: {nomeAtalho(a)}</span><span>Volume −: {nomeAtalho(b)}</span>
         </div>

@@ -1,0 +1,61 @@
+/* Giratório do volume (seção 10): botão, régua e rodinha. Materiais vêm do kit (alumínio,
+   grão, chanfro); cores vêm dos tokens. */
+
+/* ------------------------------------------------------------- botão */
+.giro-botao-raiz { justify-content: center; align-items: center; }
+.giro-botao {
+  position: relative; flex: none; height: 85%; aspect-ratio: 1; box-sizing: border-box;
+  border: 9px solid transparent; border-radius: 50%; touch-action: none; cursor: grab;
+  background: var(--gd) padding-box, var(--gl) padding-box, var(--mod-face) padding-box, var(--cham) border-box;
+  box-shadow: var(--shadow-mod);
+}
+.giro-botao svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.giro-botao-marca { stroke: var(--tick-off); stroke-width: .7; stroke-linecap: round; }
+.giro-botao-marca.maior { stroke-width: 1.2; }
+.giro-botao-marca.acesa { stroke: var(--ink-3); }
+.giro-botao-ponteiro { fill: var(--laranja); }
+.giro-botao-centro {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: var(--ink); pointer-events: none;
+}
+.giro-botao-centro b { font-size: 56px; line-height: 1; font-weight: 600; font-variant-numeric: tabular-nums; }
+.giro-botao-centro small { margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+
+/* ------------------------------------------------------------- régua */
+.giro-regua-raiz { flex-direction: column; }
+.giro-regua { position: relative; flex: none; height: 64px; touch-action: none; cursor: ew-resize; }
+.giro-regua > .giro-regua-poco { position: absolute; inset: 0; overflow: hidden; border-radius: 8px; pointer-events: none; }
+.giro-regua-faixa { position: absolute; top: 0; left: 50%; }
+.giro-regua-faixa line { stroke: var(--ink-4); stroke-width: 1; }
+.giro-regua-faixa line.maior { stroke: var(--ink-3); stroke-width: 1.5; }
+.giro-regua-faixa text { fill: var(--ink-2); font-size: 12px; text-anchor: middle; font-variant-numeric: tabular-nums; }
+.giro-regua-ponteiro {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; border-radius: 2px;
+  background: var(--laranja);
+}
+.giro-regua-valor {
+  position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%);
+  padding: 3px 12px; border-radius: 999px; border: 1px solid transparent;
+  background: var(--mod-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-sm);
+  font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--ink); white-space: nowrap;
+  font-variant-numeric: tabular-nums; pointer-events: none;
+}
+
+/* ----------------------------------------------------------- rodinha */
+.giro-rodinha-coluna { flex: none; width: 56px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.giro-rodinha-valor { font-size: 16px; font-weight: 600; line-height: 1.2; text-align: center; color: var(--ink); font-variant-numeric: tabular-nums; }
+.giro-rodinha {
+  position: relative; flex: 1; min-height: 0; overflow: hidden; box-sizing: border-box;
+  border: 6px solid transparent; border-radius: 28px; touch-action: none; cursor: grab;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0) 34%, rgba(255,255,255,0.12) 50%, rgba(0,0,0,0) 66%, rgba(0,0,0,0.32) 100%) padding-box,
+    var(--gl) padding-box,
+    var(--mod-face) padding-box,
+    var(--cham) border-box;
+  box-shadow: var(--shadow-mod);
+}
+/* sulcos: um a cada 12 px; o deslocamento vem de --sulcos (escrito pelo arraste) */
+.giro-rodinha-sulcos {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0 7px, var(--groove) 7px 9px, transparent 9px 12px) 0 var(--sulcos, 0px) / 100% 12px;
+}

@@ -1,0 +1,79 @@
+/* Editor de atalhos por app (seção 30 da Central). Tudo sob .pc-at. Apps à esquerda; à direita, a
+   lateral do celular com as 5 primeiras teclas e, embaixo, "Mais atalhos"; por último, "Adicionar".
+   Alvos de toque ≥ 44 px; o foco visível vem do global (:focus-visible). */
+
+.pc-at { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pc-at-corpo { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 16px; align-items: start; }
+.pc-at-direita { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.pc-at h3 { margin: 0; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+
+/* apps: lista vertical; o escolhido sobe e ganha a borda laranja à esquerda */
+.pc-at-apps { display: flex; flex-direction: column; gap: 4px; max-height: 308px; overflow-y: auto; padding: 2px; }
+.pc-at .pc-at-app {
+  flex: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 10px; cursor: pointer; text-align: left;
+  font: 500 13px var(--fonte); color: var(--ink-2); border: 1px solid transparent; border-radius: 8px; background: transparent;
+}
+.pc-at .pc-at-app:hover { color: var(--ink); }
+.pc-at .pc-at-app-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-at .pc-at-app small {
+  flex: none; min-width: 24px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 11px;
+  font-size: 11px; font-variant-numeric: tabular-nums; color: var(--ink-2); background: var(--groove); box-shadow: var(--inset-groove);
+}
+.pc-at .pc-at-app-sel {
+  color: var(--ink); background: var(--key-face) padding-box, var(--cham-sm) border-box;
+  box-shadow: var(--shadow-key), inset 3px 0 0 var(--laranja);
+}
+
+/* lateral do celular: mesma tecla do celular (kit), posição fixa de 56 px */
+.pc-at-topo { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.pc-at-lateral { flex: none; width: 204px; }
+.pc-at .pc-at-lateral .k-lugares { grid-template-rows: repeat(5, 56px); }
+.pc-at-slot { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
+.pc-at-slot > .k-tecla { flex: 1; min-width: 0; }
+.pc-at .pc-pos { flex: none; align-self: center; }
+.pc-at-vazia { align-self: center; font-size: 11px; color: var(--ink-3); }
+.pc-at .pc-at-tecla .k-rotulo { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.pc-at .pc-combo { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; max-width: 100%; }
+.pc-at .pc-combo kbd { height: 16px; min-width: 0; padding: 0 4px; font-size: 10px; }
+.pc-at .pc-at-sel { box-shadow: var(--shadow-key), inset 0 -3px 0 var(--laranja); }
+
+/* ordem da tecla escolhida: ao lado da lateral, botões de 44 px */
+.pc-at-controles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-top: 2px; }
+.pc-at-nome { min-height: 24px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--ink); }
+.pc-at .pc-at-controles button {
+  display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; cursor: pointer; text-align: left;
+  font: 500 13px var(--fonte); color: var(--key-ink); border: 1px solid transparent; border-radius: 6px;
+  background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key);
+}
+.pc-at .pc-at-controles button:active:not(:disabled) { transform: translateY(1px); }
+.pc-at .pc-at-controles button:disabled { opacity: .45; cursor: default; }
+.pc-at .pc-at-controles button span { width: 16px; text-align: center; color: var(--ink-2); }
+
+/* mais atalhos: grade de duas colunas, mesmo material da tecla */
+.pc-at-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.pc-at .pc-at-tile {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 10px; cursor: pointer; text-align: left;
+  color: var(--key-ink); border: 1px solid transparent; border-radius: 6px;
+  background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key);
+}
+.pc-at .pc-at-tile:active { transform: translateY(1px); }
+.pc-at-tile-texto { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.pc-at-tile-texto b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 500; }
+
+/* adicionar: chips (44 px) em lista que quebra a linha; altura máxima com rolagem interna */
+.pc-at-add { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.22); }
+.pc-at-add-topo { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.pc-at .pc-at-add h3 { font-size: 13px; font-weight: 600; color: var(--ink); }
+.pc-at-add-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.pc-at .pc-at-add-acoes .pc-botao { align-self: auto; margin-top: 0; min-height: 44px; }
+.pc-at-chips { list-style: none; margin: 0; padding: 2px; display: flex; flex-wrap: wrap; gap: 6px; max-height: 104px; overflow-y: auto; }
+.pc-at .pc-at-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; cursor: pointer;
+  font: 500 13px var(--fonte); color: var(--key-ink); border: 1px solid transparent; border-radius: 22px;
+  background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-sm);
+}
+.pc-at .pc-at-chip:hover { color: var(--ink); }
+.pc-at-importar { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: 8px; background: var(--well-face); box-shadow: var(--inset-well); }
+.pc-at-marcar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; min-height: 44px; font-size: 13px; cursor: pointer; }
+.pc-at-marcar input { width: 20px; height: 20px; accent-color: var(--laranja); }
+.pc-at-importar .pc-botao { align-self: flex-start; margin-top: 4px; min-height: 44px; }

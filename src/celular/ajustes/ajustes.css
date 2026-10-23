@@ -1,0 +1,38 @@
+/* AJUSTES: escolhas com desenho (seções 2, 9, 12 e 23). */
+.aj-bloco { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; }
+.aj-bloco + .cel-ajuste, .cel-ajuste + .aj-bloco, .aj-bloco + .aj-bloco { border-top: 1px solid rgba(0,0,0,0.25); }
+.aj-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--ink); }
+.aj-escolha { display: grid; gap: 6px; }
+.aj-opcao {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; min-height: 48px; padding: 8px 6px 7px; cursor: pointer;
+  font: 500 12px var(--fonte); color: var(--key-ink); text-align: center;
+  border: 1px solid transparent; border-radius: 8px; background: var(--groove) padding-box, var(--cham-in) border-box; box-shadow: var(--inset-groove);
+}
+.aj-opcao-sim { color: var(--ink); background: var(--key-face-on) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key), inset 0 -2px 0 var(--laranja); }
+.aj-opcao:focus-visible { outline: 2px solid var(--laranja); outline-offset: 2px; }
+.aj-opcao small { font-size: 11px; line-height: 1.25; color: var(--ink-3); }
+.aj-opcao-sim small { color: var(--ink-2); }
+.aj-desenho { display: grid; place-items: center; width: 100%; }
+.aj-desenho svg { width: 100%; max-width: 96px; height: auto; }
+.aj-nome { display: inline-flex; align-items: center; gap: 6px; }
+.aj-led { width: 6px; height: 6px; border-radius: 50%; background: var(--led-off); box-shadow: inset 0 1px 1px rgba(0,0,0,.6); }
+.aj-opcao-sim .aj-led { background: var(--led); box-shadow: 0 0 5px var(--led-brilho); }
+
+/* traço dos desenhos */
+.aj-traco { fill: none; stroke: var(--ink-4); stroke-width: 1.5; }
+.aj-tecla { fill: var(--tick-off); }
+.aj-tecla-presa { fill: var(--laranja); }
+.aj-pad { fill: var(--hairline); }
+.aj-dedo { fill: none; stroke: var(--ink-2); stroke-width: 1.4; }
+.aj-dedo-longo { stroke-dasharray: 2 2; }
+.aj-legenda { font: 500 8px var(--fonte); fill: var(--ink-3); text-anchor: middle; }
+.aj-icone { fill: none; stroke: var(--ink-2); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.aj-etiqueta { fill: none; stroke: var(--laranja); stroke-width: 1.2; }
+.aj-tela { fill: #08090A; stroke: var(--ink-4); stroke-width: 1.5; }
+.aj-tela-aluminio { fill: #3A3C3F; }
+.aj-hora { font: 600 15px var(--fonte); fill: var(--ink-2); text-anchor: middle; }
+.aj-hora-mini { font: 600 8px var(--fonte); fill: var(--ink); text-anchor: end; }
+.aj-acento { fill: var(--laranja); }
+.aj-segmento path { fill: none; stroke: var(--led); stroke-width: 2; }
+.aj-arco { fill: none; stroke: var(--led); stroke-width: 2.5; }
+.aj-brilho { stroke: rgba(255,255,255,0.35); stroke-width: 6; }

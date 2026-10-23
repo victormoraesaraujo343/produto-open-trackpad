@@ -1,0 +1,51 @@
+/* DESCANSO (seção 23, #7): versões da tela parada. Cores fixas (a tela é escura nos dois temas);
+   o brilho baixo vem de .cel-descanso (celular.css). Contraste do texto: ≥ 4,5:1 mesmo escurecido. */
+
+/* modos com o relógio no centro */
+.cel-painel.cel-descanso-analogico, .cel-painel.cel-descanso-digitos, .cel-painel.cel-descanso-medidores { display: grid; place-items: center; }
+.cel-painel.cel-descanso-analogico .cel-deriva, .cel-painel.cel-descanso-digitos .cel-deriva { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cel-descanso-analogico .cel-data, .cel-descanso-digitos .cel-data, .cel-descanso-medidores .cel-data, .cel-descanso-aluminio .cel-data { font-size: 14px; color: #D5D8D2; }
+.cel-hora-pequena { font-size: 26px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: #EDEFEA; }
+
+/* 1 · analógico: mostrador escuro com aro de alumínio, ponteiros claros e segundo ponteiro laranja */
+.cel-rosto { width: 264px; height: 264px; flex: none; }
+.cel-marcas line { stroke: #9EA1A5; stroke-width: 4; }
+.cel-ponteiro-h { stroke: #EDEFEA; stroke-width: 7; stroke-linecap: round; }
+.cel-ponteiro-m { stroke: #EDEFEA; stroke-width: 4.5; stroke-linecap: round; }
+.cel-ponteiro-s { stroke: #FF4F1F; stroke-width: 2; stroke-linecap: round; }
+.cel-ponteiro-h, .cel-ponteiro-m, .cel-ponteiro-s { filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
+.cel-eixo { fill: #FF4F1F; }
+
+/* 2 · dígitos: segmentos de LED; aceso com brilho, apagado quase invisível; dois-pontos piscam */
+.cel-digitos { display: flex; align-items: center; gap: 10px; }
+.cel-digito { width: 119px; height: 190px; flex: none; }
+.cel-digito polygon { fill: rgba(155,226,63,0.06); }
+.cel-digito polygon.on, .cel-dois-pontos circle { fill: var(--led); filter: drop-shadow(0 0 4px rgba(155,226,63,0.75)); }
+.cel-dois-pontos { width: 48px; height: 190px; flex: none; margin: 0 2px; animation: cel-piscar 1s linear infinite; }
+@keyframes cel-piscar { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.12; } }
+
+/* 3 · medidores: quatro anéis do computador e o relógio pequeno embaixo */
+.cel-painel.cel-descanso-medidores .cel-deriva { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+.cel-medidores-linha { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.cel-descanso-medidores .rc-medidor { background: #0F1012; box-shadow: none; color: #EDEFEA; }
+.cel-descanso-medidores .rc-nome { color: #D5D8D2; }
+.cel-descanso-medidores .rc-trilho { stroke: #22242A; }
+.cel-medidores-hora { display: flex; align-items: baseline; gap: 12px; }
+
+/* 4 · alumínio: superfície escovada em tela cheia (o recuo cobre a margem e o deslize de .cel-deriva) */
+.cel-superficie {
+  position: absolute; inset: -24px; overflow: hidden;
+  background-image: var(--gd), repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 1px, rgba(0,0,0,0.22) 1px 2px, rgba(255,255,255,0) 2px 4px), linear-gradient(172deg, #6A6D71 0%, #4A4D51 40%, #34363A 100%);
+}
+.cel-superficie::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.22) 50%, transparent 60%);
+  animation: cel-brilho 8s ease-in-out infinite;
+}
+@keyframes cel-brilho { 0% { transform: translateX(-100%); } 50%, 100% { transform: translateX(100%); } }
+.cel-superficie .cel-canto { position: absolute; right: 36px; bottom: 30px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cel-superficie::after { display: none; }
+  .cel-dois-pontos { animation: none; }
+}

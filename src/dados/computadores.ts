@@ -6,7 +6,7 @@ export interface Celular { id: string; nome: string; plataforma: 'android' | 'ip
 /* Computadores achados no Wi-Fi. Um tem nome longo de propósito. */
 export const COMPUTADORES: Computador[] = [
   { id: 'c1', nome: 'mesa-do-victor', sistema: 'linux', confiavel: true },
-  { id: 'c2', nome: 'Estação-de-trabalho-do-escritório-segundo-andar', sistema: 'windows', confiavel: false },
+  { id: 'c2', nome: 'Estação-de-trabalho-do-escritório-segundo-andar', sistema: 'windows', confiavel: true },
   { id: 'c3', nome: 'MacBook da Renata', sistema: 'macos', confiavel: false },
 ]
 

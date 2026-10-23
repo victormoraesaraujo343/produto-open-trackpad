@@ -2,6 +2,7 @@
    A PRIMEIRA opção de cada variação é a proposta; as outras são alternativas reais.
    Nenhuma reproduz tela da v1: da v1 só vem a identidade (cores, materiais, tipografia).
    Cada seção é marcada na tela com data-lab="<n>"; a variação é lida com useVariante('<chave>').
+   Opções já decididas (acabamento, modos, presas…) viraram código fixo ou ajuste do usuário e saíram daqui.
    Protocolo do painel: laboratorio/refinamento/README.md */
 
 /* Agrupadas pelo uso do OpenTrackpad. O número de cada seção não muda: as anotações e o
@@ -54,24 +55,11 @@ export const SECOES = [
 ]
 
 export const VARIANTES = {
-  acabamento: { secao: '1', rotulo: 'Acabamento', opcoes: [['escuro', 'Alumínio escuro'], ['claro', 'Alumínio claro'], ['escuro-pad-claro', 'Escuro com trackpad claro']] },
-  trackpad: { secao: '2', rotulo: 'Laterais', opcoes: [['app-sistema', 'Esquerda: app em foco · direita: sistema'], ['uma-mao', 'Tudo numa lateral dupla, do lado da mão'], ['polegar', 'Teclas só embaixo, informação em cima']] },
-  modos: { secao: '3', rotulo: 'Modos', opcoes: [['tecla', 'Tecla Modos abre o menu'], ['deslizar', 'Segurar a tecla e soltar no modo'], ['doisdedos', 'Só o gesto: dois dedos parados']] },
-  atalhos: { secao: '4', rotulo: 'Atalhos', opcoes: [['grade', 'Grade de teclas'], ['largas', 'Teclas largas com a combinação'], ['grupos', 'Colunas por grupo'], ['paginas', 'Páginas de lado']] },
-  espelho: { secao: '5', rotulo: 'Alternar toque', opcoes: [['lateral', 'Alternador na lateral'], ['flutuante', 'Alternador flutuante'], ['gesto', 'Três dedos alternam']] },
   pareamento: { secao: '6', rotulo: 'Parear', opcoes: [['qr', 'QR no computador'], ['lista', 'Computadores por perto'], ['passos', 'Escolher a conexão primeiro']] },
-  indicador: { secao: '7', rotulo: 'Indicador', opcoes: [['led', 'LED com o tipo de conexão'], ['medidor', 'Medidor de sinal'], ['silencioso', 'Só aparece quando piora']] },
-  central: { secao: '8', rotulo: 'Central', opcoes: [['lateral', 'Barra lateral'], ['abas', 'Abas no topo'], ['rack', 'Módulos lado a lado']] },
-  presas: { secao: '9', rotulo: 'Teclas presas', opcoes: [['trava', 'Toque prende, toque solta'], ['segurar', 'Presa enquanto o dedo está em cima'], ['misto', 'Segurar prende; dois toques travam']] },
-  giro: { secao: '10', rotulo: 'Giratório', opcoes: [['arco', 'Arco no canto do polegar'], ['aro', 'Contorno do trackpad'], ['roda', 'Roda onde o dedo pousa']] },
-  mixer: { secao: '11', rotulo: 'Mesa de som', opcoes: [['vertical', 'Faders na vertical, todos os canais'], ['horizontal', 'Faders na horizontal, por grupo'], ['giratorio', 'Giratório (para comparar)']] },
-  laterais: { secao: '12', rotulo: 'Botões de volume', opcoes: [['atalhos', 'Disparam atalhos'], ['legenda', 'Disparam atalhos, com legenda'], ['sistema', 'Volume do celular, como sempre']] },
-  trava: { secao: '13', rotulo: 'Destravar', opcoes: [['segurar', 'Segurar 3 segundos'], ['desenho', 'Desenhar um traço'], ['sem', 'Sem trava']] },
-  teclado: { secao: '14', rotulo: 'Teclado', opcoes: [['centro', 'Inteiro, entre as laterais'], ['dividido', 'Dividido para os dois polegares']] },
-  lateraisTeclado: { secao: '14', rotulo: 'Laterais no teclado', opcoes: [['icones', 'Viram ícones; crescem ao tocar'], ['recolhidas', 'Recolhidas na borda; abrem por cima'], ['normais', 'Normais (para comparar)']] },
-  menuModos: { secao: '3', rotulo: 'Menu de modos', opcoes: [['colunas', 'Uma coluna por grupo'], ['abas', 'Grupos como abas, modos grandes'], ['icones', 'Grade de ícones'], ['gaveta', 'Gaveta saindo da lateral']] },
-  alternador: { secao: '34', rotulo: 'Liga e desliga', opcoes: [['tecla', 'Tecla de trava que afunda'], ['trilho', 'Trilho com pino'], ['segmento', 'Desl. / Lig. lado a lado'], ['basculante', 'Basculante (o atual)']] },
-  rastro: { secao: '35', rotulo: 'Rastro', opcoes: [['grade', 'Grade de pontos que acende e apaga'], ['ondas', 'Ondas suaves'], ['cometa', 'Cometa que segue o dedo']] },
+  giro: { secao: '10', rotulo: 'Giratório', opcoes: [['dial', 'Botão grande no centro, com marcas'], ['regua', 'Régua que desliza'], ['rodinha', 'Rodinha de polegar na lateral']] },
+  rastro: { secao: '35', rotulo: 'Rastro', opcoes: [['perto', 'Grade fixa; pontos maiores perto do dedo'], ['centro', 'Grade fixa; pontos maiores no centro do trackpad']] },
+  transferencia: { secao: '24', rotulo: 'Copiar do celular', opcoes: [['grande', 'Botão grande com a prévia'], ['dois-lados', 'Enviar e trazer lado a lado']] },
+  computadores: { secao: '26', rotulo: 'Vários computadores', opcoes: [['cartoes', 'Cartões'], ['fileira', 'Fileira com o atual em destaque']] },
   estiloSimples: { secao: '36', rotulo: 'Vista simples', opcoes: [['anel', 'Anéis'], ['ponteiro', 'Ponteiros analógicos'], ['numero', 'Números grandes'], ['segmentos', 'LEDs'], ['barra', 'Barras']] },
   layoutPadrao: { secao: '36', rotulo: 'Vista padrão', opcoes: [['painel', 'Painel misto'], ['instrumentos', 'Instrumentos analógicos'], ['graficos', 'Gráficos no tempo']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>

@@ -1,0 +1,55 @@
+/* Mesa digitalizadora (seção 15). A área ocupa a caixa do centro, que já é 16:10 (a proporção
+   da tela do computador). Sem espelho: prancheta fosca com marcas de canto, sem tinta. */
+
+.cel-mesa-raiz { position: relative; flex: 1; min-width: 0; min-height: 0; }
+
+.cel-mesa-area {
+  --marca: var(--ink-4);
+  position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: crosshair;
+  user-select: none; -webkit-user-select: none; border-radius: 6px; box-shadow: var(--inset-pad);
+  background:
+    linear-gradient(var(--marca), var(--marca)) left 12px top 12px / 18px 2px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) left 12px top 12px / 2px 18px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) right 12px top 12px / 18px 2px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) right 12px top 12px / 2px 18px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) left 12px bottom 12px / 18px 2px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) left 12px bottom 12px / 2px 18px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) right 12px bottom 12px / 18px 2px no-repeat,
+    linear-gradient(var(--marca), var(--marca)) right 12px bottom 12px / 2px 18px no-repeat,
+    var(--gds) 0 0 / 260px 260px,
+    var(--pad-face);
+}
+
+/* com espelho: a tela do computador embaixo (um pouco apagada) e a tinta do traço em andamento */
+.cel-mesa-fundo { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: .55; pointer-events: none; }
+.cel-mesa-area svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cel-mesa-area path { fill: none; stroke: #FF4F1F; stroke-linecap: round; stroke-linejoin: round; }
+
+/* mira sob o dedo: só enquanto encosta */
+.cel-mesa-mira {
+  position: absolute; width: 48px; height: 48px; margin: -24px 0 0 -24px; box-sizing: border-box;
+  border: 2px solid var(--ink-2); border-radius: 50%; box-shadow: 0 0 0 2px rgba(0,0,0,0.6); pointer-events: none;
+}
+.cel-mesa-mira::before, .cel-mesa-mira::after { content: ''; position: absolute; background: var(--ink-2); }
+.cel-mesa-mira::before { left: 50%; top: -10px; bottom: -10px; width: 2px; margin-left: -1px; }
+.cel-mesa-mira::after { top: 50%; left: -10px; right: -10px; height: 2px; margin-top: -1px; }
+@media (prefers-reduced-motion: no-preference) {
+  .cel-mesa-mira { animation: cel-mesa-mira 140ms ease-out; }
+}
+@keyframes cel-mesa-mira {
+  from { transform: scale(1.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* botões de apoio (ver a tela, limpar): fora da área de desenho, para o toque não pintar */
+.cel-mesa-barra { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; gap: 8px; }
+.cel-mesa-botao {
+  min-width: 48px; min-height: 48px; padding: 0 14px; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+  background: var(--key-face) padding-box, var(--cham) border-box; color: var(--key-ink);
+  font: 500 13px/1 var(--fonte); box-shadow: var(--shadow-key);
+}
+.cel-mesa-botao:active { transform: translateY(1px); }
+.cel-mesa-botao[aria-pressed='true'] { background: var(--key-face-on) padding-box, var(--cham) border-box; color: var(--ink); box-shadow: var(--shadow-sm), inset 0 -2px 0 var(--laranja); }
+.cel-mesa-botao:focus-visible { outline: 2px solid var(--laranja); outline-offset: 2px; }

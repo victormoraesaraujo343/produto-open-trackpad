@@ -27,7 +27,8 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
   const [aneis, setAneis] = useState<Anel[]>([])
   const [gesto, setGesto] = useState<string | null>(null)
   const dedosSimulados = useSim((s) => s.dedos)
-  const zonas = useSim((s) => s.opcoes.zonas)
+  const canto = useSim((s) => s.opcoes.cantoClica)
+  const borda = useSim((s) => s.opcoes.bordaRola)
   const rastro = useSim((s) => s.opcoes.rastro)
   const maxDedos = useRef(0)
   const zona = useRef<'borda' | 'canto' | null>(null)
@@ -55,7 +56,7 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
         setDedos([...ponteiros.current.values()])
         maxDedos.current = Math.max(ponteiros.current.size === 1 ? 0 : maxDedos.current, ponteiros.current.size)
         const el = ref.current!
-        zona.current = !zonas ? null : p.x > el.offsetWidth - ZONA_CANTO.l && p.y > el.offsetHeight - ZONA_CANTO.a ? 'canto' : p.x > el.offsetWidth - ZONA_BORDA ? 'borda' : null
+        zona.current = canto && p.x > el.offsetWidth - ZONA_CANTO.l && p.y > el.offsetHeight - ZONA_CANTO.a ? 'canto' : borda && p.x > el.offsetWidth - ZONA_BORDA ? 'borda' : null
         if (ponteiros.current.size === 1) {
           inicio.current = { t: Date.now(), x: p.x, y: p.y, andou: 0, firme: false }
           clearTimeout(relogioFirme.current)
@@ -103,8 +104,8 @@ export function SuperficieTrackpad({ cliqueFirme = true }: { cliqueFirme?: boole
       {rastro && <Rastro alvo={ref} />}
       {dedos.map((d, i) => <span key={i} className="k-dedo" style={{ left: d.x, top: d.y }} />)}
       {aneis.map((a) => <span key={a.id} className={`k-anel${a.firme ? ' k-firme' : ''}`} style={{ left: a.x, top: a.y }} />)}
-      {zonas && <div className="k-zona k-zona-borda" data-lab="18" aria-hidden="true"><span>rolar</span></div>}
-      {zonas && <div className="k-zona k-zona-canto" aria-hidden="true"><span>clique direito</span></div>}
+      {borda && <div className="k-zona k-zona-borda" data-lab="18" aria-hidden="true"><span>rolar</span></div>}
+      {canto && <div className="k-zona k-zona-canto" data-lab="18" aria-hidden="true"><span>clique direito</span></div>}
       {gesto && <div className="k-gesto">{gesto}</div>}
     </div>
   )

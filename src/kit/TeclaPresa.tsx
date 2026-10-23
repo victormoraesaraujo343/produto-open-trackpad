@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { useVariante } from '../lab/refinamento'
 import { useSim } from '../sim/loja'
 import { vibrar } from '../sim/vibrar'
 import { Led } from './Led'
@@ -7,11 +6,11 @@ import { Led } from './Led'
 const DOIS_TOQUES_MS = 320
 
 /* Tecla que prende um modificador (Ctrl, Shift…) enquanto a outra mão usa o centro.
-   Comportamento é a seção 9 do laboratório: trava (toque prende/solta), segurar (presa só
+   O jeito vem do ajuste de teclas presas (seção 9): trava (toque prende/solta), segurar (presa só
    com o dedo em cima) ou misto (segurar prende; dois toques travam até o próximo toque).
    LED e texto dizem o estado. */
 export function TeclaPresa({ tecla }: { tecla: string }) {
-  const forma = useVariante('presas')
+  const forma = useSim((s) => s.ajustes.presas)
   const presa = useSim((s) => s.teclasPresas.includes(tecla))
   const pôr = (sim: boolean) => { const s = useSim.getState(); if (s.teclasPresas.includes(tecla) !== sim) { s.alternarPresa(tecla); vibrar(sim ? 10 : 5) } }
   const [travadaVisivel, setTravadaVisivel] = useState(false)

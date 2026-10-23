@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { AGENDA } from '../../dados/agenda'
 import { FAIXA } from '../../dados/audio'
 import { NOTIFICACOES } from '../../dados/notificacoes'
@@ -10,6 +10,7 @@ import { PRESETS } from '../../sim/conexao'
 import { useSim, type Bloco } from '../../sim/loja'
 import { olharTelemetria } from '../../sim/telemetria'
 import { Medidor as MedidorRecurso } from '../recursos/Medidor'
+import './descanso.css'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
@@ -93,6 +94,87 @@ function Grade({ blocos, descanso }: { blocos: Bloco[]; descanso: boolean }) {
   )
 }
 
+const horaDe = (d: Date) => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+const dataDe = (d: Date) => `${DIAS[d.getDay()]}, ${d.getDate()} ${MESES[d.getMonth()]}`
+
+/* Descanso analógico: o segundo ponteiro anda de segundo em segundo (só este modo; o resto a cada 15 s). */
+function RelogioAnalogico() {
+  const [agora, setAgora] = useState(() => new Date())
+  const id = useId().replace(/:/g, '')
+  useEffect(() => { const t = setInterval(() => setAgora(new Date()), 1000); return () => clearInterval(t) }, [])
+  const h = agora.getHours() % 12, m = agora.getMinutes(), s = agora.getSeconds()
+  return (
+    <>
+      <svg viewBox="0 0 200 200" className="cel-rosto" role="img" aria-label={`Relógio, ${horaDe(agora)}`}>
+        <defs>
+          <radialGradient id={`f${id}`} cx="50%" cy="38%" r="62%">
+            <stop offset="0" stopColor="#25272B" /><stop offset="1" stopColor="#0C0D0F" />
+          </radialGradient>
+          <linearGradient id={`a${id}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#8D9094" /><stop offset=".4" stopColor="#3C3F42" /><stop offset=".6" stopColor="#6A6D71" /><stop offset="1" stopColor="#26282B" />
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="98" fill={`url(#a${id})`} />
+        <circle cx="100" cy="100" r="91" fill={`url(#f${id})`} />
+        <g className="cel-marcas">
+          {Array.from({ length: 12 }, (_, i) => { const a = (i * Math.PI) / 6; return <line key={i} x1={100 + 73 * Math.sin(a)} y1={100 - 73 * Math.cos(a)} x2={100 + 84 * Math.sin(a)} y2={100 - 84 * Math.cos(a)} /> })}
+        </g>
+        <line className="cel-ponteiro-h" transform={`rotate(${(h + m / 60) * 30} 100 100)`} x1="100" y1="112" x2="100" y2="58" />
+        <line className="cel-ponteiro-m" transform={`rotate(${(m + s / 60) * 6} 100 100)`} x1="100" y1="116" x2="100" y2="34" />
+        <line className="cel-ponteiro-s" transform={`rotate(${s * 6} 100 100)`} x1="100" y1="128" x2="100" y2="24" />
+        <circle className="cel-eixo" cx="100" cy="100" r="4.5" />
+      </svg>
+      <span className="cel-data">{dataDe(agora)}</span>
+    </>
+  )
+}
+
+/* Descanso em dígitos de LED: cada segmento é um polígono; "on" = aceso. Lista em a..g. */
+const SEGMENTOS = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg']
+const PONTOS: Record<string, string> = (() => {
+  const h = 3.6
+  const horiz = (y: number) => `5,${y} ${5 + h},${y - h} ${35 - h},${y - h} 35,${y} ${35 - h},${y + h} ${5 + h},${y + h}`
+  const vert = (x: number, y1: number, y2: number) => `${x},${y1} ${x + h},${y1 + h} ${x + h},${y2 - h} ${x},${y2} ${x - h},${y2 - h} ${x - h},${y1 + h}`
+  return { a: horiz(3.6), g: horiz(32), d: horiz(60.4), f: vert(3.6, 5, 30), b: vert(36.4, 5, 30), e: vert(3.6, 34, 59), c: vert(36.4, 34, 59) }
+})()
+
+function Digito({ n }: { n: string }) {
+  const acesos = SEGMENTOS[Number(n)]
+  return (
+    <svg viewBox="0 0 40 64" className="cel-digito" aria-hidden="true">
+      {Object.entries(PONTOS).map(([s, p]) => <polygon key={s} points={p} className={acesos.includes(s) ? 'on' : undefined} />)}
+    </svg>
+  )
+}
+
+function Digitos({ agora }: { agora: Date }) {
+  const hh = String(agora.getHours()).padStart(2, '0'), mm = String(agora.getMinutes()).padStart(2, '0')
+  return (
+    <>
+      <div className="cel-digitos" role="img" aria-label={`Relógio, ${horaDe(agora)}`}>
+        <Digito n={hh[0]} /><Digito n={hh[1]} />
+        <svg viewBox="0 0 16 64" className="cel-dois-pontos" aria-hidden="true"><circle cx="8" cy="20" r="3.4" /><circle cx="8" cy="44" r="3.4" /></svg>
+        <Digito n={mm[0]} /><Digito n={mm[1]} />
+      </div>
+      <span className="cel-data">{dataDe(agora)}</span>
+    </>
+  )
+}
+
+/* Descanso de medidores: quatro anéis do computador e o relógio pequeno embaixo. */
+function Medidores({ agora }: { agora: Date }) {
+  return (
+    <>
+      <div className="cel-medidores-linha">
+        {(['cpu', 'memoria', 'temperatura', 'bateria'] as const).map((m) => <MedidorRecurso key={m} metrica={m} estilo="anel" />)}
+      </div>
+      <div className="cel-medidores-hora" role="img" aria-label={`Relógio, ${horaDe(agora)}, ${dataDe(agora)}`}>
+        <span className="cel-hora-pequena">{horaDe(agora)}</span><span className="cel-data">{dataDe(agora)}</span>
+      </div>
+    </>
+  )
+}
+
 /* Painel de informações (seção 22; blocos configuráveis, #6) e tela de descanso (seção 23,
    #7): parado, o celular mostra o relógio, as informações ou uma foto, escurecido e com o
    conteúdo derivando devagar para a tela não marcar. */
@@ -122,6 +204,18 @@ export function TelaPainel({ descanso = false, editar = false }: { descanso?: bo
       </div>
     )
   }
+  if (conf.jeito === 'analogico') return <div className="cel-painel cel-descanso cel-descanso-analogico" data-lab="23"><div className="cel-deriva"><RelogioAnalogico /></div></div>
+  if (conf.jeito === 'digitos') return <div className="cel-painel cel-descanso cel-descanso-digitos" data-lab="23"><div className="cel-deriva"><Digitos agora={agora} /></div></div>
+  if (conf.jeito === 'medidores') return <div className="cel-painel cel-descanso cel-descanso-medidores" data-lab="23"><div className="cel-deriva"><Medidores agora={agora} /></div></div>
+  if (conf.jeito === 'aluminio') return (
+    <div className="cel-painel cel-descanso cel-descanso-aluminio" data-lab="23">
+      <div className="cel-deriva cel-superficie">
+        <div className="cel-canto" role="img" aria-label={`Relógio, ${hora}, ${dataDe(agora)}`}>
+          <span className="cel-hora-pequena">{hora}</span><span className="cel-data">{dataDe(agora)}</span>
+        </div>
+      </div>
+    </div>
+  )
   return (
     <div className="cel-painel cel-descanso" data-lab="23">
       <div className="cel-deriva"><Grade blocos={conf.blocos} descanso /></div>

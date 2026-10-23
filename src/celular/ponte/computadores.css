@@ -1,0 +1,63 @@
+/* Vários computadores (seção 26): cartões e fileira. Cores e relevo vêm dos tokens e do kit. */
+
+.pc-raiz { box-sizing: border-box; min-width: 0; min-height: 0; padding: 6px; }
+
+/* cartões: grade centrada; com os 3 de exemplo, uma linha de 3 */
+.pc-cartoes { display: flex; flex-direction: column; justify-content: center; }
+.pc-grade { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.pc-grade > li, .pc-lista > li { display: flex; min-width: 0; }
+.pc-grade > li > .pc, .pc-lista > li > .pc { flex: 1; }
+
+/* base dos três formatos: tecla de metal */
+.pc {
+  position: relative; box-sizing: border-box; min-width: 0; margin: 0; cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  color: var(--key-ink); font-size: 13px;
+  border: 1px solid transparent; border-radius: 8px;
+  background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-key);
+  transition: transform var(--curto);
+}
+.pc:not(:disabled):active { transform: translateY(1px); }
+.pc:disabled { cursor: default; }
+.pc:disabled .pc-glifo { opacity: .5; }
+.pc-atual { color: var(--ink); background: var(--key-face-on) padding-box, var(--cham) border-box; box-shadow: var(--shadow-sm); }
+/* aresta laranja embaixo: o computador em uso */
+.pc-atual::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 3px; border-radius: 0 0 2px 2px; background: var(--laranja); }
+
+.pc-cartao { min-height: 150px; padding: 12px 10px; }
+.pc-destaque { min-height: 0; padding: 14px; gap: 10px; }
+.pc-tile { flex-direction: row; justify-content: flex-start; gap: 10px; min-height: 56px; padding: 6px 12px; text-align: left; }
+.pc-tile .pc-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+
+.pc-nome {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  max-width: 100%; overflow-wrap: anywhere; font-size: 13px; font-weight: 500; line-height: 1.25;
+}
+.pc-destaque .pc-nome { font-size: 16px; }
+.pc-tile .pc-nome { display: block; width: 100%; white-space: nowrap; text-overflow: ellipsis; }
+
+.pc-selo {
+  font-size: 11px; font-weight: 600; line-height: 1; padding: 4px 7px; border-radius: 4px; white-space: nowrap;
+  color: var(--ink); background: var(--groove); box-shadow: var(--inset-groove);
+}
+.pc-estado { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.pc-app { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; font-size: 12px; color: var(--ink-2); }
+.pc-app > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* desenho do computador: moldura, tela e pé; --tam é a largura */
+.pc-glifo { display: flex; flex-direction: column; align-items: center; width: var(--tam); flex: none; }
+.pc-moldura {
+  display: block; box-sizing: border-box; width: 100%; aspect-ratio: 16 / 10; padding: calc(var(--tam) * .06);
+  border: 1px solid transparent; border-radius: calc(var(--tam) * .08);
+  background: var(--key-face) padding-box, var(--cham) border-box; box-shadow: var(--shadow-sm);
+}
+.pc-vidro { display: block; width: 100%; height: 100%; border-radius: 3px; background: var(--groove); box-shadow: var(--inset-groove); }
+.pc-aceso .pc-vidro {
+  background: radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%), var(--cor, #2C3036);
+}
+.pc-pe { display: block; width: 18%; height: calc(var(--tam) * .08); background: var(--cham-sm); }
+.pc-base { display: block; width: 46%; height: calc(var(--tam) * .04); border-radius: 999px; background: var(--cham-sm); }
+
+/* fileira: o atual grande à esquerda; os outros em coluna à direita */
+.pc-fileira { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 12px; align-items: stretch; }
+.pc-lista { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0; min-height: 0; overflow-y: auto; }

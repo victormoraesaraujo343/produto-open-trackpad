@@ -12,16 +12,19 @@ export type Plataforma = 'android' | 'iphone'
 export type Dedos = 1 | 2 | 3 | 4
 export type Lado = 'esquerda' | 'direita'
 export interface Bloco { id: string; ligado: boolean }
-export type JeitoDescanso = 'relogio' | 'painel' | 'foto' | 'escuro'
+export type JeitoDescanso = 'relogio' | 'analogico' | 'digitos' | 'painel' | 'medidores' | 'aluminio' | 'foto' | 'escuro'
 export type VistaMonitor = 'simples' | 'padrao' | 'avancada'
 export type EstiloMedidor = 'barra' | 'anel' | 'ponteiro' | 'grafico' | 'segmentos' | 'numero' | 'colunas'
 export interface BlocoMonitor { id: string; metrica: Metrica; estilo: EstiloMedidor; largura: 1 | 2 }
 export type Saude = 'ok' | 'bateria' | 'quente'
-export interface Ajustes { mao: 'direita' | 'esquerda'; girado: boolean; velocidade: number; aceleracao: number; rolagemNatural: boolean; limitarCarga: boolean }
+export type Disposicao = 'dois-lados' | 'um-lado'
+export type JeitoPresas = 'trava' | 'segurar' | 'misto'
+export type BotoesVolume = 'atalhos' | 'legenda' | 'sistema'
+export interface Ajustes { mao: 'direita' | 'esquerda'; disposicao: Disposicao; presas: JeitoPresas; botoesVolume: BotoesVolume; girado: boolean; velocidade: number; aceleracao: number; rolagemNatural: boolean; limitarCarga: boolean }
 export interface Copia { id: number; texto: string; origem: string; em: number }
 export interface Ponto { x: number; y: number; p: number }
 /* funções opcionais (o spec pede "opcional por padrão"): ligam e desligam na central e no celular */
-export interface Opcoes { zonas: boolean; noturno: boolean; confianca: boolean; variosPcs: boolean; variosCelulares: boolean; abrirSozinho: boolean; paradoViraPainel: boolean; vibracao: boolean; rastro: boolean }
+export interface Opcoes { cantoClica: boolean; bordaRola: boolean; noturno: boolean; confianca: boolean; variosPcs: boolean; variosCelulares: boolean; abrirSozinho: boolean; paradoViraPainel: boolean; vibracao: boolean; rastro: boolean }
 
 interface Estado {
   plataforma: Plataforma
@@ -67,6 +70,8 @@ interface Acoes {
   irParaPc(t: TelaPc): void
   focar(a: AppId): void
   moverCursor(dx: number, dy: number): void
+  /* mesa digitalizadora: cada ponto do celular é um ponto da tela */
+  colocarCursor(x: number, y: number): void
   setDedos(d: Dedos): void
   setPlataforma(p: Plataforma): void
   setSistema(s: Sistema): void
@@ -125,7 +130,7 @@ const INICIAL: Estado = {
   ultimoAtalho: null,
   ligados: {},
   textoDigitado: '',
-  opcoes: { zonas: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true, rastro: false },
+  opcoes: { cantoClica: false, bordaRola: false, noturno: false, confianca: true, variosPcs: false, variosCelulares: false, abrirSozinho: true, paradoViraPainel: true, vibracao: true, rastro: false },
   tracos: [],
   orientacao: 'deitado',
   transferencia: [
@@ -151,7 +156,7 @@ const INICIAL: Estado = {
     { id: 'm6', metrica: 'bateria', estilo: 'numero', largura: 1 },
   ] },
   descanso: { jeito: 'relogio', blocos: ['hora', 'maquina', 'reuniao', 'notificacoes', 'musica', 'rede'].map((id) => ({ id, ligado: id === 'hora' })) },
-  ajustes: { mao: 'direita', girado: false, velocidade: 60, aceleracao: 40, rolagemNatural: true, limitarCarga: true },
+  ajustes: { mao: 'direita', disposicao: 'dois-lados', presas: 'trava', botoesVolume: 'atalhos', girado: false, velocidade: 60, aceleracao: 40, rolagemNatural: true, limitarCarga: true },
 }
 
 const AVISO_MS = 3000
@@ -192,6 +197,7 @@ export const useSim = create<Estado & Acoes>()((set, get) => ({
   irParaPc: (t) => set({ telaPc: t }),
   focar: (a) => set({ appEmFoco: a }),
   moverCursor: (dx, dy) => set(({ cursor }) => ({ cursor: { x: prender(cursor.x + dx), y: prender(cursor.y + dy) } })),
+  colocarCursor: (x, y) => set({ cursor: { x: prender(x), y: prender(y) } }),
   setDedos: (d) => set({ dedos: d }),
   setPlataforma: (p) => set({ plataforma: p }),
   setSistema: (s) => set({ sistema: s }),

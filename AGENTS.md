@@ -18,7 +18,7 @@ plano da fase atual: `docs/superpowers/plans/2026-10-21-prototipo-visual.md`.
   sempre com resposta visual; o essencial ao alcance do polegar e sem mudar de lugar.
 - Interface em pt-BR, frases curtas, sem texto que explique a interface.
 - O Victor **não é dev**: revisa telas no laboratório, nunca código. Perguntas a ele, só de produto.
-- Commits sim, **push não**: o dono decide quando o histórico novo vai para o GitHub.
+- Commits sim; **push só quando o Victor pedir**.
 
 ## Laboratório (painel de Refinamento)
 - `npm run lab`, tecla **R**. Seções e variações em `src/lab/secoes.ts`; marcar a tela com
@@ -26,6 +26,8 @@ plano da fase atual: `docs/superpowers/plans/2026-10-21-prototipo-visual.md`.
 - Anotações do Victor: `laboratorio/app/ANOTACOES.md` e `anotacoes.json` (inclui alfinetes).
   Protocolo: `laboratorio/refinamento/README.md`.
 - Ao fechar rodada: ler tudo (inclusive alfinetes), trazer síntese, só executar depois do "pode fazer".
+- Variação decidida sai do laboratório: vira código fixo ou ajuste do usuário (tela Ajustes). No laboratório
+  só fica o que ainda está em aberto; com respostas da IA, o painel abre filtrado em "Para revisar".
 - **Nunca rodar teste que grave no `anotacoes.json` real** (interceptar `/__lab/**`).
 
 ## Notas de trabalho

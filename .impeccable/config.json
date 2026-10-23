@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "src/celular/celular.css"
+        ],
+        "createdAt": "2026-10-23T01:40:27.665Z",
+        "reason": "Claude triage: pre-existing intentional motion (5px voice-level bars; keyboard-mode rail widening that must reflow content), both tiny elements"
+      }
+    ]
+  }
+}

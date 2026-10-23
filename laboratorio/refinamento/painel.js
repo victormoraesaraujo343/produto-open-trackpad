@@ -13,7 +13,7 @@ import "./painel.css";
 
 const STATUS = [["revisar", "Revisar"], ["pronta", "Pronta"], ["aprovada", "Aprovada"], ["ajustar", "Ajustar"], ["descartar", "Descartar"]];
 const NOME_STATUS = Object.fromEntries(STATUS);
-const FILTROS = [["todas", "Todas"], ["ajustar", "Ajustar"], ["pronta", "Prontas"], ["aprovada", "Aprovadas"], ["alfinetes", "Com alfinetes"]];
+const FILTROS = [["todas", "Todas"], ["ajustar", "Ajustar"], ["pronta", "Para revisar"], ["aprovada", "Aprovadas"], ["alfinetes", "Com alfinetes"]];
 const html = document.documentElement;
 const kebab = (k) => k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
 const esc = (s = "") => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -117,6 +117,7 @@ export function criarRefinamento({ pagina, secoes: SECOES, variantes: VARIANTES,
       pendente = false;
     }, 500);
   }
+  let filtroEscolhido = false;
   async function carregar({ silencioso = false } = {}) {
     try {
       const r = await fetch(API, { cache: "no-store" });
@@ -127,6 +128,8 @@ export function criarRefinamento({ pagina, secoes: SECOES, variantes: VARIANTES,
         /* o arquivo é a fonte: não misturar com restos do navegador */
         estado = { rodada: { numero: 1, aberta_em: agora() }, geral: "", secoes: {}, alfinetes: [], rodadas: [], ...d };
         ultimoAtualizado = d.atualizado;
+        /* com respostas da IA esperando, abre só no que falta revisar (até o designer trocar o filtro) */
+        if (!filtroEscolhido && Object.values(estado.secoes).some((s) => s.status === "pronta")) ui.filtro = "pronta";
         guarda.gravar(CHAVE, JSON.stringify(estado));
         Object.keys(VARIANTES).forEach((k) => aplicar(k));
         desenhar();
@@ -645,7 +648,7 @@ export function criarRefinamento({ pagina, secoes: SECOES, variantes: VARIANTES,
       if (e.target.matches?.("[data-geral-item]")) { ui.geralAberto = e.target.open; return; }
       const d = e.target.closest?.("[data-sec]"); if (d) secao(d.dataset.sec).aberto = d.open;
     }, true);
-    painel.querySelector("[data-filtro]").addEventListener("change", (e) => { ui.filtro = e.target.value; desenhar(); });
+    painel.querySelector("[data-filtro]").addEventListener("change", (e) => { ui.filtro = e.target.value; filtroEscolhido = true; desenhar(); });
     painel.addEventListener("input", (e) => {
       if (e.target.matches("[data-nota]")) { secao(e.target.closest("[data-sec]").dataset.sec).nota = e.target.value; salvar(); }
       if (e.target.matches("[data-geral]")) { estado.geral = e.target.value; salvar(); }

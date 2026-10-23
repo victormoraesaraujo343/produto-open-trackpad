@@ -80,9 +80,9 @@ test('digitar e apagar mandam texto para o computador', () => {
 })
 
 test('opções ligam e desligam', () => {
-  expect(useSim.getState().opcoes.zonas).toBe(false)
-  useSim.getState().setOpcao('zonas', true)
-  expect(useSim.getState().opcoes.zonas).toBe(true)
+  expect(useSim.getState().opcoes.cantoClica).toBe(false)
+  useSim.getState().setOpcao('cantoClica', true)
+  expect(useSim.getState().opcoes.cantoClica).toBe(true)
 })
 
 test('desenhar guarda traços e limpar apaga', () => {
@@ -95,4 +95,23 @@ test('desenhar guarda traços e limpar apaga', () => {
 test('trocar para uma janela põe o app dela em foco', () => {
   useSim.getState().trocarParaJanela('j5')
   expect(useSim.getState().appEmFoco).toBe('meet')
+})
+
+test('mesa digitalizadora: o cursor vai direto ao ponto, preso na tela', () => {
+  useSim.getState().colocarCursor(0.25, 0.8)
+  expect(useSim.getState().cursor).toEqual({ x: 0.25, y: 0.8 })
+  useSim.getState().colocarCursor(1.4, -0.2)
+  expect(useSim.getState().cursor).toEqual({ x: 1, y: 0 })
+})
+
+test('zonas do trackpad começam desligadas, como nos trackpads atuais', () => {
+  expect(useSim.getState().opcoes.cantoClica).toBe(false)
+  expect(useSim.getState().opcoes.bordaRola).toBe(false)
+})
+
+test('laterais, teclas presas e botões de volume são ajustes', () => {
+  const { ajustes } = useSim.getState()
+  expect([ajustes.disposicao, ajustes.presas, ajustes.botoesVolume]).toEqual(['dois-lados', 'trava', 'atalhos'])
+  useSim.getState().setAjuste('disposicao', 'um-lado')
+  expect(useSim.getState().ajustes.disposicao).toBe('um-lado')
 })

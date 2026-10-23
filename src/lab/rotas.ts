@@ -11,7 +11,7 @@ function garantirNivel(minimo: 1 | 2 | 3, preferido: PresetId = 'usb3') {
 /* Cada rota começa limpa: o que outra seção deixou ligado (bateria fraca, parado, zonas…) volta ao normal. */
 function limpar() {
   const s = useSim.getState()
-  useSim.setState({ saude: 'ok', ocioso: false, travado: false, opcoes: { ...s.opcoes, zonas: false, paradoViraPainel: true } })
+  useSim.setState({ saude: 'ok', ocioso: false, travado: false, opcoes: { ...s.opcoes, cantoClica: false, bordaRola: false, paradoViraPainel: true } })
 }
 
 function celular(t: TelaCelular, nivel: 1 | 2 | 3 = 1, pc: TelaPc = 'area') {
@@ -58,7 +58,7 @@ const ROTAS: Record<string, () => void> = {
   '34': () => celular('ajustes'),
   '35': () => { celular('trackpad'); useSim.getState().setOpcao('rastro', true) },
   '36': () => celular('recursos', 2),
-  '18': () => { celular('trackpad'); useSim.getState().setOpcao('zonas', true) },
+  '18': () => { celular('trackpad'); useSim.getState().setOpcao('cantoClica', true); useSim.getState().setOpcao('bordaRola', true) },
 }
 
 export function irParaSecao(n: string) {

@@ -69,7 +69,6 @@ for (const [chave, v] of Object.entries(VARIANTES)) {
       await page.waitForFunction(() => '__otp' in window)
       await page.evaluate((n) => (window as unknown as { __otp: { irParaSecao: (n: string) => void } }).__otp.irParaSecao(n), v.secao)
       await page.waitForTimeout(300)
-      if (v.secao === '3') await page.evaluate(() => window.dispatchEvent(new Event('otp:abrir-modos')))
       await page.waitForTimeout(200)
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
       expect(erros).toEqual([])

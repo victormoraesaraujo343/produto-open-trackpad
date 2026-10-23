@@ -1,4 +1,4 @@
-import { ATALHOS, teclasDoSistema } from '../dados/atalhos'
+import { ATALHOS } from '../dados/atalhos'
 import { useSim } from '../sim/loja'
 import { Tecla } from './Tecla'
 
@@ -12,11 +12,10 @@ const ESTADOS: Record<string, { nome: string; ligado: string; desligado: string 
 
 /* Tecla que dispara um atalho da biblioteca. As de liga e desliga mostram o LED e o estado
    também em texto, para não depender só da cor. */
-export function TeclaAtalho({ id, combinacao = false, className }: { id: string; combinacao?: boolean; className?: string }) {
+export function TeclaAtalho({ id, className }: { id: string; className?: string }) {
   const proprio = useSim((s) => s.atalhosProprios[id])
   const a = ATALHOS[id] ?? proprio
   const ligado = useSim((s) => !!s.ligados[id])
-  const sistema = useSim((s) => s.sistema)
   const disparar = useSim((s) => s.dispararAtalho)
   if (!a) return null
   const estado = ESTADOS[id]
@@ -28,14 +27,5 @@ export function TeclaAtalho({ id, combinacao = false, className }: { id: string;
       </Tecla>
     )
   }
-  return (
-    <Tecla rotulo={a.rotulo} icone={a.icone} mostrarRotulo={!combinacao} className={className} aoTocar={() => disparar(id)}>
-      {combinacao && (
-        <span className="k-combo">
-          <span className="k-combo-nome">{a.rotulo}</span>
-          <span className="k-combo-teclas">{teclasDoSistema(a.teclas, sistema).map((t) => <kbd key={t}>{t}</kbd>)}</span>
-        </span>
-      )}
-    </Tecla>
-  )
+  return <Tecla rotulo={a.rotulo} icone={a.icone} className={className} aoTocar={() => disparar(id)} />
 }

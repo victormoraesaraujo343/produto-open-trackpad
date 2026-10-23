@@ -43,12 +43,6 @@ export function DesktopFalso() {
           </div>
         </div>
       ))}
-      {tracos.length > 0 && (
-        <div className="df-janela df-ativa df-desenho">
-          <div className="df-titulo"><span className="df-botoes" aria-hidden="true"><i /><i /><i /></span><span className="df-nome">Desenho — Figma</span></div>
-          <svg viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">{tracos.map((t, i) => <path key={i} d={caminho(t)} strokeWidth={larguraDoTraco(t)} />)}</svg>
-        </div>
-      )}
       {texto && (
         <div className="df-janela df-ativa df-notas">
           <div className="df-titulo"><span className="df-botoes" aria-hidden="true"><i /><i /><i /></span><span className="df-nome">Notas</span></div>
@@ -64,7 +58,11 @@ export function DesktopFalso() {
       ) : (
         <div className="df-doca">{doca.map((a) => <span key={a} className={`df-app${a === foco ? ' df-foco' : ''}`} title={APPS[a].nome}><IconeApp app={a} tamanho={34} /></span>)}</div>
       )}
-      <svg className="df-cursor" style={{ left: `${cursor.x * 100}%`, top: `${cursor.y * 100}%` }} width="18" height="24" viewBox="0 0 18 24" aria-hidden="true">
+      {/* tinta da mesa: a área inteira (16:10), na mesma proporção do celular; fica sob o cursor */}
+      {tracos.length > 0 && (
+        <svg className="df-tracos" viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">{tracos.map((t, i) => <path key={i} d={caminho(t)} strokeWidth={larguraDoTraco(t)} />)}</svg>
+      )}
+      <svg className="df-cursor"style={{ left: `${cursor.x * 100}%`, top: `${cursor.y * 100}%` }} width="18" height="24" viewBox="0 0 18 24" aria-hidden="true">
         <path d="M1 1v19l5-5 3.5 7.5 3-1.4L9 13.8h7z" fill="#fff" stroke="#000" strokeWidth="1.2" strokeLinejoin="round" />
       </svg>
     </div>
