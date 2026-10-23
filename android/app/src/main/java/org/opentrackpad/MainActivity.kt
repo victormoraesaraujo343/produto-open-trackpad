@@ -1,72 +1,188 @@
 package org.opentrackpad
 
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.KeyEvent
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import org.json.JSONObject
+import org.opentrackpad.conexao.Aberto
+import org.opentrackpad.conexao.Computadores
 import org.opentrackpad.conexao.Conexao
-import org.opentrackpad.conexao.Credenciais
-import org.opentrackpad.conexao.Destino
+import org.opentrackpad.conexao.ConviteQr
+import org.opentrackpad.conexao.Descoberta
 import org.opentrackpad.conexao.EstadoConexao
 import org.opentrackpad.conexao.Ouvinte
+import org.opentrackpad.conexao.socketDoCabo
+import org.opentrackpad.conexao.socketTls
+import org.opentrackpad.toque.MedidaSuperficie
+import org.opentrackpad.toque.Quadro
+import org.opentrackpad.ui.AcoesTela
 import org.opentrackpad.ui.Aparelho
+import org.opentrackpad.ui.EstadoTela
+import org.opentrackpad.ui.ModoApp
+import org.opentrackpad.ui.pecas.lerLaterais
+import org.opentrackpad.ui.pecas.lerTela
 
 /**
- * Uma tela só, deitada. O que aparece nela é decidido pelo computador (spec); por
- * enquanto (onda 0) é o trackpad com as laterais e o estado da conexão.
+ * Uma tela só, deitada. O que aparece nela é decidido pelo computador (spec): ele manda
+ * os modos, as laterais e as telas; o app desenha e devolve toques e ações.
+ *
+ * Conexão: tenta o cabo (`adb reverse`, 127.0.0.1) e depois o Wi-Fi do último computador
+ * (endereços guardados + o que a descoberta mDNS achou), sempre com o certificado fixado.
  *
  * Para testes: `adb shell am start -n org.opentrackpad/.MainActivity --es codigo 123456`
- * pareia com o código dado (o mesmo que o QR levaria).
+ * pareia pelo cabo com o código dado (o mesmo que o QR levaria).
  */
 class MainActivity : ComponentActivity() {
 
-    private var conexao by mutableStateOf<Conexao?>(null)
-    private var estado by mutableStateOf<EstadoConexao>(EstadoConexao.Desconectado)
-    private var ultimoControle by mutableStateOf<JSONObject?>(null)
+    private val tela = EstadoTela()
+    private lateinit var computadores: Computadores
+    private lateinit var descoberta: Descoberta
+    private lateinit var conexao: Conexao
+    private val principal = Handler(Looper.getMainLooper())
+
+    /** Convite lido no QR e ainda não usado (Wi-Fi de um computador novo). */
+    @Volatile private var convite: ConviteQr? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         telaCheia()
-        conectar(intent.getStringExtra("codigo"))
-        setContent {
-            val c = conexao
-            Aparelho(
-                estado = estado,
-                aoQuadro = { c?.quadro(it) },
-                aoMedir = { c?.medida(it) },
-                aoControle = { pares -> c?.enviarControle(*pares) },
-                // Recusado não tenta de novo sozinho: recomeça com o código digitado.
-                aoCodigo = { conectar(it) },
-            )
-        }
-    }
+        computadores = Computadores.doApp(this)
+        descoberta = Descoberta(this).also { it.iniciar() }
 
-    private fun conectar(codigo: String?) {
-        conexao?.fechar()
         val aparelho = JSONObject()
             .put("nome", Build.MODEL ?: "Celular")
             .put("sistema", "android")
             .put("versao", Build.VERSION.SDK_INT)
-        val c = Conexao(
-            Destino("127.0.0.1"),
-            aparelho,
-            CredenciaisGuardadas(this),
-            object : Ouvinte {
-                override fun estado(e: EstadoConexao) = runOnUiThread { estado = e }
-                override fun controle(m: JSONObject) = runOnUiThread { ultimoControle = m }
-            },
-        )
-        c.codigo = codigo
-        conexao = c
-        c.iniciar()
+        conexao = Conexao(aparelho, computadores, ouvinte, ::abrirMelhorCaminho)
+        conexao.codigo = intent.getStringExtra("codigo")
+        conexao.iniciar()
+
+        setContent { Aparelho(tela, acoes) }
+    }
+
+    /** Cabo primeiro (mais rápido e sem rede); depois o Wi-Fi do computador do QR ou do último. */
+    private fun abrirMelhorCaminho(): Aberto {
+        try {
+            val (e, s) = socketDoCabo()
+            return Aberto(e, s, computadores.chaveDoCabo(), "cabo")
+        } catch (_: Exception) {
+        }
+        val c = convite
+        if (c?.impressao != null && c.porta != null && c.hosts.isNotEmpty()) {
+            val (e, s) = socketTls(c.hosts, c.porta, c.impressao)
+            return Aberto(e, s, c.impressao, "wifi")
+        }
+        val pc = computadores.ultimo() ?: throw java.io.IOException("nenhum computador")
+        val hosts = listOfNotNull(descoberta.enderecoDe(pc.fp)) + pc.hosts
+        val (e, s) = socketTls(hosts, pc.porta, pc.fp)
+        return Aberto(e, s, pc.fp, "wifi")
+    }
+
+    private val ouvinte = object : Ouvinte {
+        override fun estado(e: EstadoConexao) {
+            principal.post {
+                val antes = tela.conexao
+                tela.conexao = e
+                if (e is EstadoConexao.Aberta) {
+                    convite = null
+                    // Conexão piorou: o que é pesado sai e volta o trackpad, com aviso (spec: sem susto).
+                    val modo = tela.modos.firstOrNull { it.id == tela.modo }
+                    if (modo != null && modo.nivel > e.nivel) {
+                        tela.modo = "trackpad"
+                        avisar("Conexão fraca: de volta ao trackpad")
+                    }
+                } else if (antes is EstadoConexao.Aberta) {
+                    tela.laterais = null
+                }
+            }
+        }
+
+        override fun controle(m: JSONObject) {
+            principal.post { receber(m) }
+        }
+    }
+
+    private fun receber(m: JSONObject) {
+        when (m.optString("t")) {
+            "laterais" -> tela.laterais = lerLaterais(m)
+            "telas" -> {
+                val lista = m.optJSONArray("lista") ?: return
+                tela.modos = (0 until lista.length()).mapNotNull { i ->
+                    val o = lista.optJSONObject(i) ?: return@mapNotNull null
+                    ModoApp(o.optString("id"), o.optString("nome"), o.optString("icone"), o.optString("grupo", "Controlar"), o.optInt("nivel", 1))
+                }
+            }
+            "tela" -> tela.telaDescrita = lerTela(m)
+            "aviso" -> avisar(m.optString("texto"))
+            "vibrar" -> window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+            "computador" -> {
+                val chave = conexao.chaveAtual ?: return
+                val nome = (tela.conexao as? EstadoConexao.Aberta)?.computador ?: ""
+                computadores.conhecer(chave, m, nome)
+            }
+        }
+    }
+
+    private fun avisar(texto: String) {
+        tela.aviso = texto
+        principal.removeCallbacks(limparAviso)
+        principal.postDelayed(limparAviso, 2_600)
+    }
+
+    private val limparAviso = Runnable { tela.aviso = null }
+
+    private val acoes = object : AcoesTela {
+        override fun quadro(q: Quadro) = conexao.quadro(q)
+        override fun medida(m: MedidaSuperficie) = conexao.medida(m)
+        override fun acao(id: String, valor: Double?) {
+            if (valor == null) conexao.enviarControle("t" to "acao", "id" to id)
+            else conexao.enviarControle("t" to "acao", "id" to id, "valor" to valor)
+        }
+        override fun tecla(k: String, acao: String) = conexao.enviarControle("t" to "tecla", "k" to k, "acao" to acao)
+        override fun botao(b: String) = conexao.enviarControle("t" to "botao", "b" to b, "acao" to "clica")
+        override fun texto(s: String) = conexao.enviarControle("t" to "texto", "s" to s)
+        override fun escolherModo(m: ModoApp) {
+            tela.modo = m.id
+            // trackpad e teclado são telas do próprio celular; o resto o computador descreve.
+            if (m.id != "trackpad" && m.id != "teclado") conexao.enviarControle("t" to "abrir", "tela" to m.id)
+        }
+        override fun travar(sim: Boolean) = travarNoApp(sim)
+        override fun codigo(c: String) { conexao.codigo = c }
+        override fun convite(c: ConviteQr) {
+            convite = c
+            conexao.codigo = c.codigo
+        }
+    }
+
+    /**
+     * Modo travado (seção 13): o celular não sai do app. Usa a fixação de tela do Android,
+     * que o próprio sistema confirma na primeira vez.
+     */
+    private fun travarNoApp(sim: Boolean) {
+        tela.travado = sim
+        try {
+            if (sim) startLockTask() else stopLockTask()
+        } catch (_: Exception) {
+        }
+        avisar(if (sim) "Travado" else "Destravado")
+    }
+
+    /** Botões de volume do celular mudam o volume do computador (com o app aberto). */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (tela.conexao is EstadoConexao.Aberta) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_VOLUME_UP -> { acoes.tecla("volume_mais", "toca"); return true }
+                KeyEvent.KEYCODE_VOLUME_DOWN -> { acoes.tecla("volume_menos", "toca"); return true }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     private fun telaCheia() {
@@ -96,26 +212,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        conexao?.fechar()
+        conexao.fechar()
+        descoberta.parar()
         super.onDestroy()
-    }
-}
-
-/** Credenciais por computador, no armazenamento privado do app. */
-class CredenciaisGuardadas(context: Context) : Credenciais {
-    private val prefs = context.getSharedPreferences("computadores", Context.MODE_PRIVATE)
-
-    override fun ler(chave: String): Pair<String, String>? {
-        val id = prefs.getString("$chave.id", null) ?: return null
-        val segredo = prefs.getString("$chave.segredo", null) ?: return null
-        return id to segredo
-    }
-
-    override fun gravar(chave: String, id: String, segredo: String) {
-        prefs.edit().putString("$chave.id", id).putString("$chave.segredo", segredo).apply()
-    }
-
-    override fun esquecer(chave: String) {
-        prefs.edit().remove("$chave.id").remove("$chave.segredo").apply()
     }
 }

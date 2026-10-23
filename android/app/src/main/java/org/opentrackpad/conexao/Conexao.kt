@@ -60,13 +60,15 @@ interface Credenciais {
  * toque, juntando movimento se o socket atrasar (ver [FilaDeQuadros]). O celular manda
  * PING a cada 3 s; o computador solta tudo se ficar 15 s sem notícia.
  */
+/** Um socket aberto: por onde (cabo ou Wi-Fi) e sob qual chave estão as credenciais. */
+class Aberto(val entrada: InputStream, val saida: OutputStream, val chave: String, val via: String)
+
 class Conexao(
-    private val destino: Destino,
     private val aparelho: JSONObject,
     private val credenciais: Credenciais,
     private val ouvinte: Ouvinte,
-    /** Abre o socket; trocado por TLS no Wi-Fi e por um falso nos testes. */
-    private val abrirSocket: (Destino) -> Pair<InputStream, OutputStream> = ::socketPuro,
+    /** Abre o melhor caminho disponível agora (cabo primeiro, depois Wi-Fi); lança se nenhum. */
+    private val abrir: () -> Aberto,
 ) : Closeable {
 
     private val trava = ReentrantLock()
@@ -87,6 +89,10 @@ class Conexao(
 
     /** Código do QR, usado só se não houver credencial guardada. */
     @Volatile var codigo: String? = null
+
+    /** Chave das credenciais da conexão atual (impressão digital do computador, ou `cabo`). */
+    @Volatile var chaveAtual: String? = null
+        private set
 
     fun iniciar() {
         thread(name = "otp-conexao", isDaemon = true) { laco() }
@@ -112,7 +118,13 @@ class Conexao(
                 try { saida?.close() } catch (_: Exception) {}
                 try { entrada?.close() } catch (_: Exception) {}
             }
-            if (recusado || fechada) return
+            if (fechada) return
+            if (recusado) {
+                // Recusado espera um código novo (QR ou digitado) antes de tentar outra vez.
+                while (!fechada && codigo == null) Thread.sleep(300)
+                espera = 500L
+                continue
+            }
             mudar(EstadoConexao.Desconectado)
             Thread.sleep(espera)
             espera = (espera * 2).coerceAtMost(5_000)
@@ -121,12 +133,13 @@ class Conexao(
 
     /** Uma sessão inteira. Devolve `true` se o computador recusou (não adianta tentar de novo). */
     private fun sessao(): Boolean {
-        val (ent, sai) = abrirSocket(destino)
-        entrada = BufferedInputStream(ent)
-        saida = sai
+        val aberto = abrir()
+        entrada = BufferedInputStream(aberto.entrada)
+        saida = aberto.saida
+        chaveAtual = aberto.chave
 
         val ola = JSONObject().put("t", "ola").put("v", Protocolo.VERSAO).put("app", "0.3.0").put("aparelho", aparelho)
-        val guardada = credenciais.ler(destino.chave)
+        val guardada = credenciais.ler(aberto.chave)
         val pareamento = when {
             guardada != null -> JSONObject().put("id", guardada.first).put("segredo", guardada.second)
             codigo != null -> JSONObject().put("codigo", codigo)
@@ -142,16 +155,17 @@ class Conexao(
         if (resposta.t == "recusado") {
             val motivo = resposta.json.optString("motivo")
             // Credencial velha (o computador esqueceu o aparelho): apaga para parear de novo.
-            if (motivo == "desconhecido") credenciais.esquecer(destino.chave)
+            if (motivo == "desconhecido") credenciais.esquecer(aberto.chave)
+            codigo = null
             mudar(EstadoConexao.Recusado(motivo))
             return true
         }
         if (resposta.t != "bemvindo") return false
         val b = resposta.json
-        if (b.has("segredo")) credenciais.gravar(destino.chave, b.getString("aparelho_id"), b.getString("segredo"))
+        if (b.has("segredo")) credenciais.gravar(aberto.chave, b.getString("aparelho_id"), b.getString("segredo"))
         codigo = null
         val comp = b.optJSONObject("computador") ?: JSONObject()
-        mudar(EstadoConexao.Aberta(comp.optString("nome"), comp.optString("sistema"), 1, destino.via))
+        mudar(EstadoConexao.Aberta(comp.optString("nome"), comp.optString("sistema"), 1, aberto.via))
         aberta = true
 
         superficie?.let { enviarSuperficie(it) }
@@ -278,10 +292,9 @@ class Conexao(
 }
 
 /** Socket TCP sem TLS: só para 127.0.0.1 (cabo, via `adb reverse`). */
-fun socketPuro(d: Destino): Pair<InputStream, OutputStream> {
-    require(d.via == "cabo" && (d.host == "127.0.0.1" || d.host == "localhost")) { "sem TLS só no cabo" }
+fun socketDoCabo(porta: Int = Protocolo.PORTA, prazoMs: Int = 400): Pair<InputStream, OutputStream> {
     val s = Socket()
     s.tcpNoDelay = true
-    s.connect(InetSocketAddress(d.host, d.porta), 3_000)
+    s.connect(InetSocketAddress("127.0.0.1", porta), prazoMs)
     return s.getInputStream() to s.getOutputStream()
 }
