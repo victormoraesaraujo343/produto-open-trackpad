@@ -37,7 +37,7 @@ desenvolvido e testado sem plugar o celular do Victor; o celular real só entra 
 ## Ondas
 Cada onda termina com algo que o Victor consegue usar no emulador.
 
-0. **Contrato** (Opus): estrutura do repositório (`prototipo/`, `desktop/`, `android/`), protocolo de
+0. **Contrato** (Opus): estrutura do repositório (protótipo na raiz, `desktop/`, `android/`, `protocolo/`), protocolo de
    mensagens entre celular e computador com testes, e a lista de telas a portar. Tudo o que vem
    depois depende disso, então não vai para os Haiku.
 1. **Trackpad de ponta a ponta** (nível L): pareamento com código, conexão Wi-Fi e cabo, trackpad

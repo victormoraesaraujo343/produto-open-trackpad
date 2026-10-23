@@ -1,5 +1,8 @@
 # OpenTrackpad — guia do projeto
 
+> **Sessão autônoma no PC principal (fase 3):** comece por
+> `docs/superpowers/plans/2026-10-23-noite-fase3.md`. Ela manda nesta noite.
+
 Spec: `docs/superpowers/specs/2026-10-21-escopo-novo-opentrackpad-design.md` ·
 plano da fase atual: `docs/superpowers/plans/2026-10-21-prototipo-visual.md`.
 
