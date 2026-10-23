@@ -1,0 +1,60 @@
+{
+ "descricao": "Regra de n\u00edvel (igual a nivelDe em src/sim/conexao.ts, com mbps>0).",
+ "casos": [
+  {
+   "mbps": 300,
+   "rtt_ms": 2,
+   "n": 3
+  },
+  {
+   "mbps": 35,
+   "rtt_ms": 4,
+   "n": 2
+  },
+  {
+   "mbps": 200,
+   "rtt_ms": 8,
+   "n": 3
+  },
+  {
+   "mbps": 12,
+   "rtt_ms": 30,
+   "n": 2
+  },
+  {
+   "mbps": 60,
+   "rtt_ms": 12,
+   "n": 3
+  },
+  {
+   "mbps": 2,
+   "rtt_ms": 80,
+   "n": 1
+  },
+  {
+   "mbps": 40,
+   "rtt_ms": 15,
+   "n": 3
+  },
+  {
+   "mbps": 40,
+   "rtt_ms": 16,
+   "n": 2
+  },
+  {
+   "mbps": 5,
+   "rtt_ms": 40,
+   "n": 2
+  },
+  {
+   "mbps": 4.9,
+   "rtt_ms": 10,
+   "n": 1
+  },
+  {
+   "mbps": 100,
+   "rtt_ms": 41,
+   "n": 1
+  }
+ ]
+}
