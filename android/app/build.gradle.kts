@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,8 +21,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Chave de desenvolvimento local (fora do git): android/keystore.properties aponta para
+    // ~/.config/opentrackpad/android-dev.jks. Sem o arquivo, o release sai sem assinatura.
+    val chave = rootProject.file("keystore.properties").takeIf { it.exists() }?.let { f ->
+        Properties().apply { f.inputStream().use(::load) }
+    }
+    signingConfigs {
+        if (chave != null) {
+            create("dev") {
+                storeFile = file(chave.getProperty("storeFile"))
+                storePassword = chave.getProperty("storePassword")
+                keyAlias = chave.getProperty("keyAlias")
+                keyPassword = chave.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (chave != null) signingConfig = signingConfigs.getByName("dev")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
