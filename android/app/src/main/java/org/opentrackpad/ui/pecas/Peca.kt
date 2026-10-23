@@ -120,6 +120,68 @@ fun lerTela(json: JSONObject): TelaDescrita = TelaDescrita(
     pecas = lerPecas(json.optJSONArray("pecas") ?: JSONArray()),
 )
 
+/**
+ * Aplica uma mensagem `estado` à tela descrita (`protocolo/README.md`): troca só os campos
+ * que vieram, nas peças com esses ids (recursivo em grade e linha). Outra tela, ou ids que a
+ * tela não tem, não mudam nada. Pura: devolve a tela nova (ou a mesma, se nada mudou).
+ */
+fun aplicarEstado(tela: TelaDescrita, json: JSONObject): TelaDescrita {
+    if (json.optString("tela") != tela.id) return tela
+    val arr = json.optJSONArray("pecas") ?: return tela
+    val mudancas = HashMap<String, JSONObject>()
+    for (i in 0 until arr.length()) {
+        val o = arr.optJSONObject(i) ?: continue
+        val id = o.optString("id", "")
+        if (id.isNotEmpty()) mudancas[id] = o
+    }
+    if (mudancas.isEmpty()) return tela
+    return tela.copy(pecas = aplicarEmPecas(tela.pecas, mudancas))
+}
+
+private fun aplicarEmPecas(pecas: List<Peca>, mudancas: Map<String, JSONObject>): List<Peca> =
+    pecas.map { aplicarEmPeca(it, mudancas) }
+
+private fun aplicarEmPeca(p: Peca, mudancas: Map<String, JSONObject>): Peca {
+    if (p is Peca.Grade) return p.copy(pecas = aplicarEmPecas(p.pecas, mudancas))
+    if (p is Peca.Linha) return p.copy(pecas = aplicarEmPecas(p.pecas, mudancas))
+    val m = mudancas[p.id] ?: return p
+    return when (p) {
+        is Peca.Tecla -> p.copy(rotulo = textoDe(m, "rotulo", p.rotulo), icone = textoDe(m, "icone", p.icone ?: "").ifEmpty { p.icone })
+        is Peca.TeclaPresa -> p.copy(rotulo = textoDe(m, "rotulo", p.rotulo))
+        is Peca.Fader -> p.copy(
+            rotulo = textoDe(m, "rotulo", p.rotulo),
+            valor = valorDe(m, "valor", p.valor),
+            mudo = boolDe(m, "mudo", p.mudo),
+        )
+        is Peca.Giro -> p.copy(rotulo = textoDe(m, "rotulo", p.rotulo), valor = valorDe(m, "valor", p.valor))
+        is Peca.Segmentos -> p.copy(
+            rotulo = textoDe(m, "rotulo", p.rotulo),
+            valor = valorDe(m, "valor", p.valor),
+            texto = textoDe(m, "texto", p.texto),
+        )
+        is Peca.Led -> p.copy(
+            rotulo = textoDe(m, "rotulo", p.rotulo),
+            ligado = boolDe(m, "ligado", p.ligado),
+            texto = textoDe(m, "texto", p.texto),
+        )
+        is Peca.Texto -> p.copy(texto = textoDe(m, "texto", p.texto))
+        is Peca.IconeApp -> p.copy(rotulo = textoDe(m, "rotulo", p.rotulo))
+        is Peca.Grade, is Peca.Linha -> p
+    }
+}
+
+/** Campo presente (e não `null`) substitui o atual; ausente mantém. */
+private fun textoDe(m: JSONObject, nome: String, atual: String): String =
+    if (m.temValor(nome)) m.optString(nome, atual) else atual
+
+private fun valorDe(m: JSONObject, nome: String, atual: Double): Double =
+    if (m.temValor(nome)) unidade(m.optDouble(nome, atual)) else atual
+
+private fun boolDe(m: JSONObject, nome: String, atual: Boolean): Boolean =
+    if (m.temValor(nome)) m.optBoolean(nome, atual) else atual
+
+private fun JSONObject.temValor(nome: String): Boolean = has(nome) && !isNull(nome)
+
 /** Texto opcional: ausente ou `null` vira null (não string vazia). */
 private fun JSONObject.opcional(nome: String): String? = if (isNull(nome)) null else optString(nome)
 

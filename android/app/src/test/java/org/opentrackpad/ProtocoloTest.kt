@@ -36,6 +36,7 @@ class ProtocoloTest {
         is Mensagem.Ping -> JSONObject().put("tipo", "ping").put("nonce", m.nonce).put("t_us", m.tUs)
         is Mensagem.Pong -> JSONObject().put("tipo", "pong").put("nonce", m.nonce).put("t_us", m.tUs)
         is Mensagem.Carga -> JSONObject().put("tipo", "carga").put("bytes", m.dados.size)
+        is Mensagem.Video -> JSONObject().put("tipo", "video").put("pts_us", m.ptsUs).put("marcas", m.marcas).put("bytes", m.dados.size)
         else -> JSONObject()
     }
 

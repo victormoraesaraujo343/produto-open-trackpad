@@ -8,6 +8,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.opentrackpad.ui.pecas.Peca
 import org.opentrackpad.ui.pecas.Tamanho
+import org.opentrackpad.ui.pecas.TelaDescrita
+import org.opentrackpad.ui.pecas.aplicarEstado
 import org.opentrackpad.ui.pecas.lerLaterais
 import org.opentrackpad.ui.pecas.lerPeca
 import org.opentrackpad.ui.pecas.lerPecas
@@ -179,5 +181,79 @@ class PecasTest {
     @Test
     fun colunasNuncaZero() {
         assertEquals(1, (peca("""{"p":"grade","id":"g","colunas":0}""") as Peca.Grade).colunas)
+    }
+
+    private val telaBase = TelaDescrita(
+        id = "mixer",
+        nome = "Mixer",
+        nivel = 1,
+        pecas = listOf(
+            Peca.Fader("vol", "Volume", 0.2, "volume", false),
+            Peca.Led("cam", "Câmera", false, "desligada"),
+            Peca.Grade(
+                "g", 2, listOf(
+                    Peca.Segmentos("mic", "Mic", 0.1, "10%"),
+                    Peca.Linha("l", listOf(Peca.Texto("t", "Oi", Tamanho.M))),
+                ),
+            ),
+        ),
+    )
+
+    private fun estado(texto: String): JSONObject = JSONObject(texto)
+
+    @Test
+    fun estadoTrocaSoOsCamposQueVieram() {
+        val nova = aplicarEstado(telaBase, estado("""{"t":"estado","tela":"mixer","pecas":[{"id":"vol","valor":0.7}]}"""))
+        val fader = nova.pecas[0] as Peca.Fader
+        assertEquals(0.7, fader.valor, 0.0)
+        assertEquals("Volume", fader.rotulo)
+        assertEquals("volume", fader.icone)
+        assertEquals(false, fader.mudo)
+    }
+
+    @Test
+    fun estadoMudaLedETextoSemTocarNoResto() {
+        val nova = aplicarEstado(
+            telaBase,
+            estado("""{"t":"estado","tela":"mixer","pecas":[{"id":"cam","ligado":true,"texto":"ligada"}]}"""),
+        )
+        assertEquals(Peca.Led("cam", "Câmera", true, "ligada"), nova.pecas[1])
+        assertEquals(telaBase.pecas[0], nova.pecas[0])
+    }
+
+    @Test
+    fun estadoAtingeFilhosDeGradeELinha() {
+        val nova = aplicarEstado(
+            telaBase,
+            estado("""{"t":"estado","tela":"mixer","pecas":[{"id":"mic","valor":0.6,"texto":"60%"},{"id":"t","texto":"Olá"}]}"""),
+        )
+        val grade = nova.pecas[2] as Peca.Grade
+        assertEquals(Peca.Segmentos("mic", "Mic", 0.6, "60%"), grade.pecas[0])
+        val linha = grade.pecas[1] as Peca.Linha
+        assertEquals(Peca.Texto("t", "Olá", Tamanho.M), linha.pecas[0])
+    }
+
+    @Test
+    fun estadoDeOutraTelaNaoMexe() {
+        val nova = aplicarEstado(telaBase, estado("""{"t":"estado","tela":"trackpad","pecas":[{"id":"vol","valor":0.9}]}"""))
+        assertEquals(telaBase, nova)
+    }
+
+    @Test
+    fun estadoComIdDesconhecidoNaoMexe() {
+        val nova = aplicarEstado(telaBase, estado("""{"t":"estado","tela":"mixer","pecas":[{"id":"nao_existe","valor":0.9}]}"""))
+        assertEquals(telaBase, nova)
+    }
+
+    @Test
+    fun estadoValorForaDaFaixaEhEncaixado() {
+        val nova = aplicarEstado(telaBase, estado("""{"t":"estado","tela":"mixer","pecas":[{"id":"vol","valor":3}]}"""))
+        assertEquals(1.0, (nova.pecas[0] as Peca.Fader).valor, 0.0)
+    }
+
+    @Test
+    fun estadoMudoSoQuandoVem() {
+        val nova = aplicarEstado(telaBase, estado("""{"t":"estado","tela":"mixer","pecas":[{"id":"vol","mudo":true}]}"""))
+        assertEquals(Peca.Fader("vol", "Volume", 0.2, "volume", true), nova.pecas[0])
     }
 }

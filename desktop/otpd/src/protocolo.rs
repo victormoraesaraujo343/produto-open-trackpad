@@ -35,7 +35,9 @@ pub enum Mensagem {
     Ping { nonce: u32, t_us: u64 },
     Pong { nonce: u32, t_us: u64 },
     Carga(Vec<u8>),
-    Video { pts_us: u64, dados: Vec<u8> },
+    /// Pedaço de um quadro H.264 (ver "Vídeo" no protocolo); `marcas`: bit 0 chave, bit 1
+    /// último pedaço, bit 2 primeiro pedaço.
+    Video { pts_us: u64, marcas: u8, dados: Vec<u8> },
     Audio { pts_us: u64, dados: Vec<u8> },
 }
 
@@ -125,13 +127,19 @@ pub fn decodificar(tipo: u8, carga: &[u8]) -> Result<Mensagem, Erro> {
             Ok(if tipo == T_PING { Mensagem::Ping { nonce, t_us } } else { Mensagem::Pong { nonce, t_us } })
         }
         T_CARGA => Ok(Mensagem::Carga(carga.to_vec())),
-        T_VIDEO | T_AUDIO => {
+        T_VIDEO => {
+            if carga.len() < 9 {
+                return Err(Erro::Tamanho);
+            }
+            let pts_us = u64::from_be_bytes(carga[0..8].try_into().unwrap());
+            Ok(Mensagem::Video { pts_us, marcas: carga[8], dados: carga[9..].to_vec() })
+        }
+        T_AUDIO => {
             if carga.len() < 8 {
                 return Err(Erro::Tamanho);
             }
             let pts_us = u64::from_be_bytes(carga[0..8].try_into().unwrap());
-            let dados = carga[8..].to_vec();
-            Ok(if tipo == T_VIDEO { Mensagem::Video { pts_us, dados } } else { Mensagem::Audio { pts_us, dados } })
+            Ok(Mensagem::Audio { pts_us, dados: carga[8..].to_vec() })
         }
         _ => Err(Erro::Tipo),
     }
@@ -160,11 +168,18 @@ pub fn carga_de(m: &Mensagem) -> (u8, Vec<u8>) {
             (if matches!(m, Mensagem::Ping { .. }) { T_PING } else { T_PONG }, b)
         }
         Mensagem::Carga(d) => (T_CARGA, d.clone()),
-        Mensagem::Video { pts_us, dados } | Mensagem::Audio { pts_us, dados } => {
+        Mensagem::Video { pts_us, marcas, dados } => {
+            let mut b = Vec::with_capacity(9 + dados.len());
+            b.extend_from_slice(&pts_us.to_be_bytes());
+            b.push(*marcas);
+            b.extend_from_slice(dados);
+            (T_VIDEO, b)
+        }
+        Mensagem::Audio { pts_us, dados } => {
             let mut b = Vec::with_capacity(8 + dados.len());
             b.extend_from_slice(&pts_us.to_be_bytes());
             b.extend_from_slice(dados);
-            (if matches!(m, Mensagem::Video { .. }) { T_VIDEO } else { T_AUDIO }, b)
+            (T_AUDIO, b)
         }
     }
 }
@@ -253,6 +268,7 @@ mod tests {
             Mensagem::Ping { nonce, t_us } => json!({"tipo":"ping","nonce":nonce,"t_us":t_us}),
             Mensagem::Pong { nonce, t_us } => json!({"tipo":"pong","nonce":nonce,"t_us":t_us}),
             Mensagem::Carga(d) => json!({"tipo":"carga","bytes":d.len()}),
+            Mensagem::Video { pts_us, marcas, dados } => json!({"tipo":"video","pts_us":pts_us,"marcas":marcas,"bytes":dados.len()}),
             _ => json!({}),
         }
     }

@@ -1,5 +1,7 @@
 package org.opentrackpad
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -7,9 +9,11 @@ import android.os.Looper
 import android.view.KeyEvent
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import org.json.JSONObject
+import org.opentrackpad.protocolo.cortarParaCelular
 import org.opentrackpad.conexao.Aberto
 import org.opentrackpad.conexao.Computadores
 import org.opentrackpad.conexao.Conexao
@@ -26,6 +30,7 @@ import org.opentrackpad.ui.AcoesTela
 import org.opentrackpad.ui.Aparelho
 import org.opentrackpad.ui.EstadoTela
 import org.opentrackpad.ui.ModoApp
+import org.opentrackpad.ui.pecas.aplicarEstado
 import org.opentrackpad.ui.pecas.lerLaterais
 import org.opentrackpad.ui.pecas.lerTela
 
@@ -92,6 +97,8 @@ class MainActivity : ComponentActivity() {
             principal.post {
                 val antes = tela.conexao
                 tela.conexao = e
+                // Tela acesa só enquanto conectado (o descanso também depende da conexão).
+                manterTela(e is EstadoConexao.Aberta)
                 if (e is EstadoConexao.Aberta) {
                     convite = null
                     // Conexão piorou: o que é pesado sai e volta o trackpad, com aviso (spec: sem susto).
@@ -122,6 +129,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
             "tela" -> tela.telaDescrita = lerTela(m)
+            // Só troca os campos que vieram, e só se for a tela que está aberta.
+            "estado" -> tela.telaDescrita?.let { tela.telaDescrita = aplicarEstado(it, m) }
+            "area_transferencia" -> {
+                copiarParaCelular(m.optString("s"))
+                avisar("Copiado do computador")
+            }
             "aviso" -> avisar(m.optString("texto"))
             "vibrar" -> window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
             "computador" -> {
@@ -130,6 +143,38 @@ class MainActivity : ComponentActivity() {
                 computadores.conhecer(chave, m, nome)
             }
         }
+    }
+
+    /** Põe o texto do computador na área de transferência do celular. */
+    private fun copiarParaCelular(s: String) {
+        getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("OpenTrackpad", s))
+    }
+
+    /**
+     * Ações do próprio celular (ids `celular:`). Hoje só `celular:enviar`: manda o que está
+     * copiado no celular para a área de transferência do computador.
+     */
+    private fun acaoDoCelular(id: String) {
+        if (id != "celular:enviar") return
+        val clip = try {
+            getSystemService(ClipboardManager::class.java)?.primaryClip
+        } catch (_: SecurityException) {
+            null
+        }
+        val texto = if (clip != null && clip.itemCount > 0) clip.getItemAt(0).coerceToText(this).toString() else ""
+        if (texto.isEmpty()) {
+            avisar("Nada copiado no celular")
+            return
+        }
+        val (parte, cortou) = cortarParaCelular(texto)
+        conexao.enviarControle("t" to "area_transferencia", "s" to parte)
+        if (cortou) avisar("Texto grande: enviei o começo")
+    }
+
+    /** Tela acesa só enquanto conectado. */
+    private fun manterTela(sim: Boolean) {
+        if (sim) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun avisar(texto: String) {
@@ -141,9 +186,18 @@ class MainActivity : ComponentActivity() {
     private val limparAviso = Runnable { tela.aviso = null }
 
     private val acoes = object : AcoesTela {
-        override fun quadro(q: Quadro) = conexao.quadro(q)
+        override fun quadro(q: Quadro) {
+            // Quadro do trackpad também conta como atividade (a SuperficieToque não passa pelo Compose).
+            tela.tocou()
+            conexao.quadro(q)
+        }
         override fun medida(m: MedidaSuperficie) = conexao.medida(m)
         override fun acao(id: String, valor: Double?) {
+            // Ações `celular:` são do próprio celular: não vão para o computador.
+            if (id.startsWith("celular:")) {
+                acaoDoCelular(id)
+                return
+            }
             if (valor == null) conexao.enviarControle("t" to "acao", "id" to id)
             else conexao.enviarControle("t" to "acao", "id" to id, "valor" to valor)
         }

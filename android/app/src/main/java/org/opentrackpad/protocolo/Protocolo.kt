@@ -43,7 +43,8 @@ sealed class Mensagem {
     data class Ping(val nonce: Long, val tUs: Long) : Mensagem()
     data class Pong(val nonce: Long, val tUs: Long) : Mensagem()
     class Carga(val dados: ByteArray) : Mensagem()
-    class Video(val ptsUs: Long, val dados: ByteArray) : Mensagem()
+    /** Pedaço de quadro H.264; `marcas`: bit 0 chave, bit 1 último pedaço, bit 2 primeiro. */
+    class Video(val ptsUs: Long, val marcas: Int, val dados: ByteArray) : Mensagem()
     class Audio(val ptsUs: Long, val dados: ByteArray) : Mensagem()
 }
 
@@ -72,7 +73,7 @@ fun codificar(m: Mensagem): ByteArray {
         is Mensagem.Ping -> { tipo = Protocolo.T_PING; carga.u32(m.nonce); carga.u64(m.tUs) }
         is Mensagem.Pong -> { tipo = Protocolo.T_PONG; carga.u32(m.nonce); carga.u64(m.tUs) }
         is Mensagem.Carga -> { tipo = Protocolo.T_CARGA; carga.write(m.dados) }
-        is Mensagem.Video -> { tipo = Protocolo.T_VIDEO; carga.u64(m.ptsUs); carga.write(m.dados) }
+        is Mensagem.Video -> { tipo = Protocolo.T_VIDEO; carga.u64(m.ptsUs); carga.write(m.marcas); carga.write(m.dados) }
         is Mensagem.Audio -> { tipo = Protocolo.T_AUDIO; carga.u64(m.ptsUs); carga.write(m.dados) }
     }
     val len = carga.size() + 1
@@ -135,11 +136,13 @@ fun decodificar(tipo: Int, b: ByteArray, inicio: Int): Mensagem {
             if (tipo == Protocolo.T_PING) Mensagem.Ping(nonce, t) else Mensagem.Pong(nonce, t)
         }
         Protocolo.T_CARGA -> Mensagem.Carga(b.copyOfRange(inicio, b.size))
-        Protocolo.T_VIDEO, Protocolo.T_AUDIO -> {
+        Protocolo.T_VIDEO -> {
+            if (n < 9) throw ErroDeProtocolo("tamanho")
+            Mensagem.Video(b.u64(inicio), b[inicio + 8].toInt() and 0xFF, b.copyOfRange(inicio + 9, b.size))
+        }
+        Protocolo.T_AUDIO -> {
             if (n < 8) throw ErroDeProtocolo("tamanho")
-            val pts = b.u64(inicio)
-            val dados = b.copyOfRange(inicio + 8, b.size)
-            if (tipo == Protocolo.T_VIDEO) Mensagem.Video(pts, dados) else Mensagem.Audio(pts, dados)
+            Mensagem.Audio(b.u64(inicio), b.copyOfRange(inicio + 8, b.size))
         }
         else -> throw ErroDeProtocolo("tipo")
     }

@@ -86,8 +86,41 @@ async fn main() {
         });
     }
 
+    // App em foco (KDE): o KWin avisa por D-Bus; o último fica guardado para quem conectar.
+    let _foco = match otpd::foco::iniciar(eventos.clone()).await {
+        Ok(c) => Some(c),
+        Err(e) => {
+            eprintln!("app em foco indisponível ({e}); as laterais ficam com os atalhos gerais");
+            None
+        }
+    };
+    let ultimo_app: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+    {
+        let (mut rx, ultimo_app) = (eventos.subscribe(), ultimo_app.clone());
+        tokio::spawn(async move {
+            loop {
+                match rx.recv().await {
+                    Ok(e) if e.tipo == "foco" => *ultimo_app.lock().unwrap() = e.dados["app"].as_str().map(String::from),
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+                    _ => {}
+                }
+            }
+        });
+    }
+    // O que está tocando (MPRIS), lido a cada 1 s.
+    let estado_midia = Arc::new(Mutex::new(None::<otpd::midia::Tocando>));
+    otpd::midia::iniciar_leitor(estado_midia.clone());
+    // Área de transferência (Klipper), lida a cada 1 s.
+    let transferencia = otpd::transferencia::iniciar();
+
+    // Ícone na bandeja com o estado (no modo de teste não aparece).
+    if !teste {
+        tokio::spawn(otpd::bandeja::iniciar(eventos.clone(), porta_web));
+    }
+
     let ctx = {
         let (saida, digitador, impressao, hosts) = (saida.clone(), digitador.clone(), impressao.clone(), hosts.clone());
+        let (ultimo_app, transferencia, estado_midia) = (ultimo_app.clone(), transferencia.clone(), estado_midia.clone());
         Contexto {
             saida: saida.clone(),
             pareamento: pareamento.clone(),
@@ -96,7 +129,11 @@ async fn main() {
                 let wpctl = if teste { painel::wpctl_de_teste() } else { painel::wpctl_do_sistema() };
                 let mut v: Vec<Box<dyn Extensao>> = vec![
                     Box::new(ExtensaoComputador { impressao: impressao.clone(), porta: porta_wifi, hosts: hosts.clone() }),
-                    Box::new(Painel::new(saida.clone(), wpctl)),
+                    Box::new(otpd::transferencia::Transferencia::nova(transferencia.clone())),
+                    Box::new(otpd::infos::Informacoes::do_sistema()),
+                    Box::new(otpd::midia::Midia::nova(estado_midia.clone())),
+                    Box::new(if teste { otpd::mixer::Mixer::new(painel::wpctl_de_teste()) } else { otpd::mixer::Mixer::do_sistema() }),
+                    Box::new(Painel::new(saida.clone(), wpctl).com_foco(ultimo_app.lock().unwrap().as_deref())),
                 ];
                 if let Some(d) = &digitador {
                     v.push(Box::new(ExtensaoTexto::nova(saida.clone(), d.clone())));

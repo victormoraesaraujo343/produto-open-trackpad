@@ -56,6 +56,11 @@ pub trait Extensao: Send {
     fn telas(&self) -> Vec<Value> {
         Vec::new()
     }
+    /// Logo depois da abertura: um canal para mandar mensagens a qualquer hora (fluxos como o
+    /// vídeo). Use `try_send` e descarte quando cheio, para nunca travar a sessão.
+    fn conectar(&mut self, _enviar: tokio::sync::mpsc::Sender<Mensagem>) {}
+    /// A sessão acabou (queda, `tchau`): pare o que estiver rodando.
+    fn encerrar(&mut self) {}
     /// Algo mudou no computador (app em foco, tique de 1 s, mídia…). Só com a sessão aberta.
     fn evento(&mut self, _e: &Evento, _respostas: &mut Vec<Mensagem>) {}
 }
@@ -93,6 +98,8 @@ pub struct Sessao {
     botoes_presos: Vec<Botao>,
     extensoes: Vec<Box<dyn Extensao>>,
     pub log: Vec<String>,
+    /// Nome que o celular deu no `ola` (para a bandeja e os registros).
+    pub nome_aparelho: String,
 }
 
 impl Sessao {
@@ -109,6 +116,7 @@ impl Sessao {
             botoes_presos: Vec::new(),
             extensoes: Vec::new(),
             log: Vec::new(),
+            nome_aparelho: String::new(),
         }
     }
 
@@ -221,6 +229,13 @@ impl Sessao {
             "tchau" => {
                 self.encerrar();
             }
+            // Troca de tela: TODAS as extensões ficam sabendo (cada uma só atualiza o que
+            // está na tela); só a dona da tela responde com ela.
+            "abrir" => {
+                for e in &mut self.extensoes {
+                    e.controle(&t, &v, r);
+                }
+            }
             _ => {
                 let mut tratado = false;
                 for e in &mut self.extensoes {
@@ -236,6 +251,13 @@ impl Sessao {
             }
         }
         Ok(())
+    }
+
+    /// Entrega às extensões o canal de envio a qualquer hora (chamado pelo servidor na abertura).
+    pub fn conectar(&mut self, enviar: tokio::sync::mpsc::Sender<Mensagem>) {
+        for e in &mut self.extensoes {
+            e.conectar(enviar.clone());
+        }
     }
 
     /// Repassa um evento às extensões (só com a sessão aberta).
@@ -257,6 +279,7 @@ impl Sessao {
             return Ok(());
         }
         let nome = v["aparelho"]["nome"].as_str().unwrap_or("Celular");
+        self.nome_aparelho = nome.chars().take(60).collect();
         let p = &v["pareamento"];
         let resultado = {
             let mut pareamento = self.pareamento.lock().unwrap();
@@ -333,6 +356,9 @@ impl Sessao {
 
     /// Queda, `tchau` ou silêncio: solta tudo na hora (dedos, botões, teclas presas).
     pub fn encerrar(&mut self) {
+        for e in &mut self.extensoes {
+            e.encerrar();
+        }
         let ev = self.contatos.release_all();
         let mut saida = self.saida.lock().unwrap();
         let _ = saida.pad(&ev);
@@ -469,6 +495,34 @@ mod tests {
         s.receber(controle(json!({"t":"tecla","k":"rm -rf /"}))).unwrap();
         s.receber(controle(json!({"t":"combo","k":["ctrl","bomba"]}))).unwrap();
         assert!(!reg.linhas().iter().any(|x| x.starts_with("tecla")));
+    }
+
+    /// Guarda a última tela aberta e só responde à própria.
+    struct Dona(&'static str, Arc<Mutex<Vec<String>>>);
+    impl Extensao for Dona {
+        fn controle(&mut self, t: &str, msg: &Value, r: &mut Vec<Mensagem>) -> bool {
+            if t != "abrir" {
+                return false;
+            }
+            let tela = msg["tela"].as_str().unwrap_or_default().to_owned();
+            self.1.lock().unwrap().push(format!("{}:{tela}", self.0));
+            if tela == self.0 {
+                r.push(controle(json!({"t":"tela","id":self.0})));
+                return true;
+            }
+            false
+        }
+    }
+
+    #[test]
+    fn abrir_chega_a_todas_as_extensoes() {
+        let (s, _, codigo) = montar();
+        let vistos = Arc::new(Mutex::new(Vec::new()));
+        let mut s = s.com_extensao(Box::new(Dona("atalhos", vistos.clone()))).com_extensao(Box::new(Dona("mixer", vistos.clone())));
+        s.receber(ola(&codigo)).unwrap();
+        let r = s.receber(controle(json!({"t":"abrir","tela":"mixer"}))).unwrap();
+        assert_eq!(t(&r), vec!["tela"]);
+        assert_eq!(*vistos.lock().unwrap(), vec!["atalhos:mixer", "mixer:mixer"]);
     }
 
     #[test]

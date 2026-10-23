@@ -82,6 +82,7 @@ where
     }
 
     let mut eventos = ctx.eventos.subscribe();
+    let mut conectou = false;
     let mut medida = tokio::time::interval(INTERVALO_MEDIDA);
     let mut nonce: u32 = 0;
     let mut enviado: Option<(u32, Instant)> = None;
@@ -133,6 +134,9 @@ where
                 }
                 if !abria && sessao.aberta() {
                     eprintln!("[{via}] celular conectado ({:?})", sessao.fase);
+                    conectou = true;
+                    sessao.conectar(tx.clone());
+                    let _ = ctx.eventos.send(Evento::novo("celular", json!({"estado":"conectado","nome":sessao.nome_aparelho,"via":via})));
                     medindo = Some((Instant::now(), 0));
                     let _ = tx.send(controle(json!({"t":"medir","bytes":BYTES_MEDIDA}))).await;
                     medida.reset_immediately();
@@ -154,6 +158,7 @@ where
                     let n = protocolo::nivel_de(mbps, rtt);
                     if ultimo_nivel != Some(n) {
                         ultimo_nivel = Some(n);
+                        let _ = ctx.eventos.send(Evento::novo("celular", json!({"estado":"nivel","nome":sessao.nome_aparelho,"via":via,"nivel":n})));
                         let _ = tx.send(controle(json!({"t":"nivel","n":n,"rtt_ms":(rtt * 10.0).round() / 10.0,"mbps":mbps,"via":via}))).await;
                     }
                 }
@@ -166,6 +171,9 @@ where
     }
 
     sessao.encerrar();
+    if conectou {
+        let _ = ctx.eventos.send(Evento::novo("celular", json!({"estado":"desconectado","nome":sessao.nome_aparelho,"via":via})));
+    }
     for linha in sessao.log.drain(..) {
         eprintln!("[{via}] {linha}");
     }

@@ -144,6 +144,16 @@
      "x": 1
     }
    }
+  },
+  {
+   "nome": "video: primeiro e último pedaço de um quadro-chave",
+   "hex": "00113000000000000082350700000001658884",
+   "esperado": {
+    "tipo": "video",
+    "pts_us": 33333,
+    "marcas": 7,
+    "bytes": 7
+   }
   }
  ],
  "invalidos": [
@@ -190,6 +200,11 @@
   {
    "nome": "ping curto",
    "hex": "0003200001",
+   "erro": "tamanho"
+  },
+  {
+   "nome": "video sem marcas",
+   "hex": "0009300000000000000001",
    "erro": "tamanho"
   }
  ]

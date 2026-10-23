@@ -9,9 +9,10 @@ use evdev::KeyCode;
 use serde_json::{json, Value};
 
 use crate::atalhos::{self, Atalho, Gesto};
+use crate::foco;
 use crate::protocolo::{controle, Mensagem};
 use crate::saida::{Botao, Saida};
-use crate::sessao::{Extensao, SaidaCompartilhada};
+use crate::sessao::{Evento, Extensao, SaidaCompartilhada};
 use crate::teclas;
 
 /// Roda `wpctl` com estes argumentos (sem o nome do programa). `None` = não deu certo.
@@ -58,29 +59,57 @@ pub fn wpctl_de_teste() -> Executor {
 pub struct Painel {
     saida: SaidaCompartilhada,
     wpctl: Executor,
-    /// App em foco. Por enquanto sempre a área de trabalho.
-    app: &'static str,
+    /// Perfil de atalhos do app em foco (`atalhos::PERFIS`). Começa na área de trabalho.
+    perfil: &'static str,
 }
 
 impl Painel {
     pub fn new(saida: SaidaCompartilhada, wpctl: Executor) -> Self {
-        Self { saida, wpctl, app: "area" }
+        Self { saida, wpctl, perfil: "area" }
+    }
+
+    /// Começa já no perfil do app em foco (o celular que conecta vê os atalhos certos).
+    pub fn com_foco(mut self, app: Option<&str>) -> Self {
+        if let Some(app) = app {
+            self.perfil = crate::foco::perfil_do_app(app);
+        }
+        self
     }
 
     fn atalhos_do_app(&self) -> Vec<&'static Atalho> {
-        atalhos::perfil(self.app).unwrap_or(&[]).iter().filter_map(|id| atalhos::buscar(id)).collect()
+        atalhos::perfil(self.perfil).unwrap_or(&[]).iter().filter_map(|id| atalhos::buscar(id)).collect()
     }
 
-    fn acao(&mut self, msg: &Value, respostas: &mut Vec<Mensagem>) {
-        let Some(id) = msg["id"].as_str() else { return };
+    /// Mensagem `laterais` do perfil atual: atalhos do app à esquerda, o sistema à direita.
+    fn laterais(&self) -> Mensagem {
+        let (nome, icone) = foco::nome_do_perfil(self.perfil);
+        let esquerda: Vec<Value> = self.atalhos_do_app().into_iter().take(ESQUERDA).map(peca_tecla).collect();
+        let direita: Vec<Value> = [
+            json!({"p":"tecla_presa","id":"presa-ctrl","rotulo":"Ctrl","k":"ctrl"}),
+            json!({"p":"tecla_presa","id":"presa-shift","rotulo":"Shift","k":"shift"}),
+        ]
+        .into_iter()
+        .chain(atalhos::buscar("cliqueDireito").map(peca_tecla))
+        .collect();
+        controle(json!({
+            "t":"laterais",
+            "app":{"nome":nome,"icone":icone},
+            "esquerda":esquerda,
+            "direita":direita,
+        }))
+    }
+
+    /// Devolve se o id é deste painel. Id de outra extensão (mixer, mídia…) passa adiante;
+    /// id que ninguém conhece não faz nada.
+    fn acao(&mut self, msg: &Value, respostas: &mut Vec<Mensagem>) -> bool {
+        let Some(id) = msg["id"].as_str() else { return false };
         if id == "volume" {
             if let Some(valor) = msg["valor"].as_f64() {
                 self.ajustar_volume(valor, respostas);
             }
-            return;
+            return true;
         }
-        // Id fora da biblioteca: não faz nada.
-        let Some(atalho) = atalhos::buscar(id) else { return };
+        let Some(atalho) = atalhos::buscar(id) else { return false };
         let feito = match atalho.gesto {
             Gesto::Teclas(nomes) => self.apertar_combo(nomes),
             Gesto::CliqueDireito => self.clicar_direito(),
@@ -88,6 +117,7 @@ impl Painel {
         if feito.is_err() {
             respostas.push(controle(json!({"t":"aviso","texto":format!("Não deu para: {}", atalho.rotulo)})));
         }
+        true
     }
 
     fn apertar_combo(&self, nomes: &[&str]) -> io::Result<()> {
@@ -148,10 +178,7 @@ impl Painel {
 impl Extensao for Painel {
     fn controle(&mut self, t: &str, msg: &Value, respostas: &mut Vec<Mensagem>) -> bool {
         match t {
-            "acao" => {
-                self.acao(msg, respostas);
-                true
-            }
+            "acao" => self.acao(msg, respostas),
             "abrir" => self.abrir(msg, respostas),
             _ => false,
         }
@@ -165,20 +192,19 @@ impl Extensao for Painel {
     }
 
     fn abertura(&mut self, respostas: &mut Vec<Mensagem>) {
-        let esquerda: Vec<Value> = self.atalhos_do_app().into_iter().take(ESQUERDA).map(peca_tecla).collect();
-        let direita: Vec<Value> = [
-            json!({"p":"tecla_presa","id":"presa-ctrl","rotulo":"Ctrl","k":"ctrl"}),
-            json!({"p":"tecla_presa","id":"presa-shift","rotulo":"Shift","k":"shift"}),
-        ]
-        .into_iter()
-        .chain(atalhos::buscar("cliqueDireito").map(peca_tecla))
-        .collect();
-        respostas.push(controle(json!({
-            "t":"laterais",
-            "app":{"nome":"Área de trabalho","icone":"computador"},
-            "esquerda":esquerda,
-            "direita":direita,
-        })));
+        respostas.push(self.laterais());
+    }
+
+    fn evento(&mut self, e: &Evento, respostas: &mut Vec<Mensagem>) {
+        if e.tipo != "foco" {
+            return;
+        }
+        let perfil = foco::perfil_do_app(e.dados["app"].as_str().unwrap_or_default());
+        if perfil == self.perfil {
+            return;
+        }
+        self.perfil = perfil;
+        respostas.push(self.laterais());
     }
 }
 
@@ -289,8 +315,9 @@ mod tests {
     fn acao_com_id_inventado_nao_faz_nada() {
         let (mut p, reg, chamadas) = montar(None);
         let mut r = Vec::new();
-        assert!(p.controle("acao", &json!({"t":"acao","id":"rm -rf /"}), &mut r));
-        assert!(p.controle("acao", &json!({"t":"acao"}), &mut r));
+        // Não é do painel: devolve false (outra extensão pode tratar; se nenhuma, nada acontece).
+        assert!(!p.controle("acao", &json!({"t":"acao","id":"rm -rf /"}), &mut r));
+        assert!(!p.controle("acao", &json!({"t":"acao"}), &mut r));
         assert!(reg.linhas().is_empty());
         assert!(chamadas.lock().unwrap().is_empty());
         assert!(r.is_empty());
@@ -357,5 +384,68 @@ mod tests {
         assert!(!p.controle("abrir", &json!({"t":"abrir","tela":"espelho"}), &mut r));
         assert!(!p.controle("outro", &json!({"t":"outro"}), &mut r));
         assert!(r.is_empty());
+    }
+
+    fn foco(app: &str) -> Evento {
+        Evento::novo("foco", json!({"app": app, "titulo": "x"}))
+    }
+
+    #[test]
+    fn foco_do_vscode_manda_as_laterais_do_vscode() {
+        let (mut p, _, _) = montar(None);
+        let mut r = Vec::new();
+        p.evento(&foco("code"), &mut r);
+        assert_eq!(r.len(), 1);
+        let laterais = de(&r[0]);
+        assert_eq!(laterais["t"], "laterais");
+        assert_eq!(laterais["app"], json!({"nome":"VS Code","icone":"codigo"}));
+        assert_eq!(ids(&laterais["esquerda"]), vec!["buscarArquivo", "terminal", "comentar", "formatar", "copiar"]);
+        assert_eq!(laterais["direita"][0]["id"], "presa-ctrl");
+        assert_eq!(laterais["direita"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn mesmo_app_de_novo_nao_manda_nada() {
+        let (mut p, _, _) = montar(None);
+        let mut r = Vec::new();
+        p.evento(&foco("code"), &mut r);
+        assert_eq!(r.len(), 1);
+        p.evento(&foco("code"), &mut r);
+        p.evento(&foco("codium"), &mut r);
+        assert_eq!(r.len(), 1);
+    }
+
+    #[test]
+    fn app_desconhecido_volta_para_area_de_trabalho() {
+        let (mut p, _, _) = montar(None);
+        let mut r = Vec::new();
+        p.evento(&foco("code"), &mut r);
+        p.evento(&foco("xterm"), &mut r);
+        assert_eq!(r.len(), 2);
+        let laterais = de(&r[1]);
+        assert_eq!(laterais["app"], json!({"nome":"Área de trabalho","icone":"computador"}));
+        assert_eq!(ids(&laterais["esquerda"]), vec!["copiar", "colar", "alttab", "areas", "maximizar"]);
+    }
+
+    #[test]
+    fn atalhos_usam_o_perfil_do_app_em_foco() {
+        let (mut p, _, _) = montar(None);
+        let mut r = Vec::new();
+        p.evento(&foco("code"), &mut r);
+        p.controle("abrir", &json!({"t":"abrir","tela":"atalhos"}), &mut r);
+        let grade = &de(&r[1])["pecas"][0]["pecas"];
+        assert_eq!(ids(grade)[0], "buscarArquivo");
+        assert_eq!(grade.as_array().unwrap().len(), 8);
+    }
+
+    #[test]
+    fn outros_eventos_nao_mudam_as_laterais() {
+        let (mut p, _, _) = montar(None);
+        let mut r = Vec::new();
+        p.evento(&Evento::novo("tique", Value::Null), &mut r);
+        assert!(r.is_empty());
+        p.evento(&foco("code"), &mut r);
+        p.evento(&Evento::novo("tique", Value::Null), &mut r);
+        assert_eq!(r.len(), 1);
     }
 }

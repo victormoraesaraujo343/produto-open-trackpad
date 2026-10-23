@@ -1,5 +1,6 @@
 package org.opentrackpad.ui
 
+import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -66,8 +67,20 @@ class EstadoTela {
     var travado by mutableStateOf(false)
     var lendoQr by mutableStateOf(false)
     var aviso by mutableStateOf<String?>(null)
+    /** Tela de descanso (parado com a conexão aberta; ver `Descanso.kt`). */
+    var descansando by mutableStateOf(false)
+
+    /** Último toque em qualquer lugar (uptime, ms). Não é estado: muda a cada quadro do trackpad. */
+    var ultimoToque: Long = SystemClock.uptimeMillis()
+        private set
 
     val nivel: Int get() = (conexao as? EstadoConexao.Aberta)?.nivel ?: 0
+
+    /** Qualquer toque (inclusive quadros do trackpad): zera a parada e acorda o descanso. */
+    fun tocou() {
+        ultimoToque = SystemClock.uptimeMillis()
+        if (descansando) descansando = false
+    }
 }
 
 /** O que a tela pede (a atividade transforma em mensagens). */
@@ -90,7 +103,8 @@ interface AcoesTela : EventosPeca {
  */
 @Composable
 fun Aparelho(e: EstadoTela, a: AcoesTela) {
-    BoxWithConstraints(Modifier.fillMaxSize().background(Tokens.panel)) {
+    VigiaDescanso(e)
+    BoxWithConstraints(Modifier.fillMaxSize().background(Tokens.panel).observarToque(e::tocou)) {
         // O protótipo foi desenhado a 780 × 360 (≈ 2,2 : 1): centro na altura toda e
         // laterais de ~90 dp. Em celular mais quadrado (16:9), o centro 16:10 na altura
         // toda deixaria laterais finas demais para o polegar; então as laterais têm um
@@ -149,6 +163,8 @@ fun Aparelho(e: EstadoTela, a: AcoesTela) {
         } else if (conexao is EstadoConexao.Recusado) {
             Parear(conexao.motivo, aoCodigo = a::codigo, aoQr = { e.lendoQr = true })
         }
+        // Por último: cobre tudo. O toque que acorda fica aqui e não chega ao trackpad.
+        if (e.descansando) TelaDeDescanso(e)
     }
 }
 

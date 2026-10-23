@@ -56,7 +56,7 @@ carga:       comprimento - 1 bytes
 | 0x20 | PING      | ambos   | `nonce: u32` + `t_us: u64` (relógio de quem enviou) |
 | 0x21 | PONG      | ambos   | a carga do PING, devolvida igual |
 | 0x22 | CARGA     | ambos   | bytes quaisquer, para medir vazão (até 65534 por mensagem) |
-| 0x30 | VIDEO     | pc→cel  | `pts_us: u64` + unidades NAL H.264 (Annex B) — onda 3 |
+| 0x30 | VIDEO     | pc→cel  | `pts_us: u64` + `marcas: u8` + pedaço de uma unidade de acesso H.264 (Annex B) — ver "Vídeo" |
 | 0x31 | AUDIO     | cel→pc  | `pts_us: u64` + PCM s16le 16 kHz mono — onda 3 |
 
 Tipo desconhecido: quem recebe **fecha a conexão** (erro de versão). JSON com `t` desconhecido:
@@ -126,7 +126,7 @@ Nenhuma outra mensagem é aceita antes de `bemvindo`. Antes da abertura, um quad
 | `rolar` | `dx`, `dy`: inteiros em "passos" | rolagem discreta (giratório, botões de volume) |
 | `acao` | `id`; `valor` opcional (número 0..1 ou inteiro) | dispara uma ação que o computador descreveu |
 | `abrir` | `tela`: id | o celular mudou de modo. Mandado para **todo** modo, inclusive `trackpad` e `teclado` (nativos), para o computador saber o que está na tela e só atualizar o que é visto; para os outros, o computador responde com `tela` |
-| `area_transferencia` | `s`: texto (até 100 000 caracteres) | o que foi copiado no celular vai para a área de transferência do computador |
+| `area_transferencia` | `s`: texto (até 15 000 bytes em UTF-8, para caber no limite de 16 KiB do celular; o celular corta e avisa) | o que foi copiado no celular vai para a área de transferência do computador |
 | `estado_app` | `primeiro_plano`: bool; `bateria`: 0..100; `carregando`: bool | o computador pausa o que não é visto |
 | `tchau` | — | encerramento limpo |
 
@@ -146,8 +146,8 @@ nome fora da lista. `combo` tem no máximo 5 teclas.
 | `tela` | `id`, `nome`, `nivel`, `pecas`: lista (abaixo) | descreve uma tela |
 | `telas` | `lista`: `[{id, nome, nivel, icone, area}]` | o menu de modos (o que existe neste computador) |
 | `laterais` | `esquerda`, `direita`: listas de peças `tecla`/`tecla_presa` | as laterais fixas; mudam com o app em foco |
-| `estado` | `tela` (id da tela) + `pecas`: lista de `{id, campos que mudaram}` (`valor`, `ligado`, `texto`, `rotulo`, `mudo`) | atualiza peças já desenhadas da tela aberta, sem redesenhar a tela |
-| `area_transferencia` | `s`: texto | o que foi copiado no computador; o celular põe na área de transferência dele |
+| `estado` | `tela` (id da tela) + `pecas`: lista de `{id, campos que mudaram}` (`valor`, `ligado`, `texto`, `rotulo`, `mudo`, `icone`) | atualiza peças já desenhadas da tela aberta, sem redesenhar a tela |
+| `area_transferencia` | `s`: texto (até 60 000 bytes, limite de 64 KiB do computador) | o que foi copiado no computador; o celular põe na área de transferência dele |
 | `vibrar` | `ms` (10..80) | pedido de vibração (o celular sempre mostra resposta visual junto) |
 | `aviso` | `texto` curto | aviso de relance (ex.: "Câmera saiu: conexão fraca") |
 | `tchau` | `motivo` opcional | o computador vai fechar |
@@ -182,10 +182,28 @@ na tela). Tocar numa peça manda `{"t":"acao","id":"<id>"}` (com `valor` quando 
 | `led` | `rotulo`, `ligado`, `texto` | `Led` (estado sempre com texto, nunca só cor) |
 | `texto` | `texto`, `tamanho`: `p`\|`m`\|`g` | rótulos e relógio |
 | `icone_app` | `rotulo`, `png` (base64, 96×96) | lista de janelas por ícone |
+| `video` | `w`, `h` (tamanho do vídeo), `modo`: `trackpad` (a imagem fica de fundo e o toque segue relativo, pelo touchpad) ou `toque` (tocar num ponto clica ali) | espelho, segundo monitor |
 | `grade` | `colunas`, `pecas` | organiza peças em grade |
 | `linha` | `pecas` | organiza peças em linha |
 
 Ícones (`icone`) são nomes do conjunto de ícones do protótipo (`src/kit/Icone.tsx`).
+
+## Vídeo (espelhar, segundo monitor)
+
+O computador codifica em H.264 (perfil baseline ou main, sem quadros B) e manda cada **unidade
+de acesso** (um quadro, com SPS/PPS antes do quadro-chave) em uma ou mais mensagens VIDEO:
+
+```
+pts_us: u64 BE   (tempo do quadro, em µs desde o início do fluxo)
+marcas: u8       (bit 0: quadro-chave; bit 1: último pedaço deste quadro; bit 2: primeiro pedaço)
+dados:  até 65 526 bytes (Annex B, com os códigos de início)
+```
+
+O celular junta os pedaços de um mesmo `pts_us` até o último e entrega o quadro inteiro ao
+decodificador. Pedaço fora de ordem ou faltando: descarta o quadro e espera o próximo
+quadro-chave. Ao abrir `espelho`, o computador responde com a `tela` (peça `video` com `w`, `h`
+e `modo`: `trackpad` ou `toque`) e começa pelo quadro-chave; se o celular ficar para trás, o
+computador descarta quadros que não são chave em vez de acumular (a fila máxima é curta).
 
 ## Nível da conexão
 
