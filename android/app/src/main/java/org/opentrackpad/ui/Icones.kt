@@ -1,0 +1,100 @@
+package org.opentrackpad.ui
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+
+/**
+ * Ícones de traço 20 × 20, os mesmos do protótipo (`src/kit/Icone.tsx`, gerado dele por
+ * script; se o protótipo ganhar ícone novo, gere de novo). Nome desconhecido vira `info`.
+ */
+val ICONES: Map<String, String> = mapOf(
+    "copiar" to "M7.4 7.4h8v8h-8zM12.6 5.2V4.6a.6.6 0 0 0-.6-.6H5.2a.6.6 0 0 0-.6.6v6.8a.6.6 0 0 0 .6.6h.6",
+    "colar" to "M6.2 4.8h7.6v11.4H6.2zM8.2 4.8V3.4h3.6v1.4",
+    "desfazer" to "M7 7.5H13a3.5 3.5 0 0 1 0 7H8M7 7.5l2.6-2.6M7 7.5l2.6 2.6",
+    "refazer" to "M13 7.5H7a3.5 3.5 0 0 0 0 7h5M13 7.5l-2.6-2.6M13 7.5l-2.6 2.6",
+    "trocar" to "M3.2 6.6h9.6M10.4 4.2 12.8 6.6l-2.4 2.4M16.8 13.4H7.2M9.6 11l-2.4 2.4L9.6 15.8",
+    "areas" to "M3.4 4.2h5.2v5.2H3.4zM11.4 4.2h5.2v5.2h-5.2zM3.4 11.4h5.2v5.2H3.4zM11.4 11.4h5.2v5.2h-5.2z",
+    "maximizar" to "M3.4 7.2V3.4h3.8M12.8 3.4h3.8v3.8M16.6 12.8v3.8h-3.8M7.2 16.6H3.4v-3.8",
+    "captura" to "M3.6 7V4.6h2.6M13.8 4.6h2.6V7M16.4 13v2.4h-2.6M6.2 15.4H3.6V13M10 7.6a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z",
+    "mais" to "M10 4v12M4 10h12",
+    "fechar" to "M5 5l10 10M15 5 5 15",
+    "recarregar" to "M15.6 9.4a5.6 5.6 0 1 1-1.8-4.1M15.8 3.6v3.2h-3.2",
+    "terminal" to "M3.4 4.6h13.2v10.8H3.4zM6.2 8l2.2 2-2.2 2M10 12.4h3.6",
+    "buscar" to "M8.8 3.8a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12.4 12.4l3.8 3.8",
+    "comentar" to "M7.6 4.4 5.2 15.6M13.8 4.4l-2.4 11.2",
+    "formatar" to "M4 5h12M4 8.4h8M4 11.8h12M4 15.2h8",
+    "frame" to "M6.4 3.4v13.2M13.6 3.4v13.2M3.4 6.4h13.2M3.4 13.6h13.2",
+    "componente" to "M10 3.4l3 3-3 3-3-3zM10 10.6l3 3-3 3-3-3zM6.4 7l3 3-3 3-3-3zM13.6 7l3 3-3 3-3-3z",
+    "agrupar" to "M4 4h5v5H4zM11 11h5v5h-5zM9 6.5h3.5V11",
+    "zoom" to "M8.8 3.8a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12.4 12.4l3.8 3.8M6.8 8.8h4M8.8 6.8v4",
+    "play" to "M6.6 4.4v11.2L15.4 10z",
+    "pausa" to "M6.4 4.6v10.8M13.6 4.6v10.8",
+    "proxima" to "M5 4.6v10.8L12.6 10zM14.6 4.6v10.8",
+    "curtir" to "M10 15.8s-6-3.6-6-8a3.2 3.2 0 0 1 6-1.6 3.2 3.2 0 0 1 6 1.6c0 4.4-6 8-6 8z",
+    "gravar" to "M10 4.6a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8zM10 8a2 2 0 1 1 0 4 2 2 0 0 1 0-4z",
+    "cena" to "M3.4 5h13.2v10H3.4zM3.4 8.4h13.2",
+    "cortar" to "M6 6.4a1.8 1.8 0 1 1 0-.01M6 13.6a1.8 1.8 0 1 1 0 .01M7.4 7.4 16 14M7.4 12.6 16 6",
+    "marcador" to "M6 3.6h8v12.8l-4-3-4 3z",
+    "microfone" to "M10 3.4a2 2 0 0 1 2 2v4.2a2 2 0 0 1-4 0V5.4a2 2 0 0 1 2-2zM6.2 9.4a3.8 3.8 0 0 0 7.6 0M10 13.4v3.2",
+    "camera" to "M3.4 6.2h9.4v7.6H3.4zM12.8 9l3.8-2.4v6.8L12.8 11",
+    "mao" to "M7 10.6V5.2a1.2 1.2 0 0 1 2.4 0v4.4M9.4 9.6V4.2a1.2 1.2 0 0 1 2.4 0v5.4M11.8 9.6V5.4a1.2 1.2 0 0 1 2.4 0v6.2a4.8 4.8 0 0 1-8.6 3l-1.8-2.6a1.2 1.2 0 0 1 1.9-1.4L7 11.4",
+    "sair" to "M8 4.4H4.4v11.2H8M11.6 6.6 15 10l-3.4 3.4M15 10H7.6",
+    "renomear" to "M4 15.6h3l8.4-8.4-3-3L4 12.6zM11 5.6l3 3",
+    "pasta" to "M3.4 5.4h4.8l1.6 1.8h6.8v8.4H3.4z",
+    "rapido" to "M11.2 3 5.6 10.8h3.9L8.8 17l5.6-7.8h-3.9z",
+    "volume" to "M4.2 8.2h2.6L10.4 5v10L6.8 11.8H4.2zM13.4 7.6a3.4 3.4 0 0 1 0 4.8",
+    "mudo" to "M4.2 8.2h2.6L10.4 5v10L6.8 11.8H4.2zM13 8.2l3.6 3.6M16.6 8.2 13 11.8",
+    "ajustes" to "M4 6.4h5M13 6.4h3M4 13.6h3M11 13.6h5M11 4.4v4M7 11.6v4",
+    "voltar" to "M16 10H4M9 5 4 10l5 5",
+    "trackpad" to "M3.6 4.6h12.8v10.8H3.6zM3.6 12.4h12.8M10 12.4v3",
+    "atalhos" to "M3.6 3.6h5.2v5.2H3.6zM11.2 3.6h5.2v5.2h-5.2zM3.6 11.2h5.2v5.2H3.6zM11.2 11.2h5.2v5.2h-5.2z",
+    "tela" to "M3 4.4h14v9H3zM7.4 16.4h5.2M10 13.4v3",
+    "teclado" to "M3.2 5.8h13.6v8.4H3.2zM6 8.4h.01M9 8.4h.01M12 8.4h.01M14.6 8.4h.01M6.6 11.6h6.8",
+    "caneta" to "M4 16l1-4 8.4-8.4 3 3L8 15zM11.4 5.6l3 3",
+    "usb" to "M10 3v11M7.6 5.4 10 3l2.4 2.4M6 9.4v1.8l4 2M14 8.4v2.8l-4 2M10 14a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2z",
+    "wifi" to "M3 8a10 10 0 0 1 14 0M5.6 10.8a6.2 6.2 0 0 1 8.8 0M8.2 13.6a2.6 2.6 0 0 1 3.6 0M10 16.2h.01",
+    "roteador" to "M6.4 3.4h7.2v13.2H6.4zM9 14.6h2M3.6 7.4a5 5 0 0 0 0 5.2M16.4 7.4a5 5 0 0 1 0 5.2",
+    "desligado" to "M3 8a10 10 0 0 1 14 0M8.2 13.6a2.6 2.6 0 0 1 3.6 0M4 4l12 12",
+    "janelas" to "M3.4 5h9.2v7H3.4zM7.4 8.2h9.2v7H7.4z",
+    "mixer" to "M5.6 3.6v12.8M10 3.6v12.8M14.4 3.6v12.8M4 12h3.2M8.4 7h3.2M12.8 10.4H16",
+    "musica" to "M7.6 14.4V4.8l8-1.6v9.6M7.6 14.4a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM15.6 12.8a2 2 0 1 1-4 0 2 2 0 0 1 4 0z",
+    "cadeado" to "M5.4 9h9.2v7.4H5.4zM7.2 9V6.6a2.8 2.8 0 0 1 5.6 0V9",
+    "disco" to "M10 3.4a6.6 6.6 0 1 1 0 13.2 6.6 6.6 0 0 1 0-13.2zM10 5.4v2",
+    "segurar" to "M6.4 8.6V4.8h7.2v3.8M4.4 8.6h11.2v7.2H4.4zM10 11v2.4",
+    "qr" to "M3.6 3.6h4.8v4.8H3.6zM11.6 3.6h4.8v4.8h-4.8zM3.6 11.6h4.8v4.8H3.6zM11.6 11.6h2v2h-2zM14.4 14.4h2v2h-2z",
+    "computador" to "M3 4.4h14v9H3zM7.4 16.4h5.2M10 13.4v3",
+    "celular" to "M6.4 3h7.2v14H6.4zM9.2 15h1.6",
+    "clique" to "M10 3.4a5.4 5.4 0 0 1 5.4 5.4v2.6A5.4 5.4 0 0 1 10 16.8a5.4 5.4 0 0 1-5.4-5.4V8.8A5.4 5.4 0 0 1 10 3.4zM10 3.6v5.2M10 8.8h5.4",
+    "lupa" to "M8.8 3.8a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12.4 12.4l3.8 3.8",
+    "globo" to "M10 3.4a6.6 6.6 0 1 1 0 13.2 6.6 6.6 0 0 1 0-13.2zM3.4 10h13.2M10 3.4c2 2 2.8 4.2 2.8 6.6s-.8 4.6-2.8 6.6c-2-2-2.8-4.2-2.8-6.6s.8-4.6 2.8-6.6z",
+    "codigo" to "M7.4 6 3.4 10l4 4M12.6 6l4 4-4 4M11 4.6 9 15.4",
+    "bolha" to "M4 5h12v8H9l-3.4 2.8V13H4zM7.4 9h.01M10 9h.01M12.6 9h.01",
+    "filme" to "M3.6 4.6h12.8v10.8H3.6zM3.6 8h12.8M3.6 12h12.8M7 4.6v3.4M13 12v3.4",
+    "ondas" to "M5.4 8.2c3-1.2 6.4-1 9.2.6M6 11c2.4-.8 5-.6 7.2.5M6.8 13.6c1.8-.5 3.6-.4 5.2.4",
+    "fone" to "M4 12.4V10a6 6 0 0 1 12 0v2.4M4 12h2.4v4H4.6a.6.6 0 0 1-.6-.6zM16 12h-2.4v4h1.8a.6.6 0 0 0 .6-.6z",
+    "laterais" to "M3.4 4h3.4v12H3.4zM13.2 4h3.4v12h-3.4zM8.6 7h2.8v6H8.6z",
+    "tick" to "M4.4 10.4l3.6 3.6 7.6-8",
+    "info" to "M10 3.4a6.6 6.6 0 1 1 0 13.2 6.6 6.6 0 0 1 0-13.2zM10 9v4.4M10 6.6h.01",
+)
+
+@Composable
+fun Icone(nome: String, tamanho: Dp = 20.dp, cor: Color = Tokens.keyInk, modifier: Modifier = Modifier) {
+    val caminho = remember(nome) { PathParser().parsePathString(ICONES[nome] ?: ICONES.getValue("info")).toPath() }
+    Canvas(modifier.size(tamanho)) {
+        val k = size.minDimension / 20f
+        scale(k, k, pivot = androidx.compose.ui.geometry.Offset.Zero) {
+            drawPath(caminho, cor, style = Stroke(width = 1.4f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        }
+    }
+}

@@ -15,13 +15,28 @@ Princípios do spec que moldam o protocolo:
 
 ## Transporte
 
-- TCP, com `TCP_NODELAY` dos dois lados. Porta padrão **47800**.
-- **Cabo (USB):** `adb reverse tcp:47800 tcp:47800`; o celular conecta em `127.0.0.1:47800`. O
-  serviço aceita conexão sem TLS **só** em `127.0.0.1` (o tráfego não sai da máquina).
-- **Wi-Fi:** o serviço anuncia `_opentrackpad._tcp` por mDNS (TXT: `v=1`, `nome=<computador>`,
-  `fp=<16 primeiros hex da impressão digital>`). A conexão é **TLS 1.3** com o certificado
-  autoassinado do computador; o celular **fixa a impressão digital** (SHA-256 do certificado DER)
-  recebida no QR. Certificado diferente: o celular recusa e mostra "computador desconhecido".
+- TCP, com `TCP_NODELAY` dos dois lados.
+- **Cabo (USB), porta 47800:** `adb reverse tcp:47800 tcp:47800`; o celular conecta em
+  `127.0.0.1:47800`. O serviço ouve **só** em `127.0.0.1`, sem TLS (o tráfego não sai da máquina).
+- **Wi-Fi, porta 47801:** o serviço anuncia `_opentrackpad._tcp` por mDNS (TXT: `v=1`,
+  `nome=<computador>`, `fp=<16 primeiros hex da impressão digital>`). A conexão é **TLS 1.3** com
+  o certificado autoassinado do computador; o celular **fixa a impressão digital** (SHA-256 do
+  certificado DER, em hex minúsculo) recebida no QR. Certificado diferente: o celular recusa e
+  mostra "computador desconhecido".
+- **Tela de parear no computador, porta 47802:** HTTP só em `127.0.0.1` (abre no navegador do
+  próprio computador). Mostra o QR, o código e os aparelhos de confiança.
+
+### QR do pareamento
+
+Texto do QR (uma URI, campos em ordem livre, valores com escape de URL):
+
+```
+otp1:?h=192.168.0.10,10.0.0.5&p=47801&fp=<64 hex>&c=428913&n=KiwiPC
+```
+
+`h`: endereços IPv4 do computador na rede local (o celular tenta cada um e também procura por
+mDNS a mesma `fp`); `p`: porta TLS; `fp`: impressão digital; `c`: código de uso único; `n`: nome.
+Sem `h` e `p` (só `c`), o QR serve para o cabo.
 - Um celular pode estar ligado a vários computadores (uma conexão por computador).
 
 ## Enquadramento
@@ -134,19 +149,32 @@ nome fora da lista. `combo` tem no máximo 5 teclas.
 | `aviso` | `texto` curto | aviso de relance (ex.: "Câmera saiu: conexão fraca") |
 | `tchau` | `motivo` opcional | o computador vai fechar |
 
+### Laterais e menu de modos
+
+```json
+{"t":"laterais","app":{"nome":"VS Code","icone":"codigo"},
+ "esquerda":[ peças ], "direita":[ peças ]}
+{"t":"telas","lista":[{"id":"trackpad","nome":"Trackpad","icone":"trackpad","grupo":"Controlar","nivel":1}, ...]}
+```
+
+`esquerda` são os atalhos do app em foco (até 5 peças); `direita` é o sistema (até 3 peças; o
+celular põe a tecla de modos em cima e a tecla do modo atual embaixo, como no protótipo). O menu de
+modos mostra só o que está em `telas` e cabe no nível atual. `trackpad` e `teclado` são telas
+nativas do celular; as outras o celular pede com `abrir` e o computador responde com `tela`.
+
 ### Peças de tela
 
 Conjunto pequeno, igual ao kit do protótipo (`src/kit/`). Toda peça tem `p` (tipo) e `id` (único
-na tela). Ação = `acao` com o `id` da peça.
+na tela). Tocar numa peça manda `{"t":"acao","id":"<id>"}` (com `valor` quando a peça tem valor).
 
 | `p` | campos | no protótipo |
 |-----|--------|--------------|
 | `trackpad` | — (peça nativa: toque local, sem esperar o computador) | `SuperficieTrackpad` |
 | `teclado` | `layout`: `gboard-pt` | `TelaTeclado` |
 | `tecla` | `rotulo`, `icone`, `dica`? | `Tecla`, `TeclaAtalho` |
-| `tecla_presa` | `rotulo`, `k`: nome de tecla | `TeclaPresa` (manda `tecla` aperta/solta) |
+| `tecla_presa` | `rotulo`, `k`: nome de tecla | `TeclaPresa`: toque prende, toque solta (seção 9 = trava). Manda `tecla` com `aperta`/`solta`, não `acao`; LED e texto "preso"/"solto" |
 | `fader` | `rotulo`, `valor` 0..1, `icone`? , `mudo`? | `Fader` |
-| `giro` | `rotulo`, `valor` 0..1, `passos` | giratório (manda `acao` com `valor`) |
+| `giro` | `rotulo`, `valor` 0..1, `passos` | giratório: o controle de volume do mixer (seção 10); manda `acao` com `valor` |
 | `segmentos` | `rotulo`, `valor` 0..1, `texto` | `Segmentos` (medidor só de leitura) |
 | `led` | `rotulo`, `ligado`, `texto` | `Led` (estado sempre com texto, nunca só cor) |
 | `texto` | `texto`, `tamanho`: `p`\|`m`\|`g` | rótulos e relógio |
