@@ -44,6 +44,8 @@ sealed class EstadoConexao {
 interface Ouvinte {
     fun estado(e: EstadoConexao)
     fun controle(m: JSONObject) {}
+    /** Pedaço de quadro de vídeo (na thread de leitura; não bloqueie). */
+    fun video(m: Mensagem.Video) {}
 }
 
 /** Guarda o que o computador entregou no primeiro pareamento. */
@@ -215,6 +217,7 @@ class Conexao(
                 }
                 ouvinte.controle(m.json)
             }
+            is Mensagem.Video -> ouvinte.video(m)
             else -> {}
         }
     }

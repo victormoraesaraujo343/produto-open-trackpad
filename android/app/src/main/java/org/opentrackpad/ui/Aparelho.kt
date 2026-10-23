@@ -76,6 +76,9 @@ class EstadoTela {
 
     val nivel: Int get() = (conexao as? EstadoConexao.Aberta)?.nivel ?: 0
 
+    /** Decodificador do vídeo do computador (espelho); a tela liga a superfície nele. */
+    val video = org.opentrackpad.video.Decodificador()
+
     /** Qualquer toque (inclusive quadros do trackpad): zera a parada e acorda o descanso. */
     fun tocou() {
         ultimoToque = SystemClock.uptimeMillis()
@@ -129,10 +132,13 @@ fun Aparelho(e: EstadoTela, a: AcoesTela) {
                 e.modo == "teclado" -> Box(centro.clip(RoundedCornerShape(12.dp)).background(Tokens.wellFace).padding(8.dp)) {
                     Teclado(aoTexto = a::texto, aoTecla = { k -> a.tecla(k, "toca") }, modifier = Modifier.fillMaxSize())
                 }
+                e.modo != "trackpad" && e.telaDescrita?.id == e.modo && e.telaDescrita?.pecas?.firstOrNull() is Peca.Video ->
+                    VideoCentro(centro, e.telaDescrita!!.pecas.first() as Peca.Video, e, a)
                 e.modo != "trackpad" && e.telaDescrita?.id == e.modo -> Box(
                     centro.clip(RoundedCornerShape(12.dp)).background(Tokens.wellFace).padding(10.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    DesenharPecas(e.telaDescrita!!.pecas, a, Modifier.fillMaxSize())
+                    DesenharPecas(e.telaDescrita!!.pecas, a, Modifier.fillMaxWidth())
                 }
                 else -> Trackpad(centro, a)
             }
@@ -216,6 +222,37 @@ private fun Trackpad(modifier: Modifier, a: AcoesTela) {
             factory = { ctx -> SuperficieToque(ctx).apply { aoQuadro = a::quadro; aoMedir = a::medida } },
             modifier = Modifier.fillMaxSize(),
         )
+    }
+}
+
+/**
+ * Tela espelhada (seção 5, aprovada "lateral"): o vídeo no centro, no formato dele, e o
+ * trackpad por cima (modo `trackpad`: a imagem fica de fundo e o toque segue relativo, com o
+ * cursor desenhado na própria imagem pelo computador).
+ */
+@Composable
+private fun VideoCentro(modifier: Modifier, v: Peca.Video, e: EstadoTela, a: AcoesTela) {
+    Box(modifier.clip(RoundedCornerShape(12.dp)).background(androidx.compose.ui.graphics.Color.Black), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().aspectRatio(v.w.toFloat() / v.h.coerceAtLeast(1), matchHeightConstraintsFirst = false)) {
+            AndroidView(
+                factory = { ctx ->
+                    android.view.SurfaceView(ctx).apply {
+                        holder.addCallback(object : android.view.SurfaceHolder.Callback {
+                            override fun surfaceCreated(h: android.view.SurfaceHolder) = e.video.usar(h.surface, v.w, v.h)
+                            override fun surfaceChanged(h: android.view.SurfaceHolder, f: Int, w: Int, hh: Int) {}
+                            override fun surfaceDestroyed(h: android.view.SurfaceHolder) = e.video.usar(null, v.w, v.h)
+                        })
+                    }
+                },
+                modifier = Modifier.fillMaxSize().semantics { contentDescription = "Tela do computador" },
+            )
+        }
+        if (v.modo == "trackpad") {
+            AndroidView(
+                factory = { ctx -> SuperficieToque(ctx).apply { aoQuadro = a::quadro; aoMedir = a::medida } },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
 

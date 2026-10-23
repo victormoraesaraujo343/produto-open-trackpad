@@ -4,6 +4,7 @@
 //! - `--teste`: não cria dispositivos nem mexe no volume; só registra os eventos no terminal.
 //! - `--sem-wifi`: só o cabo (sem TLS na rede nem anúncio mDNS).
 //! - `--codigo`: fixa o código de pareamento (testes com o emulador).
+//! - `--video-teste`: o espelho mostra barras de cor em vez da tela (sem pedir permissão).
 //!
 //! Portas (ver `protocolo/README.md`): cabo 47800 em 127.0.0.1, Wi-Fi 47801 (TLS),
 //! tela de parear 47802 em 127.0.0.1 (abra http://127.0.0.1:47802 no navegador).
@@ -21,6 +22,20 @@ use otpd::sessao::{Computador, Extensao, SaidaCompartilhada};
 use otpd::web::{self, EstadoWeb};
 use otpd::wifi::{self, ExtensaoComputador, Identidade};
 
+/// No modo de teste o mixer lê o som de verdade (ler não muda nada) e só imprime as mudanças.
+fn pactl_de_teste() -> painel::Executor {
+    Box::new(|args: &[&str]| {
+        let leitura = args.first() == Some(&"-f") || args.first().is_some_and(|a| a.starts_with("get-"));
+        if leitura {
+            let s = std::process::Command::new("pactl").args(args).output().ok()?;
+            s.status.success().then(|| String::from_utf8_lossy(&s.stdout).into_owned())
+        } else {
+            eprintln!("    pactl {}", args.join(" "));
+            Some(String::new())
+        }
+    })
+}
+
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -29,6 +44,8 @@ async fn main() {
     let porta_de = |f: &str, padrao: u16| valor(f).and_then(|p| p.parse().ok()).unwrap_or(padrao);
 
     let teste = tem("--teste");
+    // Barras de cor no lugar da tela capturada (prova o vídeo sem o diálogo de permissão).
+    let video_teste = tem("--video-teste");
     let sem_wifi = tem("--sem-wifi");
     let porta = porta_de("--porta", PORTA);
     let porta_wifi = porta_de("--porta-wifi", PORTA + 1);
@@ -132,9 +149,14 @@ async fn main() {
                     Box::new(otpd::transferencia::Transferencia::nova(transferencia.clone())),
                     Box::new(otpd::infos::Informacoes::do_sistema()),
                     Box::new(otpd::midia::Midia::nova(estado_midia.clone())),
-                    Box::new(if teste { otpd::mixer::Mixer::new(painel::wpctl_de_teste()) } else { otpd::mixer::Mixer::do_sistema() }),
+                    Box::new(if teste { otpd::mixer::Mixer::new(pactl_de_teste()) } else { otpd::mixer::Mixer::do_sistema() }),
                     Box::new(Painel::new(saida.clone(), wpctl).com_foco(ultimo_app.lock().unwrap().as_deref())),
                 ];
+                v.push(Box::new(otpd::video::Espelho::novo(if video_teste {
+                    Box::new(|| Some(otpd::video::Fonte::Teste))
+                } else {
+                    Box::new(otpd::portal::abrir_tela)
+                })));
                 if let Some(d) = &digitador {
                     v.push(Box::new(ExtensaoTexto::nova(saida.clone(), d.clone())));
                 }

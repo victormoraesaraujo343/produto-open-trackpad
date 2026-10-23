@@ -116,6 +116,9 @@ class MainActivity : ComponentActivity() {
         override fun controle(m: JSONObject) {
             principal.post { receber(m) }
         }
+
+        // Direto na thread de leitura: o decodificador é sincronizado e não espera a interface.
+        override fun video(m: org.opentrackpad.protocolo.Mensagem.Video) = tela.video.receber(m.ptsUs, m.marcas, m.dados)
     }
 
     private fun receber(m: JSONObject) {

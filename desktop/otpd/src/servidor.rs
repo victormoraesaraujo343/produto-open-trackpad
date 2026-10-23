@@ -155,7 +155,8 @@ where
                 if rtts.len() >= 5 { rtts.drain(..rtts.len() - 5); }
                 if let (Some(rtt), Some(mbps)) = (mediana(&rtts), vazao) {
                     let mbps = (mbps * 10.0).round() / 10.0;
-                    let n = protocolo::nivel_de(mbps, rtt);
+                    // OTPD_NIVEL força o nível (só para testes no emulador, que mede pouca vazão).
+                    let n = std::env::var("OTPD_NIVEL").ok().and_then(|v| v.parse().ok()).unwrap_or_else(|| protocolo::nivel_de(mbps, rtt));
                     if ultimo_nivel != Some(n) {
                         ultimo_nivel = Some(n);
                         let _ = ctx.eventos.send(Evento::novo("celular", json!({"estado":"nivel","nome":sessao.nome_aparelho,"via":via,"nivel":n})));

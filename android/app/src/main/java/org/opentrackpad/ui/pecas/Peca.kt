@@ -45,6 +45,9 @@ sealed class Peca {
     data class Grade(override val id: String, val colunas: Int, val pecas: List<Peca>) : Peca()
 
     data class Linha(override val id: String, val pecas: List<Peca>) : Peca()
+
+    /** Vídeo do computador (espelho, segundo monitor). `modo`: `trackpad` ou `toque`. */
+    data class Video(override val id: String, val w: Int, val h: Int, val modo: String) : Peca()
 }
 
 enum class Tamanho { P, M, G }
@@ -89,6 +92,7 @@ fun lerPeca(json: JSONObject): Peca? {
             lerPecas(json.optJSONArray("pecas") ?: JSONArray()),
         )
         "linha" -> Peca.Linha(id, lerPecas(json.optJSONArray("pecas") ?: JSONArray()))
+        "video" -> Peca.Video(id, json.optInt("w", 1280), json.optInt("h", 720), json.optString("modo", "trackpad"))
         else -> null
     }
 }
@@ -166,7 +170,7 @@ private fun aplicarEmPeca(p: Peca, mudancas: Map<String, JSONObject>): Peca {
         )
         is Peca.Texto -> p.copy(texto = textoDe(m, "texto", p.texto))
         is Peca.IconeApp -> p.copy(rotulo = textoDe(m, "rotulo", p.rotulo))
-        is Peca.Grade, is Peca.Linha -> p
+        is Peca.Grade, is Peca.Linha, is Peca.Video -> p
     }
 }
 

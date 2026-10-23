@@ -101,6 +101,8 @@ fun DesenharPeca(peca: Peca, eventos: EventosPeca, modifier: Modifier = Modifier
             is Peca.IconeApp -> PecaIconeApp(peca, eventos, modifier)
             is Peca.Grade -> PecaGrade(peca, eventos, modifier)
             is Peca.Linha -> PecaLinha(peca, eventos, modifier)
+            // O vídeo ocupa o centro inteiro e é desenhado pelo Aparelho (com o trackpad por cima).
+            is Peca.Video -> {}
         }
     }
 }
