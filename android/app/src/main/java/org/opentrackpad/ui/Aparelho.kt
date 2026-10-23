@@ -96,6 +96,7 @@ interface AcoesTela : EventosPeca {
     fun travar(sim: Boolean)
     fun codigo(c: String)
     fun convite(c: ConviteQr)
+    fun caneta(c: org.opentrackpad.protocolo.Mensagem.Caneta)
 }
 
 /**
@@ -129,6 +130,7 @@ fun Aparelho(e: EstadoTela, a: AcoesTela) {
             )
             val centro = Modifier.width(larguraCentro).aspectRatio(1.6f)
             when {
+                e.modo == "mesa" -> Mesa(centro, a::caneta)
                 e.modo == "teclado" -> Box(centro.clip(RoundedCornerShape(12.dp)).background(Tokens.wellFace).padding(8.dp)) {
                     Teclado(aoTexto = a::texto, aoTecla = { k -> a.tecla(k, "toca") }, modifier = Modifier.fillMaxSize())
                 }

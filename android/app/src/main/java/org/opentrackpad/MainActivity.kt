@@ -231,6 +231,10 @@ class MainActivity : ComponentActivity() {
             conexao.enviarControle("t" to "abrir", "tela" to m.id)
         }
         override fun travar(sim: Boolean) = travarNoApp(sim)
+        override fun caneta(c: org.opentrackpad.protocolo.Mensagem.Caneta) {
+            tela.tocou()
+            conexao.enviar(c)
+        }
         override fun codigo(c: String) { conexao.codigo = c }
         override fun convite(c: ConviteQr) {
             convite = c

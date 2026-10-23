@@ -36,6 +36,7 @@ struct Tela {
 const TELAS: &[Tela] = &[
     Tela { id: "trackpad", nome: "Trackpad", icone: "trackpad", grupo: "Controlar", nivel: 1 },
     Tela { id: "teclado", nome: "Teclado", icone: "teclado", grupo: "Controlar", nivel: 1 },
+    Tela { id: "mesa", nome: "Desenho", icone: "caneta", grupo: "Controlar", nivel: 1 },
     Tela { id: "giro", nome: "Volume", icone: "volume", grupo: "Controlar", nivel: 1 },
     Tela { id: "atalhos", nome: "Atalhos", icone: "atalhos", grupo: "Atalhos", nivel: 1 },
 ];
