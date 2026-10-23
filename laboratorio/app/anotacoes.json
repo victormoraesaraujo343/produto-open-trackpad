@@ -90,7 +90,7 @@
     },
     "10": {
       "nome": "Ver na prática: botão giratório",
-      "status": "aprovada",
+      "status": "pronta",
       "nota": "",
       "variantes": {
         "giro": "rodinha"
@@ -99,6 +99,11 @@
       "pedido": {
         "rodada": 2,
         "nota": "Deixa os 3 mas eu não gostei muito de nenhum, ainda mais que a gente já tem um bom padrão de volume nos dials do mixer de volume."
+      },
+      "resposta": {
+        "texto": "Mantive os 3 e acrescentei, como primeira opção, o giratório com o mesmo controle de volume do mixer (Fader), com a mesma vibração por passo.",
+        "rodada": 2,
+        "em": "2026-10-23T02:50:51.622732Z"
       }
     },
     "11": {
@@ -203,12 +208,17 @@
     },
     "24": {
       "nome": "Área de transferência",
-      "status": "aprovada",
+      "status": "pronta",
       "nota": "",
       "variantes": {
         "transferencia": "grande"
       },
-      "aberto": false
+      "aberto": false,
+      "resposta": {
+        "texto": "Fixado: botão grande com a prévia. A opção lado a lado saiu.",
+        "rodada": 2,
+        "em": "2026-10-23T02:50:51.622732Z"
+      }
     },
     "25": {
       "nome": "Câmera e microfone",
@@ -219,10 +229,15 @@
     },
     "26": {
       "nome": "Vários computadores",
-      "status": "aprovada",
+      "status": "pronta",
       "nota": "",
       "variantes": {},
-      "aberto": false
+      "aberto": false,
+      "resposta": {
+        "texto": "Fixado: cartões. A fileira saiu.",
+        "rodada": 2,
+        "em": "2026-10-23T02:50:51.622732Z"
+      }
     },
     "27": {
       "nome": "Ajustes do celular",
@@ -288,22 +303,32 @@
     },
     "35": {
       "nome": "Animações: rastro no trackpad (#4)",
-      "status": "aprovada",
+      "status": "pronta",
       "nota": "",
       "variantes": {
         "rastro": "perto"
       },
-      "aberto": false
+      "aberto": false,
+      "resposta": {
+        "texto": "Fixado: grade fixa com os pontos maiores perto do dedo.",
+        "rodada": 2,
+        "em": "2026-10-23T02:50:51.622732Z"
+      }
     },
     "36": {
       "nome": "Monitor de recursos (#11)",
-      "status": "aprovada",
+      "status": "pronta",
       "nota": "",
       "variantes": {
         "estiloSimples": "segmentos",
         "layoutPadrao": "painel"
       },
-      "aberto": false
+      "aberto": false,
+      "resposta": {
+        "texto": "Fixado: vista simples em LEDs (segmentos) e vista padrão em painel misto. A vista avançada continua deixando escolher qualquer medidor.",
+        "rodada": 2,
+        "em": "2026-10-23T02:50:51.622732Z"
+      }
     }
   },
   "alfinetes": [],
@@ -1040,11 +1065,11 @@
       "alfinetes": []
     }
   ],
-  "atualizado": "2026-10-23T02:30:20.175Z",
+  "atualizado": "2026-10-23T02:50:51.640Z",
   "pedidoGeral": null,
   "pedidoDeRevisao": {
     "rodada": 2,
     "em": "2026-10-23T02:30:19.649Z",
-    "atendido": false
+    "atendido": true
   }
 }

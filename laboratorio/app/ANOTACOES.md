@@ -1,8 +1,6 @@
 # Refinamento — app · rodada R3
 
-Gerado pelo painel de Refinamento em 2026-10-23T02:30:20.175Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
-
-**Revisão pedida à IA** em 2026-10-23T02:30:19.649Z (pedidos da R2).
+Gerado pelo painel de Refinamento em 2026-10-23T02:50:51.640Z. Não editar à mão: o painel regrava este arquivo. A IA responde em `anotacoes.json` (`secoes[n].resposta` + status `pronta`).
 
 ## 1 · Acabamento
 
@@ -51,10 +49,12 @@ Variantes vistas: presas: **trava**
 
 ## 10 · Ver na prática: botão giratório
 
-Status: **Aprovada**  
+Status: **Pronta para revisar**  
 Variantes vistas: giro: **rodinha**
 
 > **Pedido da R2:** Deixa os 3 mas eu não gostei muito de nenhum, ainda mais que a gente já tem um bom padrão de volume nos dials do mixer de volume.
+
+> **Resposta da IA (R2):** Mantive os 3 e acrescentei, como primeira opção, o giratório com o mesmo controle de volume do mixer (Fader), com a mesma vibração por passo.
 
 ## 11 · Ver na prática: giratório com o som
 
@@ -114,8 +114,10 @@ Status: **Aprovada**
 
 ## 24 · Área de transferência
 
-Status: **Aprovada**  
+Status: **Pronta para revisar**  
 Variantes vistas: transferencia: **grande**
+
+> **Resposta da IA (R2):** Fixado: botão grande com a prévia. A opção lado a lado saiu.
 
 ## 25 · Câmera e microfone
 
@@ -123,7 +125,9 @@ Status: **Aprovada**
 
 ## 26 · Vários computadores
 
-Status: **Aprovada**
+Status: **Pronta para revisar**
+
+> **Resposta da IA (R2):** Fixado: cartões. A fileira saiu.
 
 ## 27 · Ajustes do celular
 
@@ -162,13 +166,17 @@ Variantes vistas: alternador: **trilho**
 
 ## 35 · Animações: rastro no trackpad (#4)
 
-Status: **Aprovada**  
+Status: **Pronta para revisar**  
 Variantes vistas: rastro: **perto**
+
+> **Resposta da IA (R2):** Fixado: grade fixa com os pontos maiores perto do dedo.
 
 ## 36 · Monitor de recursos (#11)
 
-Status: **Aprovada**  
+Status: **Pronta para revisar**  
 Variantes vistas: estiloSimples: **segmentos** · layoutPadrao: **painel**
+
+> **Resposta da IA (R2):** Fixado: vista simples em LEDs (segmentos) e vista padrão em painel misto. A vista avançada continua deixando escolher qualquer medidor.
 
 ## Rodadas fechadas
 
