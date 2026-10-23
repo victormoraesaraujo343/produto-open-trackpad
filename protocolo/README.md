@@ -19,7 +19,7 @@ Princípios do spec que moldam o protocolo:
 - **Cabo (USB), porta 47800:** `adb reverse tcp:47800 tcp:47800`; o celular conecta em
   `127.0.0.1:47800`. O serviço ouve **só** em `127.0.0.1`, sem TLS (o tráfego não sai da máquina).
 - **Wi-Fi, porta 47801:** o serviço anuncia `_opentrackpad._tcp` por mDNS (TXT: `v=1`,
-  `nome=<computador>`, `fp=<16 primeiros hex da impressão digital>`). A conexão é **TLS 1.3** com
+  `nome=<computador>`, `fp=<16 primeiros hex da impressão digital>`). A conexão é **TLS 1.3** (1.2 no Android 9, que não tem 1.3) com
   o certificado autoassinado do computador; o celular **fixa a impressão digital** (SHA-256 do
   certificado DER, em hex minúsculo) recebida no QR. Certificado diferente: o celular recusa e
   mostra "computador desconhecido".
@@ -129,7 +129,7 @@ Nenhuma outra mensagem é aceita antes de `bemvindo`. Antes da abertura, um quad
 | `estado_app` | `primeiro_plano`: bool; `bateria`: 0..100; `carregando`: bool | o computador pausa o que não é visto |
 | `tchau` | — | encerramento limpo |
 
-Nomes de tecla: letras `a`..`z`, dígitos `0`..`9`, `f1`..`f12`, `ctrl`, `shift`, `alt`, `super`,
+Nomes de tecla: letras `a`..`z`, dígitos `0`..`9`, `f1`..`f14`, `ctrl`, `shift`, `alt`, `super`,
 `altgr`, `enter`, `esc`, `tab`, `espaco`, `apagar`, `delete`, `cima`, `baixo`, `esquerda`, `direita`,
 `inicio`, `fim`, `pgcima`, `pgbaixo`, `menos`, `igual`, `virgula`, `ponto`, `barra`, `ponto_virgula`,
 `aspas`, `colchete_abre`, `colchete_fecha`, `contrabarra`, `crase`, `volume_mais`, `volume_menos`,
@@ -140,6 +140,7 @@ nome fora da lista. `combo` tem no máximo 5 teclas.
 
 | `t` | campos | o que faz |
 |-----|--------|-----------|
+| `computador` | `fp`: impressão digital; `wifi`: `{"hosts":[...],"porta":47801}` | logo depois do `bemvindo`: o celular guarda, e um celular pareado pelo cabo passa a achar o mesmo computador no Wi-Fi sem parear de novo |
 | `nivel` | `n`: 1\|2\|3; `rtt_ms`; `mbps`; `via`: `cabo`\|`wifi`\|`roteador` | nível da conexão; o celular só mostra o que ele libera |
 | `tela` | `id`, `nome`, `nivel`, `pecas`: lista (abaixo) | descreve uma tela |
 | `telas` | `lista`: `[{id, nome, nivel, icone, area}]` | o menu de modos (o que existe neste computador) |

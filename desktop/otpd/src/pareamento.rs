@@ -73,6 +73,13 @@ impl Pareamento {
         codigo.to_owned()
     }
 
+    /// Quanto falta para o código expirar. `None` se ele nunca foi gerado, já foi usado ou
+    /// já expirou.
+    pub fn validade_restante(&self, codigo: &str) -> Option<Duration> {
+        let t = self.codigos.get(codigo)?;
+        VALIDADE_CODIGO.checked_sub(t.elapsed())
+    }
+
     pub fn com_codigo(&mut self, codigo: &str, nome: &str) -> Resultado {
         match self.codigos.remove(codigo) {
             Some(t) if t.elapsed() < VALIDADE_CODIGO => {

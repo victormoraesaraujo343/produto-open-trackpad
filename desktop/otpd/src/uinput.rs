@@ -92,7 +92,9 @@ fn criar_botoes() -> io::Result<VirtualDevice> {
 
 fn criar_teclado() -> io::Result<VirtualDevice> {
     let mut keys = AttributeSet::<KeyCode>::new();
-    for k in crate::teclas::todos() {
+    // Todas as teclas, não só as do vocabulário: o texto digitado pode usar qualquer uma
+    // (depende do layout do usuário; ver `digitar.rs`).
+    for k in crate::digitar::todas_as_teclas() {
         keys.insert(k);
     }
     VirtualDevice::builder()?

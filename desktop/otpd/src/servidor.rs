@@ -21,7 +21,9 @@ use crate::sessao::{Computador, Extensao, SaidaCompartilhada, Sessao};
 /// Silêncio máximo do celular (ele manda PING a cada 3 s).
 pub const SILENCIO_MAXIMO: Duration = Duration::from_secs(15);
 /// De quanto em quanto tempo o computador mede o atraso.
-pub const INTERVALO_MEDIDA: Duration = Duration::from_secs(10);
+pub const INTERVALO_MEDIDA: Duration = Duration::from_secs(3);
+/// Quanto o celular manda para medir a vazão (na abertura).
+pub const BYTES_MEDIDA: usize = 256 * 1024;
 
 /// O que o servidor precisa para atender conexões.
 #[derive(Clone)]
@@ -77,6 +79,9 @@ where
     let mut enviado: Option<(u32, Instant)> = None;
     let mut rtts: Vec<f64> = Vec::new();
     let mut ultimo_nivel: Option<u8> = None;
+    // Vazão: na abertura o computador pede `medir` e cronometra a CARGA que volta.
+    let mut vazao: Option<f64> = None;
+    let mut medindo: Option<(Instant, usize)> = None;
 
     loop {
         tokio::select! {
@@ -87,6 +92,17 @@ where
                     Ok(Ok(None)) => break,
                     Ok(Err(e)) => { eprintln!("[{via}] erro de leitura: {e}"); break }
                 };
+                if let Mensagem::Carga(d) = &m {
+                    if let Some((t0, recebido)) = medindo.as_mut() {
+                        *recebido += d.len() + 3;
+                        if *recebido >= BYTES_MEDIDA {
+                            let s = t0.elapsed().as_secs_f64().max(1e-4);
+                            vazao = Some((*recebido as f64 * 8.0 / s / 1e6).min(1000.0));
+                            medindo = None;
+                            medida.reset_immediately();
+                        }
+                    }
+                }
                 if let Mensagem::Pong { nonce: n, .. } = &m {
                     if let Some((esperado, t0)) = enviado {
                         if *n == esperado {
@@ -109,15 +125,17 @@ where
                 }
                 if !abria && sessao.aberta() {
                     eprintln!("[{via}] celular conectado ({:?})", sessao.fase);
+                    medindo = Some((Instant::now(), 0));
+                    let _ = tx.send(controle(json!({"t":"medir","bytes":BYTES_MEDIDA}))).await;
                     medida.reset_immediately();
                 }
                 if matches!(sessao.fase, crate::sessao::Fase::Fechada) { break }
             }
             _ = medida.tick(), if sessao.aberta() => {
-                // Mediana de até 5 amostras de RTT; a vazão entra na onda 1.
+                // Mediana das 5 últimas amostras de RTT; a vazão vem da medida da abertura.
                 if rtts.len() >= 5 { rtts.drain(..rtts.len() - 5); }
-                if let Some(rtt) = mediana(&rtts) {
-                    let mbps = if via == "cabo" { 300.0 } else { 100.0 };
+                if let (Some(rtt), Some(mbps)) = (mediana(&rtts), vazao) {
+                    let mbps = (mbps * 10.0).round() / 10.0;
                     let n = protocolo::nivel_de(mbps, rtt);
                     if ultimo_nivel != Some(n) {
                         ultimo_nivel = Some(n);

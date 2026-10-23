@@ -16,6 +16,7 @@ pub fn codigo(nome: &str) -> Option<KeyCode> {
         "f1" => K::KEY_F1, "f2" => K::KEY_F2, "f3" => K::KEY_F3, "f4" => K::KEY_F4,
         "f5" => K::KEY_F5, "f6" => K::KEY_F6, "f7" => K::KEY_F7, "f8" => K::KEY_F8,
         "f9" => K::KEY_F9, "f10" => K::KEY_F10, "f11" => K::KEY_F11, "f12" => K::KEY_F12,
+        "f13" => K::KEY_F13, "f14" => K::KEY_F14,
         "ctrl" => K::KEY_LEFTCTRL, "shift" => K::KEY_LEFTSHIFT, "alt" => K::KEY_LEFTALT,
         "super" => K::KEY_LEFTMETA, "altgr" => K::KEY_RIGHTALT,
         "enter" => K::KEY_ENTER, "esc" => K::KEY_ESC, "tab" => K::KEY_TAB, "espaco" => K::KEY_SPACE,
@@ -42,7 +43,7 @@ pub fn todos() -> Vec<KeyCode> {
 pub const NOMES: &[&str] = &[
     "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
     "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "f1", "f2", "f3",
-    "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "ctrl", "shift", "alt", "super", "altgr",
+    "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13", "f14", "ctrl", "shift", "alt", "super", "altgr",
     "enter", "esc", "tab", "espaco", "apagar", "delete", "cima", "baixo", "esquerda", "direita",
     "inicio", "fim", "pgcima", "pgbaixo", "menos", "igual", "virgula", "ponto", "barra",
     "ponto_virgula", "aspas", "colchete_abre", "colchete_fecha", "contrabarra", "crase",
