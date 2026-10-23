@@ -275,7 +275,6 @@ mod tests {
             Mensagem::Video { pts_us, marcas, dados } => json!({"tipo":"video","pts_us":pts_us,"marcas":marcas,"bytes":dados.len()}),
             Mensagem::Camera { pts_us, marcas, dados } => json!({"tipo":"camera","pts_us":pts_us,"marcas":marcas,"bytes":dados.len()}),
             Mensagem::Audio { pts_us, dados } => json!({"tipo":"audio","pts_us":pts_us,"bytes":dados.len()}),
-            _ => json!({}),
         }
     }
 

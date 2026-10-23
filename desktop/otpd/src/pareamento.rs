@@ -21,10 +21,15 @@ pub struct Aparelho {
     pub segredo_sha256: String,
 }
 
+/// Erros de código seguidos que invalidam todos os códigos abertos (contra força bruta na
+/// rede local: com 6 dígitos, 5 tentativas dão 1 chance em 200 000).
+pub const MAX_ERROS_DE_CODIGO: u32 = 5;
+
 #[derive(Debug, Default)]
 pub struct Pareamento {
     aparelhos: Vec<Aparelho>,
     codigos: HashMap<String, Instant>,
+    erros: u32,
     arquivo: Option<PathBuf>,
 }
 
@@ -47,7 +52,7 @@ impl Pareamento {
             .ok()
             .and_then(|s| serde_json::from_str(&s).ok())
             .unwrap_or_default();
-        Self { aparelhos, codigos: HashMap::new(), arquivo: Some(arquivo) }
+        Self { aparelhos, codigos: HashMap::new(), erros: 0, arquivo: Some(arquivo) }
     }
 
     pub fn arquivo_padrao() -> PathBuf {
@@ -64,6 +69,7 @@ impl Pareamento {
         let codigo = format!("{n:06}");
         self.codigos.retain(|_, t| t.elapsed() < VALIDADE_CODIGO);
         self.codigos.insert(codigo.clone(), Instant::now());
+        self.erros = 0;
         codigo
     }
 
@@ -94,7 +100,14 @@ impl Pareamento {
                 self.salvar();
                 Resultado::Novo { id, segredo }
             }
-            _ => Resultado::Recusado("codigo"),
+            _ => {
+                self.erros += 1;
+                if self.erros >= MAX_ERROS_DE_CODIGO {
+                    // Alguém está tentando adivinhar: nenhum código aberto vale mais.
+                    self.codigos.clear();
+                }
+                Resultado::Recusado("codigo")
+            }
         }
     }
 
@@ -179,6 +192,18 @@ mod tests {
         assert!(matches!(p.com_segredo(&id, "errado"), Resultado::Recusado(_)));
         p.esquecer(&id);
         assert!(matches!(p.com_segredo(&id, &segredo), Resultado::Recusado(_)));
+    }
+
+    #[test]
+    fn cinco_erros_invalidam_os_codigos_abertos() {
+        let mut p = Pareamento::em_memoria();
+        let c = p.novo_codigo();
+        for _ in 0..MAX_ERROS_DE_CODIGO {
+            assert!(matches!(p.com_codigo("000000x", "x"), Resultado::Recusado(_)));
+        }
+        assert!(matches!(p.com_codigo(&c, "Celular"), Resultado::Recusado(_)), "o código certo também caiu");
+        let novo = p.novo_codigo();
+        assert!(matches!(p.com_codigo(&novo, "Celular"), Resultado::Novo { .. }));
     }
 
     #[test]
