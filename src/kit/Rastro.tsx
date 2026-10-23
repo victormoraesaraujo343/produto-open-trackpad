@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { useVariante } from '../lab/refinamento'
 
 const VIDA_MS = 700
 const PASSO = 14
@@ -8,11 +7,9 @@ const RAIO = 64
 interface Marca { x: number; y: number; t: number }
 
 /* Rastro no trackpad (issue #4, seção 35): uma grade de pontos sempre visível que acende na
-   cor de destaque em volta do dedo e volta com fade. 'perto': o ponto cresce quanto mais perto
-   do dedo; 'centro': a grade já é maior no centro do trackpad e menor nas bordas.
+   cor de destaque em volta do dedo e volta com fade. O ponto cresce quanto mais perto do dedo.
    Opcional (Ajustes); com "reduzir movimento" a grade fica parada. Canvas por cima, sem pegar toque. */
 export function Rastro({ alvo }: { alvo: React.RefObject<HTMLElement | null> }) {
-  const forma = useVariante('rastro')
   const canvas = useRef<HTMLCanvasElement>(null)
   const marcas = useRef<Marca[]>([])
   const quadro = useRef(0)
@@ -42,7 +39,6 @@ export function Rastro({ alvo }: { alvo: React.RefObject<HTMLElement | null> }) 
       const ms = marcas.current
       const w = el!.offsetWidth, h = el!.offsetHeight
       ctx!.clearRect(0, 0, w, h)
-      const cx = w / 2, cy = h / 2, longe = Math.hypot(cx, cy) || 1
       for (let gx = PASSO / 2; gx < w; gx += PASSO) {
         for (let gy = PASSO / 2; gy < h; gy += PASSO) {
           let k = 0
@@ -51,8 +47,7 @@ export function Rastro({ alvo }: { alvo: React.RefObject<HTMLElement | null> }) 
             if (d2 > RAIO * RAIO) continue
             k = Math.max(k, (1 - Math.sqrt(d2) / RAIO) * (1 - (agora - m.t) / VIDA_MS))
           }
-          const r0 = forma === 'centro' ? 0.7 + 0.9 * (1 - Math.hypot(gx - cx, gy - cy) / longe) : 1
-          const r = forma === 'centro' ? r0 * (1 + 0.8 * k) : r0 + 1.9 * k
+          const r = 1 + 1.9 * k
           ctx!.beginPath()
           ctx!.arc(gx, gy, r, 0, Math.PI * 2)
           ctx!.fillStyle = k > 0.04 ? destaque : base
@@ -88,7 +83,7 @@ export function Rastro({ alvo }: { alvo: React.RefObject<HTMLElement | null> }) 
       cancelAnimationFrame(quadro.current)
       quadro.current = 0
     }
-  }, [alvo, forma])
+  }, [alvo])
 
   return <canvas ref={canvas} className="k-rastro" aria-hidden="true" data-lab="35" />
 }

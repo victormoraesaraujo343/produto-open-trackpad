@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { COMPUTADORES } from '../../dados/computadores'
 import { Icone } from '../../kit/Icone'
-import { useVariante } from '../../lab/refinamento'
 import { useSim, type Copia } from '../../sim/loja'
 import { vibrar } from '../../sim/vibrar'
 import './transferencia.css'
@@ -23,29 +22,26 @@ function Seta() {
 
 /* Tecla grande com o material do kit. A faixa de baixo mostra a prévia (num poço) ou,
    por um instante depois do toque, a confirmação com ícone e palavra. */
-function Chave({ classe, rotulo, icones, previa, vazio = '', confirmada, aoTocar }: {
-  classe: string; rotulo: string; icones: ReactNode; previa: string | null; vazio?: string
-  confirmada: string | null; aoTocar: () => void
+function Chave({ rotulo, icones, previa, confirmada, aoTocar }: {
+  rotulo: string; icones: ReactNode; previa: string; confirmada: string | null; aoTocar: () => void
 }) {
   return (
-    <button type="button" className={`tr-chave ${classe}`} disabled={previa === null} onClick={aoTocar}>
+    <button type="button" className="tr-chave tr-enviar" onClick={aoTocar}>
       <span className="tr-topo">
         <span className="tr-icones">{icones}</span>
         <span className="tr-rotulo">{rotulo}</span>
       </span>
       <span className="tr-faixa">
         {confirmada ? <span className="tr-ok"><Icone nome="tick" tamanho={18} />{confirmada}</span>
-          : previa !== null ? <span className="tr-previa">{previa}</span>
-          : <span className="tr-vazia">{vazio}</span>}
+          : <span className="tr-previa">{previa}</span>}
       </span>
     </button>
   )
 }
 
-/* Área de transferência compartilhada (seção 24): copiou num aparelho, cola no outro.
-   Formas: 'grande' (uma tecla de envio e a lista) e 'dois-lados' (envia e traz lado a lado). */
+/* Área de transferência compartilhada (seção 24): copiou num aparelho, cola no outro. Uma tecla
+   de envio ao computador e a lista dos copiados; tocar num item copia para o celular. */
 export function TelaTransferencia() {
-  const forma = useVariante('transferencia')
   const itens = useSim((s) => s.transferencia)
   const [aviso, setAviso] = useState<{ quem: string; palavra: string } | null>(null)
   const relogio = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -61,26 +57,18 @@ export function TelaTransferencia() {
 
   // o que o celular tem na área: o último copiado no celular
   const previa = itens.find((c) => c.origem === 'celular')?.texto ?? TEXTO_DO_CELULAR
-  // o que veio do computador (qualquer computador, não só o de origem 'computador')
-  const doPc = itens.find((c) => c.origem !== 'celular')
 
   const enviar = () => { vibrar(10); useSim.getState().copiar(previa, 'celular'); avisa('enviar', 'Enviado') }
-  const trazer = () => { if (!doPc) return; vibrar(10); useSim.getState().copiar(doPc.texto, 'celular'); avisa('trazer', 'Copiado') }
   const copiarParaCelular = (c: Copia) => { vibrar(8); useSim.getState().copiar(c.texto, 'celular'); avisa(`item${c.id}`, 'Copiado') }
 
-  const duas = forma === 'dois-lados'
   const iconesEnviar = <><Icone nome="celular" tamanho={18} /><Seta /><Icone nome="computador" tamanho={18} /></>
-  const iconesTrazer = <><Icone nome="computador" tamanho={18} /><Seta /><Icone nome="celular" tamanho={18} /></>
 
   return (
-    <div className={`tr-raiz ${duas ? 'tr-duas' : 'tr-grande'}`} data-lab="24">
+    <div className="tr-raiz tr-grande" data-lab="24">
       <span className="tr-so-leitor" role="status">{aviso?.palavra ?? ''}</span>
-      <Chave classe="tr-enviar" rotulo="Enviar ao computador" icones={iconesEnviar} previa={previa}
+      <Chave rotulo="Enviar ao computador" icones={iconesEnviar} previa={previa}
         confirmada={confirmada('enviar')} aoTocar={enviar} />
-      {duas ? (
-        <Chave classe="tr-trazer" rotulo="Trazer do computador" icones={iconesTrazer} previa={doPc?.texto ?? null}
-          vazio="Nada do computador" confirmada={confirmada('trazer')} aoTocar={trazer} />
-      ) : itens.length === 0 ? (
+      {itens.length === 0 ? (
         <div className="cel-vazio"><Icone nome="copiar" tamanho={22} /><span>Nada copiado ainda</span></div>
       ) : (
         <ul className="tr-lista" aria-label="Copiados recentemente">

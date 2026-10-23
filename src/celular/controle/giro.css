@@ -59,3 +59,10 @@
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, transparent 0 7px, var(--groove) 7px 9px, transparent 9px 12px) 0 var(--sulcos, 0px) / 100% 12px;
 }
+
+/* ------------------------------------------------------------ mixer */
+/* o controle de volume do mixer (Fader horizontal) embaixo do trackpad; a faixa e o valor vêm de
+   cel-faixa-h e cel-canal-valor (mesa de som) */
+.giro-mixer-raiz { flex-direction: column; }
+.giro-mixer { flex: none; }
+.giro-mixer .k-fader { height: 56px; }

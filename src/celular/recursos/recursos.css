@@ -22,12 +22,10 @@
 .rc-barra-trilho { display: block; height: 8px; border-radius: 4px; background: var(--groove); box-shadow: var(--inset-groove); overflow: hidden; }
 .rc-barra-trilho i { display: block; height: 100%; border-radius: 4px; background: var(--ink-3); transition: width 600ms ease; }
 .rc-alto .rc-barra-trilho i { background: var(--ambar); }
-.rc-grande.rc-barra .rc-barra-trilho { height: 14px; }
 
 /* anel */
 .rc-anel { align-items: center; }
 .rc-anel svg { width: 100%; max-width: 112px; aspect-ratio: 1; flex: 1; min-height: 0; }
-.rc-grande.rc-anel svg { max-width: 190px; }
 .rc-trilho { fill: none; stroke: var(--groove); stroke-width: 8; stroke-linecap: round; }
 .rc-arco { fill: none; stroke: var(--led); stroke-width: 5; stroke-linecap: round; transition: stroke-dasharray 600ms ease; filter: drop-shadow(0 0 2px rgba(155,226,63,0.6)); }
 .rc-alto .rc-arco { stroke: var(--ambar); filter: none; }
@@ -36,7 +34,6 @@
 /* ponteiro (instrumento analógico) */
 .rc-ponteiro { align-items: center; }
 .rc-ponteiro svg { width: 100%; max-width: 140px; flex: 1; min-height: 0; }
-.rc-grande.rc-ponteiro svg { max-width: 220px; }
 .rc-marca { stroke: var(--ink-4); stroke-width: 1.4; }
 .rc-marca-alta { stroke: var(--ambar); }
 .rc-agulha { stroke: var(--laranja); stroke-width: 2; stroke-linecap: round; transition: transform 600ms cubic-bezier(.3,1.4,.4,1); }
@@ -69,7 +66,6 @@
 /* número grande (visor) */
 .rc-numero { align-items: flex-start; }
 .rc-digitos { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1; }
-.rc-grande .rc-digitos { font-size: 52px; }
 
 /* editar (avançada) */
 .rc-editando .rc-celula { outline: 1px dashed var(--hairline); outline-offset: 2px; border-radius: 8px; }

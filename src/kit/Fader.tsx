@@ -6,9 +6,11 @@ const PASSO = 2
 
 /* Fader de mesa de som, vertical ou horizontal: fenda rebaixada, nível aceso em verde quando
    o canal está ativo, e uma tampa com ranhuras para pegar. O valor também vai em texto
-   (aria e o número ao lado), nunca só pela altura. */
-export function Fader({ valor, aoMudar, rotulo, orientacao, ativo = false, mudo = false }: {
+   (aria e o número ao lado), nunca só pela altura. Vibra a cada `vibrarCada` pontos (10 por
+   padrão) com a duração `vibracao` em ms. */
+export function Fader({ valor, aoMudar, rotulo, orientacao, ativo = false, mudo = false, vibrarCada = 10, vibracao = 3 }: {
   valor: number; aoMudar: (v: number) => void; rotulo: string; orientacao: 'vertical' | 'horizontal'; ativo?: boolean; mudo?: boolean
+  vibrarCada?: number; vibracao?: number
 }) {
   const fenda = useRef<HTMLDivElement>(null)
   const arrastando = useRef(false)
@@ -20,7 +22,7 @@ export function Fader({ valor, aoMudar, rotulo, orientacao, ativo = false, mudo 
     return Math.round(Math.min(100, Math.max(0, t * 100)))
   }
   const mudar = (v: number) => {
-    if (Math.floor(v / 10) !== Math.floor(ultimo.current / 10)) vibrar(3)
+    if (Math.floor(v / vibrarCada) !== Math.floor(ultimo.current / vibrarCada)) vibrar(vibracao)
     ultimo.current = v
     aoMudar(v)
   }

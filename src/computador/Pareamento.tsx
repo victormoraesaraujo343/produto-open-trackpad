@@ -1,43 +1,11 @@
 import { useMemo } from 'react'
-import { CELULARES } from '../dados/computadores'
-import { useVariante } from '../lab/refinamento'
 import { useSim } from '../sim/loja'
-import { CODIGO } from '../celular/conexao/TelaConexao'
 import { Janela } from './Janela'
 
 const fechar = () => useSim.getState().irParaPc('area')
-const permitir = () => { const s = useSim.getState(); s.conectar('wifi6'); s.irParaPc('area'); s.avisar('Conectado') }
 
-/* O lado do computador no primeiro pareamento (seção 6). */
+/* O lado do computador no primeiro pareamento (seção 6): o celular lê o QR deste lado. */
 export function Pareamento() {
-  const forma = useVariante('pareamento')
-  if (forma === 'lista') {
-    const cel = CELULARES[0]
-    return (
-      <Janela titulo="Parear um celular" aoFechar={fechar} largura={460} altura={300} lab="6">
-        <div className="pc-pedido">
-          <h2>{cel.nome} quer se conectar</h2>
-          <p>Confira se o celular mostra o mesmo código.</p>
-          <div className="pc-codigo">{CODIGO.split('').map((d, i) => <span key={i}>{d}</span>)}</div>
-          <div className="pc-acoes">
-            <button type="button" className="pc-botao" onClick={fechar}>Recusar</button>
-            <button type="button" className="pc-botao pc-botao-principal" onClick={permitir}>Permitir</button>
-          </div>
-        </div>
-      </Janela>
-    )
-  }
-  if (forma === 'passos') {
-    return (
-      <Janela titulo="Parear um celular" aoFechar={fechar} largura={460} altura={300} lab="6">
-        <div className="pc-pedido">
-          <h2>Esperando o celular</h2>
-          <p>Siga os passos que aparecem no celular. Esta janela fecha sozinha quando ele conectar.</p>
-          <div className="pc-espera" aria-hidden="true"><i /><i /><i /></div>
-        </div>
-      </Janela>
-    )
-  }
   return (
     <Janela titulo="Parear um celular" aoFechar={fechar} largura={520} altura={360} lab="6">
       <div className="pc-qr-area">

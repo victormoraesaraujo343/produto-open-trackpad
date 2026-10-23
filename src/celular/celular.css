@@ -158,24 +158,6 @@
 @keyframes cel-varre { from { transform: translateY(-70px); } to { transform: translateY(70px); } }
 .cel-tecla-texto { flex-direction: row; gap: 8px; padding: 0 18px; min-height: 52px; align-self: flex-start; }
 .cel-tecla-texto .k-rotulo { font-size: 14px; color: var(--key-ink); }
-.cel-tecla-principal .k-rotulo { color: var(--ink); }
-.cel-tecla-principal::after { content: ''; position: absolute; left: 18px; right: 18px; bottom: 6px; height: 2px; border-radius: 1px; background: var(--laranja); }
-.cel-texto-botao { align-self: flex-start; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.cel-lista-pcs { padding: 6px; display: flex; flex-direction: column; gap: 4px; }
-.cel-pc {
-  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px; cursor: pointer; text-align: left;
-  border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--ink); font-size: 14px;
-}
-.cel-pc:hover, .cel-pc:focus-visible { background: var(--key-face) padding-box, var(--cham-sm) border-box; box-shadow: var(--shadow-key); }
-.cel-pc-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-.cel-pc-estado { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
-.cel-codigo { display: flex; gap: 8px; }
-.cel-codigo span { width: 48px; height: 60px; display: grid; place-items: center; font-size: 30px; font-weight: 600; font-variant-numeric: tabular-nums; border-radius: 6px; background: var(--groove); box-shadow: var(--inset-groove); }
-.cel-vias { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: 150px; }
-.cel-via .k-rotulo { font-size: 14px; color: var(--key-ink); white-space: normal; text-align: center; }
-.cel-via svg { width: 28px; height: 28px; }
-.cel-passos { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
-.cel-acoes { display: flex; align-items: center; gap: 16px; }
 
 /* ---------------------------------------------------- teclas presas */
 .cel-coluna-presas { flex: none; width: 104px; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -599,7 +581,6 @@
 .cel-qualidade i:nth-child(1) { height: 5px; } .cel-qualidade i:nth-child(2) { height: 9px; } .cel-qualidade i:nth-child(3) { height: 13px; }
 .cel-qualidade i.aceso { background: #9BE23F; }
 .cel-dica-icone { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--pad-ink); opacity: .45; pointer-events: none; }
-.cel-pc-alvo { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
 .cel-enviado > span svg { color: var(--ink-3); vertical-align: middle; }
 
 /* pequenos toques (#10) */

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
+import { Fader } from '../../kit/Fader'
 import { SuperficieTrackpad } from '../../kit/SuperficieTrackpad'
 import { useVariante } from '../../lab/refinamento'
 import { useSim } from '../../sim/loja'
@@ -11,12 +12,13 @@ const PASSO = 2 // volume por passo
 const VOLTA = 50 // passos por volta do botão (50 × 2 = 0 a 100)
 const PX_PASSO = 12 // arraste (px) de um passo: um sulco da rodinha, ou 2 pontos na régua
 const PX_PONTO = PX_PASSO / PASSO
+const VIBRACAO_PASSO = 4 // ms por passo (igual nas formas do giro)
 
 type Parte = { volume: number; passo: (d: number) => void; teclado: (e: ReactKeyboardEvent) => void }
 type Gesto = ReturnType<typeof useGiroPonteiro>
 
-/* Botão giratório do volume (seção 10), em três formas: botão no centro, régua e rodinha.
-   O valor sempre aparece em texto; cor e forma não bastam. */
+/* Volume do aparelho (seção 10), em quatro formas: o controle de volume do mixer (padrão),
+   botão no centro, régua e rodinha. O valor sempre aparece em texto; cor e forma não bastam. */
 export function TelaGiro() {
   const forma = useVariante('giro')
   const mao = useSim((s) => s.ajustes.mao)
@@ -29,6 +31,7 @@ export function TelaGiro() {
   }
   const parte = { volume, passo, teclado }
 
+  if (forma === 'mixer') return <Mixer volume={volume} mudar={mudar} />
   if (forma === 'regua') return <Regua {...parte} />
   if (forma === 'rodinha') return <Rodinha {...parte} direita={mao === 'direita'} />
   return <Botao {...parte} />
@@ -47,6 +50,22 @@ function isolar(g: Gesto) {
 const ponto = (graus: number, raio: number): [number, number] => {
   const t = (graus * Math.PI) / 180
   return [50 + raio * Math.sin(t), 50 - raio * Math.cos(t)]
+}
+
+/* O mesmo controle de volume de cada canal da mesa de som (Fader horizontal), embaixo do
+   trackpad como a régua. Vibra a cada passo do giro e o valor também aparece em texto. */
+function Mixer({ volume, mudar }: { volume: number; mudar: (delta: number) => void }) {
+  const parar = (e: ReactPointerEvent<HTMLElement>) => e.stopPropagation()
+  return (
+    <div className="cel-tp cel-giro giro-mixer-raiz" data-lab="10">
+      <SuperficieTrackpad />
+      <div className="cel-faixa-h giro-mixer" onPointerDown={parar} onPointerMove={parar} onPointerUp={parar} onPointerCancel={parar}>
+        <Fader orientacao="horizontal" valor={volume} rotulo="Volume: arraste a barra para os lados" ativo
+          aoMudar={(v) => { if (v !== volume) mudar(v - volume) }} vibrarCada={PASSO} vibracao={VIBRACAO_PASSO} />
+        <span className="cel-canal-valor">{volume}%</span>
+      </div>
+    </div>
+  )
 }
 
 /* Botão grande: o centro inteiro é o botão. Gire com o dedo em círculo; cada marca é um passo. */

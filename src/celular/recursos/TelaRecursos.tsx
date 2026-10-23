@@ -1,26 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Icone } from '../../kit/Icone'
 import { Segmentos } from '../../kit/Segmentos'
-import { useVariante } from '../../lab/refinamento'
 import { useSim, type BlocoMonitor, type EstiloMedidor, type VistaMonitor } from '../../sim/loja'
 import { METRICAS, olharTelemetria, type Metrica } from '../../sim/telemetria'
 import { vibrar } from '../../sim/vibrar'
 import { ESTILOS, Medidor } from './Medidor'
 
-const PADROES: Record<string, BlocoMonitor[]> = {
-  painel: [
-    { id: 'p1', metrica: 'cpu', estilo: 'grafico', largura: 2 }, { id: 'p2', metrica: 'memoria', estilo: 'anel', largura: 1 }, { id: 'p3', metrica: 'temperatura', estilo: 'ponteiro', largura: 1 },
-    { id: 'p4', metrica: 'rede', estilo: 'colunas', largura: 2 }, { id: 'p5', metrica: 'gpu', estilo: 'segmentos', largura: 1 }, { id: 'p6', metrica: 'bateria', estilo: 'numero', largura: 1 },
-  ],
-  instrumentos: [
-    { id: 'i1', metrica: 'cpu', estilo: 'ponteiro', largura: 1 }, { id: 'i2', metrica: 'memoria', estilo: 'ponteiro', largura: 1 }, { id: 'i3', metrica: 'temperatura', estilo: 'ponteiro', largura: 1 }, { id: 'i4', metrica: 'gpu', estilo: 'ponteiro', largura: 1 },
-    { id: 'i5', metrica: 'disco', estilo: 'segmentos', largura: 2 }, { id: 'i6', metrica: 'rede', estilo: 'segmentos', largura: 2 },
-  ],
-  graficos: [
-    { id: 'g1', metrica: 'cpu', estilo: 'grafico', largura: 2 }, { id: 'g2', metrica: 'gpu', estilo: 'grafico', largura: 2 },
-    { id: 'g3', metrica: 'memoria', estilo: 'grafico', largura: 2 }, { id: 'g4', metrica: 'rede', estilo: 'grafico', largura: 2 },
-  ],
-}
+/* Vista padrão: o painel misto (seção 36). */
+const PADRAO: BlocoMonitor[] = [
+  { id: 'p1', metrica: 'cpu', estilo: 'grafico', largura: 2 }, { id: 'p2', metrica: 'memoria', estilo: 'anel', largura: 1 }, { id: 'p3', metrica: 'temperatura', estilo: 'ponteiro', largura: 1 },
+  { id: 'p4', metrica: 'rede', estilo: 'colunas', largura: 2 }, { id: 'p5', metrica: 'gpu', estilo: 'segmentos', largura: 1 }, { id: 'p6', metrica: 'bateria', estilo: 'numero', largura: 1 },
+]
 const METRICAS_ORDEM = Object.keys(METRICAS) as Metrica[]
 const proximo = <T,>(lista: T[], atual: T) => lista[(lista.indexOf(atual) + 1) % lista.length]
 
@@ -82,19 +72,17 @@ function Avancada({ editar }: { editar: boolean }) {
 }
 
 /* Recursos do computador (seção 36, issue #11): vistas Simples e Padrão prontas; Avançada
-   montada pelo usuário, misturando estilos. */
+   montada pelo usuário, misturando estilos. A Simples mostra LEDs em pé. */
 export function TelaRecursos({ editar }: { editar: boolean }) {
   const vista = useSim((s) => s.monitor.vista)
-  const estiloSimples = useVariante('estiloSimples') as EstiloMedidor
-  const layout = useVariante('layoutPadrao')
   useEffect(() => olharTelemetria(), [])
   return (
     <div className="rc-tela" data-lab="36">
       <Segmentos rotulo="Vista" valor={vista} opcoes={[['simples', 'Simples'], ['padrao', 'Padrão'], ['avancada', 'Avançada']]} aoMudar={(v) => useSim.getState().setVistaMonitor(v as VistaMonitor)} />
       {vista === 'simples' && (
-        <div className="rc-simples">{(['cpu', 'memoria', 'temperatura'] as Metrica[]).map((m) => <Medidor key={m} metrica={m} estilo={estiloSimples} grande />)}</div>
+        <div className="rc-simples">{(['cpu', 'memoria', 'temperatura'] as Metrica[]).map((m) => <Medidor key={m} metrica={m} estilo="segmentos" grande />)}</div>
       )}
-      {vista === 'padrao' && <Grade blocos={PADROES[layout] ?? PADROES.painel} />}
+      {vista === 'padrao' && <Grade blocos={PADRAO} />}
       {vista === 'avancada' && <Avancada editar={editar} />}
     </div>
   )

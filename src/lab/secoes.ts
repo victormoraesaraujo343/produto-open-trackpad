@@ -1,8 +1,8 @@
-/* Seções e variações do painel de Refinamento — rodada R1 (telas-chave).
+/* Seções e variações do painel de Refinamento — depois da R2 (só o que ainda está em aberto).
    A PRIMEIRA opção de cada variação é a proposta; as outras são alternativas reais.
    Nenhuma reproduz tela da v1: da v1 só vem a identidade (cores, materiais, tipografia).
    Cada seção é marcada na tela com data-lab="<n>"; a variação é lida com useVariante('<chave>').
-   Opções já decididas (acabamento, modos, presas…) viraram código fixo ou ajuste do usuário e saíram daqui.
+   Opções já decididas (até a R2) viraram código fixo ou ajuste do usuário e saíram daqui.
    Protocolo do painel: laboratorio/refinamento/README.md */
 
 /* Agrupadas pelo uso do OpenTrackpad. O número de cada seção não muda: as anotações e o
@@ -55,13 +55,7 @@ export const SECOES = [
 ]
 
 export const VARIANTES = {
-  pareamento: { secao: '6', rotulo: 'Parear', opcoes: [['qr', 'QR no computador'], ['lista', 'Computadores por perto'], ['passos', 'Escolher a conexão primeiro']] },
-  giro: { secao: '10', rotulo: 'Giratório', opcoes: [['dial', 'Botão grande no centro, com marcas'], ['regua', 'Régua que desliza'], ['rodinha', 'Rodinha de polegar na lateral']] },
-  rastro: { secao: '35', rotulo: 'Rastro', opcoes: [['perto', 'Grade fixa; pontos maiores perto do dedo'], ['centro', 'Grade fixa; pontos maiores no centro do trackpad']] },
-  transferencia: { secao: '24', rotulo: 'Copiar do celular', opcoes: [['grande', 'Botão grande com a prévia'], ['dois-lados', 'Enviar e trazer lado a lado']] },
-  computadores: { secao: '26', rotulo: 'Vários computadores', opcoes: [['cartoes', 'Cartões'], ['fileira', 'Fileira com o atual em destaque']] },
-  estiloSimples: { secao: '36', rotulo: 'Vista simples', opcoes: [['anel', 'Anéis'], ['ponteiro', 'Ponteiros analógicos'], ['numero', 'Números grandes'], ['segmentos', 'LEDs'], ['barra', 'Barras']] },
-  layoutPadrao: { secao: '36', rotulo: 'Vista padrão', opcoes: [['painel', 'Painel misto'], ['instrumentos', 'Instrumentos analógicos'], ['graficos', 'Gráficos no tempo']] },
+  giro: { secao: '10', rotulo: 'Giratório', opcoes: [['mixer', 'Botão de volume do mixer'], ['dial', 'Botão grande no centro, com marcas'], ['regua', 'Régua que desliza'], ['rodinha', 'Rodinha de polegar na lateral']] },
 } satisfies Record<string, { secao: string; rotulo: string; opcoes: [string, string][] }>
 
 export type ChaveVariante = keyof typeof VARIANTES
