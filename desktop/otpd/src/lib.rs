@@ -11,6 +11,7 @@ pub mod mixer;
 pub mod pad;
 pub mod painel;
 pub mod pareamento;
+pub mod ponte_midia;
 pub mod portal;
 pub mod protocolo;
 pub mod saida;

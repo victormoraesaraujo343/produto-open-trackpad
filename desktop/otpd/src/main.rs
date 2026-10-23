@@ -162,6 +162,7 @@ async fn main() {
                 } else {
                     Box::new(|| Some(otpd::video::Fonte::PedirMonitorVirtual))
                 })));
+                v.push(Box::new(otpd::ponte_midia::PonteMidia::nova()));
                 if let Some(d) = &digitador {
                     v.push(Box::new(ExtensaoTexto::nova(saida.clone(), d.clone())));
                 }
