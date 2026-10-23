@@ -75,7 +75,10 @@ class Conexao(
 
     private val trava = ReentrantLock()
     private val temAlgo = trava.newCondition()
-    private val controles = ArrayDeque<Mensagem>()
+    /** Item da fila de controle: a mensagem e, se houver, o que fazer quando ela sair. */
+    private class Envio(val m: Mensagem, val depoisDeEscrever: (() -> Unit)?)
+
+    private val controles = ArrayDeque<Envio>()
     private val quadros = FilaDeQuadros()
     private var seq = 0L
     private var saida: OutputStream? = null
@@ -224,13 +227,14 @@ class Conexao(
 
     private fun escrever() {
         while (aberta && !fechada) {
-            val m: Mensagem = trava.withLock {
+            val envio: Envio = trava.withLock {
                 while (aberta && !fechada && controles.isEmpty() && quadros.tamanho == 0) temAlgo.await()
                 if (!aberta || fechada) return
-                controles.pollFirst() ?: quadros.tirar()!!.let { Mensagem.Toque(++seq and 0xFFFFFFFFL, it.contatos) }
+                controles.pollFirst() ?: Envio(quadros.tirar()!!.let { Mensagem.Toque(++seq and 0xFFFFFFFFL, it.contatos) }, null)
             }
             try {
-                escreverAgora(m)
+                escreverAgora(envio.m)
+                envio.depoisDeEscrever?.invoke()
             } catch (_: Exception) {
                 try { entrada?.close() } catch (_: Exception) {}
                 return
@@ -250,16 +254,24 @@ class Conexao(
         }
     }
 
-    /** Mensagem de controle (ou PING/PONG/CARGA). Ignorada se não estiver aberta. */
-    fun enviar(m: Mensagem) {
-        if (!aberta) return
+    /**
+     * Põe uma mensagem na fila de controle (é escrita antes dos quadros de toque). Devolve
+     * `false`, sem enfileirar nada, se a conexão não estiver aberta. `depoisDeEscrever` roda
+     * na thread de escrita quando a mensagem sai; se a conexão cair antes, não roda (quem
+     * contava pendências zera ao parar).
+     */
+    fun enviar(m: Mensagem, depoisDeEscrever: (() -> Unit)? = null): Boolean {
+        if (!aberta) return false
         trava.withLock {
-            controles.addLast(m)
+            controles.addLast(Envio(m, depoisDeEscrever))
             temAlgo.signal()
         }
+        return true
     }
 
-    fun enviarControle(vararg pares: Pair<String, Any?>) = enviar(controle(*pares))
+    fun enviarControle(vararg pares: Pair<String, Any?>) {
+        enviar(controle(*pares))
+    }
 
     fun quadro(q: Quadro) {
         if (!aberta) return

@@ -33,6 +33,9 @@ import org.opentrackpad.ui.ModoApp
 import org.opentrackpad.ui.pecas.aplicarEstado
 import org.opentrackpad.ui.pecas.lerLaterais
 import org.opentrackpad.ui.pecas.lerTela
+import org.opentrackpad.ponte.Camera
+import org.opentrackpad.ponte.Microfone
+import org.opentrackpad.ponte.Permissoes
 
 /**
  * Uma tela só, deitada. O que aparece nela é decidido pelo computador (spec): ele manda
@@ -52,6 +55,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var conexao: Conexao
     private val principal = Handler(Looper.getMainLooper())
 
+    /** Pedidos de permissão (câmera, microfone). Registra-se já na construção da Activity. */
+    private val permissoes = Permissoes(this)
+    private lateinit var camera: Camera
+    private lateinit var microfone: Microfone
+
     /** Convite lido no QR e ainda não usado (Wi-Fi de um computador novo). */
     @Volatile private var convite: ConviteQr? = null
 
@@ -67,6 +75,8 @@ class MainActivity : ComponentActivity() {
             .put("sistema", "android")
             .put("versao", Build.VERSION.SDK_INT)
         conexao = Conexao(aparelho, computadores, ouvinte, ::abrirMelhorCaminho)
+        camera = Camera(applicationContext, conexao, permissoes::pedir, ::avisar)
+        microfone = Microfone(conexao, permissoes::pedir, ::avisar)
         conexao.codigo = intent.getStringExtra("codigo")
         intent.getStringExtra("convite")?.let(::lerConvite)?.let { acoes.convite(it) }
         conexao.iniciar()
@@ -110,6 +120,11 @@ class MainActivity : ComponentActivity() {
                 } else if (antes is EstadoConexao.Aberta) {
                     tela.laterais = null
                 }
+                // Sem conexão aberta, a câmera e o microfone não ficam ligados.
+                if (e !is EstadoConexao.Aberta) {
+                    camera.parar()
+                    microfone.parar()
+                }
             }
         }
 
@@ -139,6 +154,8 @@ class MainActivity : ComponentActivity() {
                 avisar("Copiado do computador")
             }
             "aviso" -> avisar(m.optString("texto"))
+            "camera" -> camera.receber(m)
+            "microfone" -> microfone.receber(m)
             "vibrar" -> window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
             "computador" -> {
                 val chave = conexao.chaveAtual ?: return
@@ -272,6 +289,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        camera.parar()
+        microfone.parar()
         conexao.fechar()
         descoberta.parar()
         super.onDestroy()

@@ -12,6 +12,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -35,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -49,7 +51,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -63,6 +67,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.floor
 import kotlin.math.roundToInt
+import androidx.camera.view.PreviewView
+import org.opentrackpad.ponte.EstadoCamera
 import org.opentrackpad.ui.Icone
 import org.opentrackpad.ui.Tokens
 import org.opentrackpad.ui.pressionavel
@@ -101,6 +107,7 @@ fun DesenharPeca(peca: Peca, eventos: EventosPeca, modifier: Modifier = Modifier
             is Peca.IconeApp -> PecaIconeApp(peca, eventos, modifier)
             is Peca.Grade -> PecaGrade(peca, eventos, modifier)
             is Peca.Linha -> PecaLinha(peca, eventos, modifier)
+            is Peca.PreviaCamera -> PecaPreviaCamera(modifier)
             // O vídeo ocupa o centro inteiro e é desenhado pelo Aparelho (com o trackpad por cima).
             is Peca.Video -> {}
         }
@@ -110,7 +117,7 @@ fun DesenharPeca(peca: Peca, eventos: EventosPeca, modifier: Modifier = Modifier
 /** Peças em coluna, cada uma do tamanho que pede (sem peso). */
 @Composable
 fun DesenharPecas(pecas: List<Peca>, eventos: EventosPeca, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         pecas.forEach { DesenharPeca(it, eventos) }
     }
 }
@@ -425,6 +432,50 @@ private fun PecaLinha(peca: Peca.Linha, eventos: EventosPeca, modifier: Modifier
     ) {
         peca.pecas.forEach { p ->
             Box(Modifier.weight(1f).fillMaxHeight()) { DesenharPeca(p, eventos, Modifier.fillMaxSize()) }
+        }
+    }
+}
+
+/**
+ * Prévia da câmera do celular. Enquanto a câmera envia, mostra a imagem (a peça entrega a sua
+ * superfície ao módulo da câmera e a retira ao sair da tela). Desligada: quadro escuro com o
+ * ícone e o texto (estado nunca só por cor).
+ */
+@Composable
+private fun PecaPreviaCamera(modifier: Modifier) {
+    val situacao = EstadoCamera.situacao
+    val enviando = situacao == EstadoCamera.Situacao.ENVIANDO
+    val texto = when (situacao) {
+        EstadoCamera.Situacao.PEDINDO_PERMISSAO, EstadoCamera.Situacao.LIGANDO -> "Ligando a câmera"
+        EstadoCamera.Situacao.SEM_PERMISSAO -> "Sem permissão para a câmera"
+        else -> "Câmera desligada"
+    }
+    val forma = RoundedCornerShape(12.dp)
+    // Dois terços da largura: no 16:10 do centro sobra a altura das teclas de baixo (≥ 48 dp).
+    Box(
+        modifier
+            .fillMaxWidth(0.66f)
+            .aspectRatio(16f / 9f)
+            .clip(forma)
+            .background(Tokens.groove)
+            .border(1.dp, Tokens.groove, forma)
+            .semantics { contentDescription = if (enviando) "Prévia da câmera" else texto },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (enviando) {
+            val contexto = LocalContext.current
+            val visor = remember { PreviewView(contexto).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
+            AndroidView(factory = { visor }, modifier = Modifier.fillMaxSize())
+            DisposableEffect(visor) {
+                EstadoCamera.anexarPrevia(visor.surfaceProvider)
+                onDispose { EstadoCamera.anexarPrevia(null) }
+            }
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icone("camera", 32.dp, Tokens.ink2)
+                Spacer(Modifier.height(8.dp))
+                BasicText(texto, style = TextStyle(color = Tokens.ink, fontSize = 14.sp, fontWeight = FontWeight.Medium))
+            }
         }
     }
 }

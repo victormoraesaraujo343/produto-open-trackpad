@@ -215,7 +215,7 @@ de acesso** (um quadro, com SPS/PPS antes do quadro-chave) em uma ou mais mensag
 ```
 pts_us: u64 BE   (tempo do quadro, em µs desde o início do fluxo)
 marcas: u8       (bit 0: quadro-chave; bit 1: último pedaço deste quadro; bit 2: primeiro pedaço)
-dados:  até 65 526 bytes (Annex B, com os códigos de início)
+dados:  até 65 525 bytes (Annex B, com os códigos de início; 65 535 − tipo − pts − marcas)
 ```
 
 O celular junta os pedaços de um mesmo `pts_us` até o último e entrega o quadro inteiro ao

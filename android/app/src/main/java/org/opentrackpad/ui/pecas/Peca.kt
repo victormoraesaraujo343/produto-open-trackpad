@@ -46,6 +46,9 @@ sealed class Peca {
 
     data class Linha(override val id: String, val pecas: List<Peca>) : Peca()
 
+    /** Prévia da câmera do celular (peça nativa: mostra a imagem enquanto a câmera envia). */
+    data class PreviaCamera(override val id: String) : Peca()
+
     /** Vídeo do computador (espelho, segundo monitor). `modo`: `trackpad` ou `toque`. */
     data class Video(override val id: String, val w: Int, val h: Int, val modo: String) : Peca()
 }
@@ -93,6 +96,7 @@ fun lerPeca(json: JSONObject): Peca? {
         )
         "linha" -> Peca.Linha(id, lerPecas(json.optJSONArray("pecas") ?: JSONArray()))
         "video" -> Peca.Video(id, json.optInt("w", 1280), json.optInt("h", 720), json.optString("modo", "trackpad"))
+        "previa_camera" -> Peca.PreviaCamera(id)
         else -> null
     }
 }
@@ -170,7 +174,7 @@ private fun aplicarEmPeca(p: Peca, mudancas: Map<String, JSONObject>): Peca {
         )
         is Peca.Texto -> p.copy(texto = textoDe(m, "texto", p.texto))
         is Peca.IconeApp -> p.copy(rotulo = textoDe(m, "rotulo", p.rotulo))
-        is Peca.Grade, is Peca.Linha, is Peca.Video -> p
+        is Peca.Grade, is Peca.Linha, is Peca.Video, is Peca.PreviaCamera -> p
     }
 }
 
