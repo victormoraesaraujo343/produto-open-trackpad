@@ -16,7 +16,7 @@ use tokio::sync::mpsc;
 
 use crate::pareamento::Pareamento;
 use crate::protocolo::{self, controle, Mensagem, MAX_CONTROLE_CELULAR};
-use crate::sessao::{Computador, Extensao, SaidaCompartilhada, Sessao};
+use crate::sessao::{Computador, Evento, Extensao, SaidaCompartilhada, Sessao};
 
 /// Silêncio máximo do celular (ele manda PING a cada 3 s).
 pub const SILENCIO_MAXIMO: Duration = Duration::from_secs(15);
@@ -33,6 +33,13 @@ pub struct Contexto {
     pub computador: Computador,
     /// Cria as extensões de cada sessão nova.
     pub extensoes: Arc<dyn Fn() -> Vec<Box<dyn Extensao>> + Send + Sync>,
+    /// Eventos do computador para todas as sessões (`Evento`); quem gera chama `send`.
+    pub eventos: tokio::sync::broadcast::Sender<Evento>,
+}
+
+/// Canal de eventos com folga para rajadas (uma sessão lenta perde os mais velhos, não trava).
+pub fn canal_de_eventos() -> tokio::sync::broadcast::Sender<Evento> {
+    tokio::sync::broadcast::channel(256).0
 }
 
 pub async fn ler_async<R: AsyncRead + Unpin>(r: &mut R) -> std::io::Result<Option<Mensagem>> {
@@ -74,6 +81,7 @@ where
         sessao = sessao.com_extensao(e);
     }
 
+    let mut eventos = ctx.eventos.subscribe();
     let mut medida = tokio::time::interval(INTERVALO_MEDIDA);
     let mut nonce: u32 = 0;
     let mut enviado: Option<(u32, Instant)> = None;
@@ -130,6 +138,13 @@ where
                     medida.reset_immediately();
                 }
                 if matches!(sessao.fase, crate::sessao::Fase::Fechada) { break }
+            }
+            ev = eventos.recv() => {
+                if let Ok(ev) = ev {
+                    for r in sessao.evento(&ev) {
+                        if tx.send(r).await.is_err() { break }
+                    }
+                }
             }
             _ = medida.tick(), if sessao.aberta() => {
                 // Mediana das 5 últimas amostras de RTT; a vazão vem da medida da abertura.

@@ -22,6 +22,7 @@ async fn servidor() -> (std::net::SocketAddr, Registro) {
         pareamento: Arc::new(Mutex::new(p)),
         computador: Computador { nome: "Teste".into(), sistema: "linux".into(), ambiente: "kde".into() },
         extensoes: Arc::new(Vec::new),
+        eventos: otpd::servidor::canal_de_eventos(),
     };
     let l = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = l.local_addr().unwrap();

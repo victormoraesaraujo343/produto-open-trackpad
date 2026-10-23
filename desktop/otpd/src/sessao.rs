@@ -51,6 +51,34 @@ pub trait Extensao: Send {
     fn controle(&mut self, t: &str, msg: &Value, respostas: &mut Vec<Mensagem>) -> bool;
     /// Chamado logo depois do `bemvindo`, para mandar telas e estado iniciais.
     fn abertura(&mut self, _respostas: &mut Vec<Mensagem>) {}
+    /// Telas que esta extensão sabe descrever (entram no menu de modos do celular):
+    /// `{"id","nome","icone","grupo","nivel"}`.
+    fn telas(&self) -> Vec<Value> {
+        Vec::new()
+    }
+    /// Algo mudou no computador (app em foco, tique de 1 s, mídia…). Só com a sessão aberta.
+    fn evento(&mut self, _e: &Evento, _respostas: &mut Vec<Mensagem>) {}
+}
+
+/// Ordem dos modos no menu (`src/celular/navegacao/modos.ts`).
+pub const ORDEM_DAS_TELAS: &[&str] = &[
+    "trackpad", "teclado", "voz", "mesa", "giro", "atalhos", "lancador", "janelas", "mixer", "midia", "reuniao",
+    "espelho", "monitor", "janela", "recorte", "vertical", "painel", "recursos", "transferencia", "camera",
+    "microfone", "computadores",
+];
+
+/// Acontecimento do computador espalhado para todas as sessões abertas.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Evento {
+    /// `tique` (a cada 1 s), `foco` (app em foco mudou), ou o que uma extensão definir.
+    pub tipo: String,
+    pub dados: Value,
+}
+
+impl Evento {
+    pub fn novo(tipo: &str, dados: Value) -> Self {
+        Self { tipo: tipo.to_owned(), dados }
+    }
 }
 
 pub struct Sessao {
@@ -210,6 +238,17 @@ impl Sessao {
         Ok(())
     }
 
+    /// Repassa um evento às extensões (só com a sessão aberta).
+    pub fn evento(&mut self, e: &Evento) -> Vec<Mensagem> {
+        let mut r = Vec::new();
+        if self.aberta() {
+            for x in &mut self.extensoes {
+                x.evento(e, &mut r);
+            }
+        }
+        r
+    }
+
     fn ola(&mut self, v: &Value, r: &mut Vec<Mensagem>) -> Result<(), String> {
         let versao = v["v"].as_u64().unwrap_or(0);
         if versao != u64::from(VERSAO) {
@@ -250,6 +289,14 @@ impl Sessao {
             }
         }
         r.push(controle(bemvindo));
+        // O menu de modos é a soma das telas de todas as extensões, na ordem fixa do
+        // protótipo (nada muda de lugar).
+        let mut telas: Vec<Value> = self.extensoes.iter().flat_map(|e| e.telas()).collect();
+        telas.sort_by_key(|t| ORDEM_DAS_TELAS.iter().position(|id| t["id"] == *id).unwrap_or(usize::MAX));
+        telas.dedup_by(|a, b| a["id"] == b["id"]);
+        if !telas.is_empty() {
+            r.push(controle(json!({"t":"telas","lista":telas})));
+        }
         for e in &mut self.extensoes {
             e.abertura(r);
         }

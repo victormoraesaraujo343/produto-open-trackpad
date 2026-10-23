@@ -125,7 +125,8 @@ Nenhuma outra mensagem é aceita antes de `bemvindo`. Antes da abertura, um quad
 | `texto` | `s`: texto UTF-8 (até 1000 caracteres) | digita o texto (teclado do celular, ditado) |
 | `rolar` | `dx`, `dy`: inteiros em "passos" | rolagem discreta (giratório, botões de volume) |
 | `acao` | `id`; `valor` opcional (número 0..1 ou inteiro) | dispara uma ação que o computador descreveu |
-| `abrir` | `tela`: id | pede ao computador a tela `id` (o computador responde com `tela`) |
+| `abrir` | `tela`: id | o celular mudou de modo. Mandado para **todo** modo, inclusive `trackpad` e `teclado` (nativos), para o computador saber o que está na tela e só atualizar o que é visto; para os outros, o computador responde com `tela` |
+| `area_transferencia` | `s`: texto (até 100 000 caracteres) | o que foi copiado no celular vai para a área de transferência do computador |
 | `estado_app` | `primeiro_plano`: bool; `bateria`: 0..100; `carregando`: bool | o computador pausa o que não é visto |
 | `tchau` | — | encerramento limpo |
 
@@ -145,7 +146,8 @@ nome fora da lista. `combo` tem no máximo 5 teclas.
 | `tela` | `id`, `nome`, `nivel`, `pecas`: lista (abaixo) | descreve uma tela |
 | `telas` | `lista`: `[{id, nome, nivel, icone, area}]` | o menu de modos (o que existe neste computador) |
 | `laterais` | `esquerda`, `direita`: listas de peças `tecla`/`tecla_presa` | as laterais fixas; mudam com o app em foco |
-| `estado` | `id` da peça + campos que mudaram (`valor`, `ligado`, `texto`, `rotulo`) | atualiza uma peça já desenhada |
+| `estado` | `tela` (id da tela) + `pecas`: lista de `{id, campos que mudaram}` (`valor`, `ligado`, `texto`, `rotulo`, `mudo`) | atualiza peças já desenhadas da tela aberta, sem redesenhar a tela |
+| `area_transferencia` | `s`: texto | o que foi copiado no computador; o celular põe na área de transferência dele |
 | `vibrar` | `ms` (10..80) | pedido de vibração (o celular sempre mostra resposta visual junto) |
 | `aviso` | `texto` curto | aviso de relance (ex.: "Câmera saiu: conexão fraca") |
 | `tchau` | `motivo` opcional | o computador vai fechar |

@@ -157,13 +157,14 @@ impl Extensao for Painel {
         }
     }
 
-    fn abertura(&mut self, respostas: &mut Vec<Mensagem>) {
-        let lista: Vec<Value> = TELAS
+    fn telas(&self) -> Vec<Value> {
+        TELAS
             .iter()
             .map(|t| json!({"id":t.id,"nome":t.nome,"icone":t.icone,"grupo":t.grupo,"nivel":t.nivel}))
-            .collect();
-        respostas.push(controle(json!({"t":"telas","lista":lista})));
+            .collect()
+    }
 
+    fn abertura(&mut self, respostas: &mut Vec<Mensagem>) {
         let esquerda: Vec<Value> = self.atalhos_do_app().into_iter().take(ESQUERDA).map(peca_tecla).collect();
         let direita: Vec<Value> = [
             json!({"p":"tecla_presa","id":"presa-ctrl","rotulo":"Ctrl","k":"ctrl"}),
@@ -245,14 +246,13 @@ mod tests {
         let (mut p, _, _) = montar(None);
         let mut r = Vec::new();
         p.abertura(&mut r);
-        assert_eq!(r.len(), 2);
+        assert_eq!(r.len(), 1);
 
-        let telas = de(&r[0]);
-        assert_eq!(telas["t"], "telas");
-        assert_eq!(telas["lista"].as_array().unwrap().len(), TELAS.len());
-        assert_eq!(telas["lista"][0]["id"], "trackpad");
+        let telas = p.telas();
+        assert_eq!(telas.len(), TELAS.len());
+        assert_eq!(telas[0]["id"], "trackpad");
 
-        let laterais = de(&r[1]);
+        let laterais = de(&r[0]);
         assert_eq!(laterais["t"], "laterais");
         let esquerda = &laterais["esquerda"];
         let direita = &laterais["direita"];

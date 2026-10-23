@@ -152,8 +152,9 @@ class MainActivity : ComponentActivity() {
         override fun texto(s: String) = conexao.enviarControle("t" to "texto", "s" to s)
         override fun escolherModo(m: ModoApp) {
             tela.modo = m.id
-            // trackpad e teclado são telas do próprio celular; o resto o computador descreve.
-            if (m.id != "trackpad" && m.id != "teclado") conexao.enviarControle("t" to "abrir", "tela" to m.id)
+            // Sempre avisa o computador (ele só atualiza o que está na tela); trackpad e
+            // teclado são desenhados pelo próprio celular, o resto o computador descreve.
+            conexao.enviarControle("t" to "abrir", "tela" to m.id)
         }
         override fun travar(sim: Boolean) = travarNoApp(sim)
         override fun codigo(c: String) { conexao.codigo = c }

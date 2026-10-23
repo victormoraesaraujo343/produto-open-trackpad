@@ -73,6 +73,19 @@ async fn main() {
     let hosts: Arc<dyn Fn() -> Vec<std::net::Ipv4Addr> + Send + Sync> =
         if sem_wifi { Arc::new(Vec::new) } else { Arc::new(wifi::enderecos_locais) };
 
+    // Tique de 1 s para as extensões que atualizam o celular (relógio, recursos…).
+    let eventos = otpd::servidor::canal_de_eventos();
+    {
+        let eventos = eventos.clone();
+        tokio::spawn(async move {
+            let mut t = tokio::time::interval(std::time::Duration::from_secs(1));
+            loop {
+                t.tick().await;
+                let _ = eventos.send(otpd::sessao::Evento::novo("tique", serde_json::Value::Null));
+            }
+        });
+    }
+
     let ctx = {
         let (saida, digitador, impressao, hosts) = (saida.clone(), digitador.clone(), impressao.clone(), hosts.clone());
         Contexto {
@@ -90,6 +103,7 @@ async fn main() {
                 }
                 v
             }),
+            eventos: eventos.clone(),
         }
     };
 
