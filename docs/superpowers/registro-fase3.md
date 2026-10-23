@@ -6,6 +6,14 @@ Wayland, 16 núcleos, 31 GiB, teclado US internacional). Ordem de serviço:
 **AUTOMÁTICO** (teste ou script), **EMULADOR** (provado no emulador Android 9), **PENDENTE**
 (falta o celular de verdade ou o Victor).
 
+## TL;DR
+
+O OpenTrackpad de verdade existe: serviço no Linux (Rust) + app Android (Kotlin). Celular e
+computador conversam por cabo e por Wi-Fi com pareamento seguro, e quase todas as telas do protótipo já
+funcionam com dados reais. Tudo foi provado no emulador do Android 9; falta o celular de verdade
+(sensação do toque, gestos de vários dedos, câmera lendo o QR) e escolher a tela no diálogo do KDE
+na primeira vez que espelhar.
+
 ## 1. O que funciona
 
 | Item | Evidência |
