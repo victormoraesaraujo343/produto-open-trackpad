@@ -18,6 +18,7 @@ import org.opentrackpad.conexao.Descoberta
 import org.opentrackpad.conexao.EstadoConexao
 import org.opentrackpad.conexao.Ouvinte
 import org.opentrackpad.conexao.socketDoCabo
+import org.opentrackpad.conexao.lerConvite
 import org.opentrackpad.conexao.socketTls
 import org.opentrackpad.toque.MedidaSuperficie
 import org.opentrackpad.toque.Quadro
@@ -36,7 +37,7 @@ import org.opentrackpad.ui.pecas.lerTela
  * (endereços guardados + o que a descoberta mDNS achou), sempre com o certificado fixado.
  *
  * Para testes: `adb shell am start -n org.opentrackpad/.MainActivity --es codigo 123456`
- * pareia pelo cabo com o código dado (o mesmo que o QR levaria).
+ * pareia pelo cabo com o código dado; `--es convite 'otp1:?h=…'` faz o mesmo que ler o QR.
  */
 class MainActivity : ComponentActivity() {
 
@@ -62,6 +63,7 @@ class MainActivity : ComponentActivity() {
             .put("versao", Build.VERSION.SDK_INT)
         conexao = Conexao(aparelho, computadores, ouvinte, ::abrirMelhorCaminho)
         conexao.codigo = intent.getStringExtra("codigo")
+        intent.getStringExtra("convite")?.let(::lerConvite)?.let { acoes.convite(it) }
         conexao.iniciar()
 
         setContent { Aparelho(tela, acoes) }
