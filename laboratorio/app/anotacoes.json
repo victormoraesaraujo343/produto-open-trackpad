@@ -7,7 +7,7 @@
   "secoes": {
     "1": {
       "nome": "Acabamento",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "acabamento": "escuro"
@@ -16,8 +16,8 @@
     },
     "2": {
       "nome": "Trackpad principal",
-      "status": "revisar",
-      "nota": "",
+      "status": "aprovada",
+      "nota": "Tem que ser possivel selecionar entre esquerda e direita e também o tudo numa lareal. Essas duas versões.",
       "variantes": {
         "trackpad": "app-sistema",
         "mao": "direita"
@@ -26,16 +26,17 @@
     },
     "3": {
       "nome": "Trocar de modo",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
-        "modos": "tecla"
+        "modos": "tecla",
+        "menuModos": "abas"
       },
       "aberto": false
     },
     "4": {
       "nome": "Painel de atalhos",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "atalhos": "grade"
@@ -44,7 +45,7 @@
     },
     "5": {
       "nome": "Tela espelhada e modos de toque",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "espelho": "lateral"
@@ -53,8 +54,8 @@
     },
     "6": {
       "nome": "Parear pela primeira vez",
-      "status": "revisar",
-      "nota": "",
+      "status": "aprovada",
+      "nota": "Os 3 estao aprovados",
       "variantes": {
         "pareamento": "qr"
       },
@@ -62,7 +63,7 @@
     },
     "7": {
       "nome": "Estado da conexão",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "indicador": "led"
@@ -71,7 +72,7 @@
     },
     "8": {
       "nome": "Central do computador",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "central": "lateral"
@@ -80,8 +81,8 @@
     },
     "9": {
       "nome": "Ver na prática: teclas presas (nas laterais)",
-      "status": "revisar",
-      "nota": "",
+      "status": "aprovada",
+      "nota": "Pode ser um seletor nas configs, mas tem que melhorar o texto explicativo",
       "variantes": {
         "presas": "trava"
       },
@@ -89,8 +90,8 @@
     },
     "10": {
       "nome": "Ver na prática: botão giratório",
-      "status": "revisar",
-      "nota": "",
+      "status": "ajustar",
+      "nota": "Nao gostei, traz outras opcoes",
       "variantes": {
         "giro": "arco"
       },
@@ -98,17 +99,17 @@
     },
     "11": {
       "nome": "Ver na prática: giratório com o som",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
-        "mixer": "seleciona"
+        "mixer": "horizontal"
       },
       "aberto": false
     },
     "12": {
       "nome": "Ver na prática: botões de volume do celular",
-      "status": "revisar",
-      "nota": "",
+      "status": "aprovada",
+      "nota": "Pode ser um seletor nas configs, mas tem que melhorar o texto explicativo",
       "variantes": {
         "laterais": "atalhos"
       },
@@ -116,7 +117,7 @@
     },
     "13": {
       "nome": "Ver na prática: modo travado",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "trava": "segurar"
@@ -125,7 +126,7 @@
     },
     "14": {
       "nome": "Teclado e voz",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
         "teclado": "centro",
@@ -133,40 +134,169 @@
       },
       "aberto": false
     },
-    "32": {
-      "nome": "Computador: gravar atalho",
-      "status": "revisar",
+    "15": {
+      "nome": "Desenho",
+      "status": "ajustar",
+      "nota": "trata o modo sem espelhamento de tela como uma wacom msm, nao esse canvas ai, fica estranho",
+      "variantes": {},
+      "aberto": false
+    },
+    "16": {
+      "nome": "Mídia, janelas e abrir",
+      "status": "aprovada",
       "nota": "",
       "variantes": {},
       "aberto": false
     },
+    "17": {
+      "nome": "Reunião",
+      "status": "ajustar",
+      "nota": "Camera pode ser um botão grande igual oos demais",
+      "variantes": {},
+      "aberto": false
+    },
+    "18": {
+      "nome": "Zonas no trackpad",
+      "status": "ajustar",
+      "nota": "Vê se é isso que os trackpads modernos fazem, traz como um opcao que da pra configurar nas configs",
+      "variantes": {},
+      "aberto": false
+    },
+    "19": {
+      "nome": "Segundo monitor",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "20": {
+      "nome": "Uma janela e recorte",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "21": {
+      "nome": "Monitor vertical",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "22": {
+      "nome": "Painel de informações (#6)",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "23": {
+      "nome": "Tela de descanso (#7)",
+      "status": "ajustar",
+      "nota": "Podemos ter mais versões",
+      "variantes": {},
+      "aberto": false
+    },
+    "24": {
+      "nome": "Área de transferência",
+      "status": "ajustar",
+      "nota": "Fazer um design melhor do bot~ao de copiar texto do celular",
+      "variantes": {},
+      "aberto": false
+    },
+    "25": {
+      "nome": "Câmera e microfone",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "26": {
+      "nome": "Vários computadores",
+      "status": "ajustar",
+      "nota": "O design poderia ser melhor",
+      "variantes": {},
+      "aberto": false
+    },
+    "27": {
+      "nome": "Ajustes do celular",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "28": {
+      "nome": "Escurecer, bateria e calor",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "29": {
+      "nome": "Menu da bandeja",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "30": {
+      "nome": "Atalhos por app",
+      "status": "aprovada",
+      "nota": "O design pode ser melhor pensado",
+      "variantes": {},
+      "aberto": false
+    },
+    "31": {
+      "nome": "Primeira vez",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": false
+    },
+    "32": {
+      "nome": "Computador: gravar atalho",
+      "status": "aprovada",
+      "nota": "",
+      "variantes": {},
+      "aberto": true
+    },
     "33": {
       "nome": "Remapear as laterais por app (#5)",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {},
       "aberto": false
     },
     "34": {
       "nome": "Botões de liga e desliga (#8)",
-      "status": "revisar",
+      "status": "aprovada",
       "nota": "",
       "variantes": {
-        "alternador": "tecla"
+        "alternador": "trilho"
       },
       "aberto": false
     },
     "35": {
       "nome": "Animações: rastro no trackpad (#4)",
-      "status": "revisar",
-      "nota": "",
+      "status": "ajustar",
+      "nota": "Faz estar o tempo td com essa grade de pontos mas anima eles conforme eu passar o dedo by acendendo eles na cor destaque e tambem deixando eles levemente maiores do centro pras extremidades. ",
       "variantes": {
         "rastro": "grade"
+      },
+      "aberto": false
+    },
+    "36": {
+      "nome": "Monitor de recursos (#11)",
+      "status": "ajustar",
+      "nota": "Vista simples os leds podem estaar na vertical",
+      "variantes": {
+        "estiloSimples": "segmentos",
+        "layoutPadrao": "painel"
       },
       "aberto": false
     }
   },
   "alfinetes": [],
   "rodadas": [],
-  "atualizado": "2026-10-22T12:10:27.781Z"
+  "atualizado": "2026-10-23T01:29:44.886Z"
 }
