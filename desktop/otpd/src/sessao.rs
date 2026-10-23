@@ -95,6 +95,9 @@ pub struct Sessao {
     computador: Computador,
     contatos: ContactState,
     ultimo_seq: Option<u32>,
+    ultimo_seq_caneta: Option<u32>,
+    /// Caneta perto ou encostada: na queda, levanta.
+    caneta_ativa: bool,
     superficie: Option<Superficie>,
     teclas_presas: Vec<evdev::KeyCode>,
     botoes_presos: Vec<Botao>,
@@ -113,6 +116,8 @@ impl Sessao {
             computador,
             contatos: ContactState::new(),
             ultimo_seq: None,
+            ultimo_seq_caneta: None,
+            caneta_ativa: false,
             superficie: None,
             teclas_presas: Vec::new(),
             botoes_presos: Vec::new(),
@@ -138,6 +143,17 @@ impl Sessao {
         match m {
             Mensagem::Ping { nonce, t_us } => r.push(Mensagem::Pong { nonce, t_us }),
             Mensagem::Pong { .. } | Mensagem::Carga(_) => {}
+            Mensagem::Caneta { seq, x, y, pressao, marcas } => {
+                if !self.aberta() {
+                    return Err("caneta antes da abertura".into());
+                }
+                if self.ultimo_seq_caneta.is_some_and(|u| seq <= u) {
+                    return Ok(r);
+                }
+                self.ultimo_seq_caneta = Some(seq);
+                self.caneta_ativa = marcas & 3 != 0;
+                self.saida().caneta(x, y, pressao, marcas & 1 != 0, marcas & 2 != 0).map_err(|e| format!("caneta: {e}"))?;
+            }
             Mensagem::Controle(v) => self.controle(v, &mut r)?,
             Mensagem::Toque { seq, contatos } => {
                 if !self.aberta() || self.superficie.is_none() {
@@ -372,6 +388,9 @@ impl Sessao {
         let ev = self.contatos.release_all();
         let mut saida = self.saida.lock().unwrap();
         let _ = saida.pad(&ev);
+        if self.caneta_ativa {
+            let _ = saida.caneta(0, 0, 0, false, false);
+        }
         for b in self.botoes_presos.drain(..) {
             let _ = saida.botao(b, false);
         }

@@ -36,6 +36,8 @@ pub trait Saida: Send {
     /// Rolagem em passos (positivo = para cima / para a direita).
     fn rolar(&mut self, dx: i32, dy: i32) -> io::Result<()>;
     fn descrever(&mut self) -> String;
+    /// Caneta da mesa digitalizadora: posição 0..65535, pressão 0..1023.
+    fn caneta(&mut self, x: u16, y: u16, pressao: u16, encostada: bool, perto: bool) -> io::Result<()>;
 }
 
 /// Registra cada evento como texto. Compartilhável para os testes lerem depois.
@@ -97,5 +99,10 @@ impl Saida for Registro {
 
     fn descrever(&mut self) -> String {
         "saída de teste (eventos só registrados, nada chega ao sistema)".to_owned()
+    }
+
+    fn caneta(&mut self, x: u16, y: u16, pressao: u16, encostada: bool, perto: bool) -> io::Result<()> {
+        self.anotar(format!("caneta {x} {y} {pressao} {}", if encostada { "encostada" } else if perto { "perto" } else { "longe" }));
+        Ok(())
     }
 }

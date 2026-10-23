@@ -33,6 +33,7 @@ class ProtocoloTest {
             "contatos",
             JSONArray(m.contatos.map { JSONObject().put("id", it.id).put("x", it.x).put("y", it.y).put("major", it.major) }),
         )
+        is Mensagem.Caneta -> JSONObject().put("tipo", "caneta").put("seq", m.seq).put("x", m.x).put("y", m.y).put("pressao", m.pressao).put("marcas", m.marcas)
         is Mensagem.Ping -> JSONObject().put("tipo", "ping").put("nonce", m.nonce).put("t_us", m.tUs)
         is Mensagem.Pong -> JSONObject().put("tipo", "pong").put("nonce", m.nonce).put("t_us", m.tUs)
         is Mensagem.Carga -> JSONObject().put("tipo", "carga").put("bytes", m.dados.size)

@@ -14,6 +14,7 @@ pub const MAX_CONTROLE_CELULAR: usize = 16 * 1024;
 
 pub const T_CONTROLE: u8 = 0x01;
 pub const T_TOQUE: u8 = 0x10;
+pub const T_CANETA: u8 = 0x11;
 pub const T_PING: u8 = 0x20;
 pub const T_PONG: u8 = 0x21;
 pub const T_CARGA: u8 = 0x22;
@@ -33,6 +34,9 @@ pub struct Contato {
 pub enum Mensagem {
     Controle(Value),
     Toque { seq: u32, contatos: Vec<Contato> },
+    /// Mesa digitalizadora: posição normalizada 0..65535, pressão 0..1023; `marcas` bit 0
+    /// encostada, bit 1 perto.
+    Caneta { seq: u32, x: u16, y: u16, pressao: u16, marcas: u8 },
     Ping { nonce: u32, t_us: u64 },
     Pong { nonce: u32, t_us: u64 },
     Carga(Vec<u8>),
@@ -121,6 +125,22 @@ pub fn decodificar(tipo: u8, carga: &[u8]) -> Result<Mensagem, Erro> {
             }
             Ok(Mensagem::Toque { seq, contatos })
         }
+        T_CANETA => {
+            if carga.len() != 11 {
+                return Err(Erro::Tamanho);
+            }
+            let pressao = u16::from_be_bytes([carga[8], carga[9]]);
+            if pressao > 1023 {
+                return Err(Erro::Tamanho);
+            }
+            Ok(Mensagem::Caneta {
+                seq: u32::from_be_bytes(carga[0..4].try_into().unwrap()),
+                x: u16::from_be_bytes([carga[4], carga[5]]),
+                y: u16::from_be_bytes([carga[6], carga[7]]),
+                pressao,
+                marcas: carga[10],
+            })
+        }
         T_PING | T_PONG => {
             if carga.len() != 12 {
                 return Err(Erro::Tamanho);
@@ -164,6 +184,15 @@ pub fn carga_de(m: &Mensagem) -> (u8, Vec<u8>) {
                 b.extend_from_slice(&c.major.to_be_bytes());
             }
             (T_TOQUE, b)
+        }
+        Mensagem::Caneta { seq, x, y, pressao, marcas } => {
+            let mut b = Vec::with_capacity(11);
+            b.extend_from_slice(&seq.to_be_bytes());
+            b.extend_from_slice(&x.to_be_bytes());
+            b.extend_from_slice(&y.to_be_bytes());
+            b.extend_from_slice(&pressao.to_be_bytes());
+            b.push(*marcas);
+            (T_CANETA, b)
         }
         Mensagem::Ping { nonce, t_us } | Mensagem::Pong { nonce, t_us } => {
             let mut b = Vec::with_capacity(12);
@@ -270,6 +299,7 @@ mod tests {
             Mensagem::Toque { seq, contatos } => json!({"tipo":"toque","seq":seq,"contatos":
                 contatos.iter().map(|c| json!({"id":c.id,"x":c.x,"y":c.y,"major":c.major})).collect::<Vec<_>>()}),
             Mensagem::Ping { nonce, t_us } => json!({"tipo":"ping","nonce":nonce,"t_us":t_us}),
+            Mensagem::Caneta { seq, x, y, pressao, marcas } => json!({"tipo":"caneta","seq":seq,"x":x,"y":y,"pressao":pressao,"marcas":marcas}),
             Mensagem::Pong { nonce, t_us } => json!({"tipo":"pong","nonce":nonce,"t_us":t_us}),
             Mensagem::Carga(d) => json!({"tipo":"carga","bytes":d.len()}),
             Mensagem::Video { pts_us, marcas, dados } => json!({"tipo":"video","pts_us":pts_us,"marcas":marcas,"bytes":dados.len()}),

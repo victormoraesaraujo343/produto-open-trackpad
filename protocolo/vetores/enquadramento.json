@@ -173,6 +173,18 @@
     "pts_us": 20000,
     "bytes": 8
    }
+  },
+  {
+   "nome": "caneta encostada no meio, pressão média",
+   "hex": "000c110000000580008000020003",
+   "esperado": {
+    "tipo": "caneta",
+    "seq": 5,
+    "x": 32768,
+    "y": 32768,
+    "pressao": 512,
+    "marcas": 3
+   }
   }
  ],
  "invalidos": [
@@ -224,6 +236,16 @@
   {
    "nome": "video sem marcas",
    "hex": "0009300000000000000001",
+   "erro": "tamanho"
+  },
+  {
+   "nome": "caneta curta",
+   "hex": "0009110000000100020003",
+   "erro": "tamanho"
+  },
+  {
+   "nome": "caneta com pressão acima de 1023",
+   "hex": "000c11000000010002000307d001",
    "erro": "tamanho"
   }
  ]

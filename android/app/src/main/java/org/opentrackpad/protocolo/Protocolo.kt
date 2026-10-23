@@ -21,6 +21,7 @@ object Protocolo {
 
     const val T_CONTROLE = 0x01
     const val T_TOQUE = 0x10
+    const val T_CANETA = 0x11
     const val T_PING = 0x20
     const val T_PONG = 0x21
     const val T_CARGA = 0x22
@@ -41,6 +42,8 @@ sealed class Mensagem {
     }
 
     data class Toque(val seq: Long, val contatos: List<Contato>) : Mensagem()
+    /** Mesa digitalizadora: x/y 0..65535, pressão 0..1023, marcas bit 0 encostada, bit 1 perto. */
+    data class Caneta(val seq: Long, val x: Int, val y: Int, val pressao: Int, val marcas: Int) : Mensagem()
     data class Ping(val nonce: Long, val tUs: Long) : Mensagem()
     data class Pong(val nonce: Long, val tUs: Long) : Mensagem()
     class Carga(val dados: ByteArray) : Mensagem()
@@ -72,6 +75,10 @@ fun codificar(m: Mensagem): ByteArray {
                 carga.u16(c.y)
                 carga.u16(c.major)
             }
+        }
+        is Mensagem.Caneta -> {
+            tipo = Protocolo.T_CANETA
+            carga.u32(m.seq); carga.u16(m.x); carga.u16(m.y); carga.u16(m.pressao); carga.write(m.marcas)
         }
         is Mensagem.Ping -> { tipo = Protocolo.T_PING; carga.u32(m.nonce); carga.u64(m.tUs) }
         is Mensagem.Pong -> { tipo = Protocolo.T_PONG; carga.u32(m.nonce); carga.u64(m.tUs) }
@@ -132,6 +139,12 @@ fun decodificar(tipo: Int, b: ByteArray, inicio: Int): Mensagem {
                 contatos.add(c)
             }
             Mensagem.Toque(seq, contatos)
+        }
+        Protocolo.T_CANETA -> {
+            if (n != 11) throw ErroDeProtocolo("tamanho")
+            val pressao = b.u16(inicio + 8)
+            if (pressao > 1023) throw ErroDeProtocolo("tamanho")
+            Mensagem.Caneta(b.u32(inicio), b.u16(inicio + 4), b.u16(inicio + 6), pressao, b[inicio + 10].toInt() and 0xFF)
         }
         Protocolo.T_PING, Protocolo.T_PONG -> {
             if (n != 12) throw ErroDeProtocolo("tamanho")

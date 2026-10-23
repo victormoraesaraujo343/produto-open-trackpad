@@ -18,6 +18,7 @@ use crate::saida::{Botao, Saida};
 pub const NOME_TOUCHPAD: &str = "OpenTrackpad Touchpad";
 pub const NOME_BOTOES: &str = "OpenTrackpad Botões";
 pub const NOME_TECLADO: &str = "OpenTrackpad Teclado";
+pub const NOME_CANETA: &str = "OpenTrackpad Caneta";
 
 const TOOL_KEYS: [KeyCode; MAX_REPORTED_FINGERS as usize] = [
     KeyCode::BTN_TOOL_FINGER,
@@ -137,6 +138,28 @@ fn encode(e: PadEvent, out: &mut Vec<InputEvent>) {
     }
 }
 
+/// Mesa digitalizadora absoluta: o libinput a mapeia na tela inteira e os apps de desenho
+/// recebem a pressão. Sem INPUT_PROP_DIRECT: é mesa (como uma Wacom), não tela de toque.
+fn criar_caneta() -> io::Result<VirtualDevice> {
+    let mut keys = AttributeSet::<KeyCode>::new();
+    keys.insert(KeyCode::BTN_TOOL_PEN);
+    keys.insert(KeyCode::BTN_TOUCH);
+    keys.insert(KeyCode::BTN_STYLUS);
+    let mut props = AttributeSet::<PropType>::new();
+    props.insert(PropType::POINTER);
+    // Resolução de uma mesa de ~20 × 12 cm (só o formato importa: o mapa é para a tela inteira).
+    let eixo = |res: i32| AbsInfo::new(0, 0, 65535, 4, 0, res);
+    VirtualDevice::builder()?
+        .name(NOME_CANETA)
+        .input_id(InputId::new(BusType::BUS_VIRTUAL, 0x1d6b, 0x0f0f, 0x0006))
+        .with_properties(&props)?
+        .with_keys(&keys)?
+        .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisCode::ABS_X, eixo(320)))?
+        .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisCode::ABS_Y, eixo(540)))?
+        .with_absolute_axis(&UinputAbsSetup::new(AbsoluteAxisCode::ABS_PRESSURE, AbsInfo::new(0, 0, 1023, 0, 0, 0)))?
+        .build()
+}
+
 /// Os três dispositivos. O touchpad só nasce quando o primeiro celular diz o tamanho
 /// (criar e trocar logo depois seriam dois hotplugs, e painéis de ajuste do sistema
 /// nem sempre aguentam um dispositivo sumindo).
@@ -144,12 +167,15 @@ pub struct Uinput {
     touchpad: Option<(VirtualDevice, PadGeometry)>,
     botoes: VirtualDevice,
     teclado: VirtualDevice,
+    /// A caneta nasce no primeiro uso da mesa.
+    caneta: Option<VirtualDevice>,
+    caneta_perto: bool,
     buffer: Vec<InputEvent>,
 }
 
 impl Uinput {
     pub fn abrir() -> io::Result<Self> {
-        Ok(Self { touchpad: None, botoes: criar_botoes()?, teclado: criar_teclado()?, buffer: Vec::with_capacity(64) })
+        Ok(Self { touchpad: None, botoes: criar_botoes()?, teclado: criar_teclado()?, caneta: None, caneta_perto: false, buffer: Vec::with_capacity(64) })
     }
 }
 
@@ -205,6 +231,27 @@ impl Saida for Uinput {
         }
         ev.push(syn());
         self.botoes.emit(&ev)
+    }
+
+    fn caneta(&mut self, x: u16, y: u16, pressao: u16, encostada: bool, perto: bool) -> io::Result<()> {
+        if self.caneta.is_none() {
+            self.caneta = Some(criar_caneta()?);
+        }
+        let dev = self.caneta.as_mut().unwrap();
+        let perto = perto || encostada;
+        let mut ev = Vec::with_capacity(7);
+        if perto != self.caneta_perto {
+            ev.push(key(KeyCode::BTN_TOOL_PEN, perto));
+            self.caneta_perto = perto;
+        }
+        if perto {
+            ev.push(abs(AbsoluteAxisCode::ABS_X, i32::from(x)));
+            ev.push(abs(AbsoluteAxisCode::ABS_Y, i32::from(y)));
+        }
+        ev.push(abs(AbsoluteAxisCode::ABS_PRESSURE, if encostada { i32::from(pressao.min(1023)) } else { 0 }));
+        ev.push(key(KeyCode::BTN_TOUCH, encostada));
+        ev.push(syn());
+        dev.emit(&ev)
     }
 
     fn descrever(&mut self) -> String {

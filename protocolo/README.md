@@ -53,6 +53,7 @@ carga:       comprimento - 1 bytes
 |------|-----------|---------|-------|
 | 0x01 | CONTROLE  | ambos   | objeto JSON UTF-8 com o campo `t` |
 | 0x10 | TOQUE     | cel→pc  | quadro de contatos (binário, abaixo) |
+| 0x11 | CANETA    | cel→pc  | mesa digitalizadora (binário, abaixo) |
 | 0x20 | PING      | ambos   | `nonce: u32` + `t_us: u64` (relógio de quem enviou) |
 | 0x21 | PONG      | ambos   | a carga do PING, devolvida igual |
 | 0x22 | CARGA     | ambos   | bytes quaisquer, para medir vazão (até 65534 por mensagem) |
@@ -85,6 +86,20 @@ descartados), mas **nunca** descarta o quadro em que um dedo sai ou entra. A sup
 do trackpad (formato 16:10), não a tela inteira; o tamanho dela vem na mensagem `superficie`.
 
 Sem pressão: o touchpad virtual não declara pressão (aprendizado da v0.2).
+
+### CANETA (0x11)
+
+```
+seq:     u32 BE  (descarta seq menor ou igual ao último, como no TOQUE)
+x:       u16 BE  (0..65535 na largura da área da mesa; a mesa vale a tela inteira do computador)
+y:       u16 BE  (0..65535 na altura)
+pressao: u16 BE  (0..1023; dedo sem pressão real: 512)
+marcas:  u8      (bit 0: encostada, pinta; bit 1: perto, move o cursor sem pintar)
+```
+
+Marcas 0 = a caneta saiu de perto. No modo "Posicionar" do celular o toque vai com marcas 2 (move
+sem pintar); no "Desenhar", com 3 (encostada). O computador cria uma caneta virtual (mesa
+digitalizadora absoluta): apps de desenho recebem a pressão.
 
 ## Mensagens CONTROLE
 
