@@ -154,6 +154,25 @@
     "marcas": 7,
     "bytes": 7
    }
+  },
+  {
+   "nome": "camera: pedaço único de um quadro",
+   "hex": "001032000000000001046a0600000001419a",
+   "esperado": {
+    "tipo": "camera",
+    "pts_us": 66666,
+    "marcas": 6,
+    "bytes": 6
+   }
+  },
+  {
+   "nome": "audio: 4 amostras",
+   "hex": "0011310000000000004e200000000000000000",
+   "esperado": {
+    "tipo": "audio",
+    "pts_us": 20000,
+    "bytes": 8
+   }
   }
  ],
  "invalidos": [

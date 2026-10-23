@@ -59,6 +59,8 @@ pub trait Extensao: Send {
     /// Logo depois da abertura: um canal para mandar mensagens a qualquer hora (fluxos como o
     /// vídeo). Use `try_send` e descarte quando cheio, para nunca travar a sessão.
     fn conectar(&mut self, _enviar: tokio::sync::mpsc::Sender<Mensagem>) {}
+    /// Câmera (CAMERA) ou microfone (AUDIO) vindo do celular.
+    fn midia_do_celular(&mut self, _m: &Mensagem) {}
     /// A sessão acabou (queda, `tchau`): pare o que estiver rodando.
     fn encerrar(&mut self) {}
     /// Algo mudou no computador (app em foco, tique de 1 s, mídia…). Só com a sessão aberta.
@@ -149,7 +151,15 @@ impl Sessao {
                 let ev = self.contatos.apply(&contatos);
                 self.saida().pad(&ev).map_err(|e| format!("touchpad: {e}"))?;
             }
-            Mensagem::Video { .. } | Mensagem::Audio { .. } => {}
+            // Câmera e microfone do celular: só para as extensões que os pediram.
+            Mensagem::Camera { .. } | Mensagem::Audio { .. } => {
+                if self.aberta() {
+                    for e in &mut self.extensoes {
+                        e.midia_do_celular(&m);
+                    }
+                }
+            }
+            Mensagem::Video { .. } => {}
         }
         Ok(r)
     }

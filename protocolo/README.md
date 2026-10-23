@@ -57,7 +57,8 @@ carga:       comprimento - 1 bytes
 | 0x21 | PONG      | ambos   | a carga do PING, devolvida igual |
 | 0x22 | CARGA     | ambos   | bytes quaisquer, para medir vazão (até 65534 por mensagem) |
 | 0x30 | VIDEO     | pc→cel  | `pts_us: u64` + `marcas: u8` + pedaço de uma unidade de acesso H.264 (Annex B) — ver "Vídeo" |
-| 0x31 | AUDIO     | cel→pc  | `pts_us: u64` + PCM s16le 16 kHz mono — onda 3 |
+| 0x31 | AUDIO     | cel→pc  | `pts_us: u64` + PCM s16le 16 kHz mono (microfone do celular) |
+| 0x32 | CAMERA    | cel→pc  | igual a VIDEO (`pts_us`, `marcas`, pedaço de quadro H.264): a câmera do celular |
 
 Tipo desconhecido: quem recebe **fecha a conexão** (erro de versão). JSON com `t` desconhecido:
 **ignora** (é assim que mensagens novas entram sem trocar de versão).
@@ -148,6 +149,8 @@ nome fora da lista. `combo` tem no máximo 5 teclas.
 | `laterais` | `esquerda`, `direita`: listas de peças `tecla`/`tecla_presa` | as laterais fixas; mudam com o app em foco |
 | `estado` | `tela` (id da tela) + `pecas`: lista de `{id, campos que mudaram}` (`valor`, `ligado`, `texto`, `rotulo`, `mudo`, `icone`) | atualiza peças já desenhadas da tela aberta, sem redesenhar a tela |
 | `area_transferencia` | `s`: texto (até 60 000 bytes, limite de 64 KiB do computador) | o que foi copiado no computador; o celular põe na área de transferência dele |
+| `camera` | `ligar`: bool; `w`, `h`, `kbps`; `frente`: bool | liga/desliga a câmera do celular como webcam do computador (o celular manda CAMERA) |
+| `microfone` | `ligar`: bool | liga/desliga o microfone do celular como microfone do computador (o celular manda AUDIO, blocos de 20 ms) |
 | `vibrar` | `ms` (10..80) | pedido de vibração (o celular sempre mostra resposta visual junto) |
 | `aviso` | `texto` curto | aviso de relance (ex.: "Câmera saiu: conexão fraca") |
 | `tchau` | `motivo` opcional | o computador vai fechar |
@@ -182,6 +185,7 @@ na tela). Tocar numa peça manda `{"t":"acao","id":"<id>"}` (com `valor` quando 
 | `led` | `rotulo`, `ligado`, `texto` | `Led` (estado sempre com texto, nunca só cor) |
 | `texto` | `texto`, `tamanho`: `p`\|`m`\|`g` | rótulos e relógio |
 | `icone_app` | `rotulo`, `png` (base64, 96×96) | lista de janelas por ícone |
+| `previa_camera` | — (peça nativa: a prévia da câmera que está sendo enviada) | tela Câmera |
 | `video` | `w`, `h` (tamanho do vídeo), `modo`: `trackpad` (a imagem fica de fundo e o toque segue relativo, pelo touchpad) ou `toque` (tocar num ponto clica ali) | espelho, segundo monitor |
 | `grade` | `colunas`, `pecas` | organiza peças em grade |
 | `linha` | `pecas` | organiza peças em linha |
@@ -204,6 +208,15 @@ decodificador. Pedaço fora de ordem ou faltando: descarta o quadro e espera o p
 quadro-chave. Ao abrir `espelho`, o computador responde com a `tela` (peça `video` com `w`, `h`
 e `modo`: `trackpad` ou `toque`) e começa pelo quadro-chave; se o celular ficar para trás, o
 computador descarta quadros que não são chave em vez de acumular (a fila máxima é curta).
+
+## Câmera e microfone do celular
+
+A tela `camera` (nível 3) e a tela `microfone` (nível 2) são descritas pelo computador, com uma
+tecla de ligar e um LED de estado. O computador manda `camera`/`microfone` com `ligar` e o celular
+pede a permissão do Android na hora. A câmera vai em CAMERA (H.264 do codificador do aparelho,
+quadro-chave a cada 2 s, sem quadros B); o microfone em AUDIO (PCM 16 kHz mono, 20 ms por
+mensagem). No computador, os dois aparecem no PipeWire como "OpenTrackpad (câmera)" e
+"OpenTrackpad (microfone)". Conexão piorou abaixo do nível: o computador desliga e avisa.
 
 ## Nível da conexão
 

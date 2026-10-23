@@ -26,6 +26,7 @@ object Protocolo {
     const val T_CARGA = 0x22
     const val T_VIDEO = 0x30
     const val T_AUDIO = 0x31
+    const val T_CAMERA = 0x32
 }
 
 data class Contato(val id: Int, val x: Int, val y: Int, val major: Int)
@@ -46,6 +47,8 @@ sealed class Mensagem {
     /** Pedaço de quadro H.264; `marcas`: bit 0 chave, bit 1 último pedaço, bit 2 primeiro. */
     class Video(val ptsUs: Long, val marcas: Int, val dados: ByteArray) : Mensagem()
     class Audio(val ptsUs: Long, val dados: ByteArray) : Mensagem()
+    /** Pedaço de quadro H.264 da câmera do celular (mesmo formato de `Video`). */
+    class Camera(val ptsUs: Long, val marcas: Int, val dados: ByteArray) : Mensagem()
 }
 
 class ErroDeProtocolo(motivo: String) : IOException(motivo)
@@ -75,6 +78,7 @@ fun codificar(m: Mensagem): ByteArray {
         is Mensagem.Carga -> { tipo = Protocolo.T_CARGA; carga.write(m.dados) }
         is Mensagem.Video -> { tipo = Protocolo.T_VIDEO; carga.u64(m.ptsUs); carga.write(m.marcas); carga.write(m.dados) }
         is Mensagem.Audio -> { tipo = Protocolo.T_AUDIO; carga.u64(m.ptsUs); carga.write(m.dados) }
+        is Mensagem.Camera -> { tipo = Protocolo.T_CAMERA; carga.u64(m.ptsUs); carga.write(m.marcas); carga.write(m.dados) }
     }
     val len = carga.size() + 1
     require(len <= 0xFFFF) { "mensagem grande demais" }
@@ -136,9 +140,12 @@ fun decodificar(tipo: Int, b: ByteArray, inicio: Int): Mensagem {
             if (tipo == Protocolo.T_PING) Mensagem.Ping(nonce, t) else Mensagem.Pong(nonce, t)
         }
         Protocolo.T_CARGA -> Mensagem.Carga(b.copyOfRange(inicio, b.size))
-        Protocolo.T_VIDEO -> {
+        Protocolo.T_VIDEO, Protocolo.T_CAMERA -> {
             if (n < 9) throw ErroDeProtocolo("tamanho")
-            Mensagem.Video(b.u64(inicio), b[inicio + 8].toInt() and 0xFF, b.copyOfRange(inicio + 9, b.size))
+            val pts = b.u64(inicio)
+            val marcas = b[inicio + 8].toInt() and 0xFF
+            val dados = b.copyOfRange(inicio + 9, b.size)
+            if (tipo == Protocolo.T_VIDEO) Mensagem.Video(pts, marcas, dados) else Mensagem.Camera(pts, marcas, dados)
         }
         Protocolo.T_AUDIO -> {
             if (n < 8) throw ErroDeProtocolo("tamanho")
