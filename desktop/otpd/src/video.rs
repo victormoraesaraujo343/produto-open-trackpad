@@ -146,6 +146,10 @@ pub fn fatiar(q: &Quadro, pts_us: u64) -> Vec<Mensagem> {
 pub enum Fonte {
     /// Barras de cor do GStreamer: prova o caminho inteiro sem capturar a tela.
     Teste,
+    /// Pede a tela ao portal ScreenCast na hora de começar (o sistema pode perguntar).
+    PedirAoPortal,
+    /// Pede ao portal um monitor virtual novo (segundo monitor): o sistema cria a tela.
+    PedirMonitorVirtual,
     /// Nó do PipeWire aberto pelo portal ScreenCast (`fd` herdado como 3).
     Portal { fd: std::os::fd::RawFd, no: u32 },
 }
@@ -163,12 +167,13 @@ pub fn codificador() -> &'static str {
 pub fn argumentos(fonte: &Fonte, w: u32, h: u32, kbps: u32, enc: &str) -> Vec<String> {
     let mut a: Vec<String> = vec!["-q".into()];
     match fonte {
-        Fonte::Teste => a.extend(["videotestsrc", "is-live=true", "pattern=smpte"].map(String::from)),
+        Fonte::Teste | Fonte::PedirAoPortal | Fonte::PedirMonitorVirtual => a.extend(["videotestsrc", "is-live=true", "pattern=smpte"].map(String::from)),
         Fonte::Portal { no, .. } => {
             a.extend(["pipewiresrc".to_owned(), "fd=3".to_owned(), format!("path={no}"), "do-timestamp=true".to_owned(), "keepalive-time=1000".to_owned()])
         }
     }
-    a.extend(["!", "videoconvert", "!", "videoscale", "!", "videorate", "!"].map(String::from));
+    // add-borders: tela com outro formato ganha faixas pretas em vez de ficar esticada.
+    a.extend(["!", "videoconvert", "!", "videoscale", "add-borders=true", "!", "videorate", "!"].map(String::from));
     a.push(format!("video/x-raw,format=NV12,width={w},height={h},framerate=30/1"));
     a.push("!".into());
     if enc == "vah264enc" {
@@ -185,6 +190,19 @@ pub fn argumentos(fonte: &Fonte, w: u32, h: u32, kbps: u32, enc: &str) -> Vec<St
 
 /// Roda o codificador e manda os quadros até `parar` ou o canal fechar.
 pub async fn transmitir(fonte: Fonte, w: u32, h: u32, kbps: u32, enviar: mpsc::Sender<Mensagem>, mut parar: tokio::sync::oneshot::Receiver<()>) {
+    // A captura do portal vive enquanto `_tela` existir (fecha a sessão ao sair).
+    let tipos = if matches!(fonte, Fonte::PedirMonitorVirtual) { 4 } else { 1 };
+    let (fonte, _tela) = match fonte {
+        Fonte::PedirAoPortal | Fonte::PedirMonitorVirtual => match crate::portal::pedir(tipos).await {
+            Ok(t) => (Fonte::Portal { fd: t.fd_bruto(), no: t.no }, Some(t)),
+            Err(e) => {
+                eprintln!("espelho: {e}");
+                let _ = enviar.try_send(controle(json!({"t":"aviso","texto":"Sem permissão para ver a tela"})));
+                return;
+            }
+        },
+        f => (f, None),
+    };
     let args = argumentos(&fonte, w, h, kbps, codificador());
     let mut cmd = tokio::process::Command::new("gst-launch-1.0");
     cmd.args(&args).stdout(Stdio::piped()).stderr(Stdio::null()).stdin(Stdio::null()).kill_on_drop(true);
@@ -253,8 +271,10 @@ fn libc_dup2(old: i32, new: i32) -> i32 {
     unsafe { dup2_c(old, new) }
 }
 
-/// Extensão da tela `espelho` (grupo Tela, nível 3).
+/// Extensão das telas de vídeo: `espelho` e `monitor` (grupo Tela, nível 3).
 pub struct Espelho {
+    /// Id da tela, nome e ícone no menu.
+    pub tela: (&'static str, &'static str, &'static str),
     enviar: Option<mpsc::Sender<Mensagem>>,
     parar: Option<tokio::sync::oneshot::Sender<()>>,
     /// Abre a fonte (portal na vida real, teste nos testes/emulador).
@@ -265,7 +285,12 @@ pub struct Espelho {
 
 impl Espelho {
     pub fn novo(abrir_fonte: Box<dyn FnMut() -> Option<Fonte> + Send>) -> Self {
-        Self { enviar: None, parar: None, abrir_fonte, tamanho: (1280, 720), kbps: 4000 }
+        Self { tela: ("espelho", "Espelho", "tela"), enviar: None, parar: None, abrir_fonte, tamanho: (1280, 720), kbps: 4000 }
+    }
+
+    /// Segundo monitor: o sistema cria uma tela virtual e o celular mostra essa tela.
+    pub fn monitor(abrir_fonte: Box<dyn FnMut() -> Option<Fonte> + Send>) -> Self {
+        Self { tela: ("monitor", "Monitor", "computador"), ..Self::novo(abrir_fonte) }
     }
 
     fn parar(&mut self) {
@@ -277,7 +302,8 @@ impl Espelho {
 
 impl Extensao for Espelho {
     fn telas(&self) -> Vec<Value> {
-        vec![json!({"id":"espelho","nome":"Espelho","icone":"tela","grupo":"Tela","nivel":3})]
+        let (id, nome, icone) = self.tela;
+        vec![json!({"id":id,"nome":nome,"icone":icone,"grupo":"Tela","nivel":3})]
     }
 
     fn conectar(&mut self, enviar: mpsc::Sender<Mensagem>) {
@@ -292,13 +318,14 @@ impl Extensao for Espelho {
         if t != "abrir" {
             return false;
         }
-        if msg["tela"] != "espelho" {
+        let (id, nome, _) = self.tela;
+        if msg["tela"] != id {
             self.parar();
             return false;
         }
         self.parar();
         let (w, h) = self.tamanho;
-        r.push(controle(json!({"t":"tela","id":"espelho","nome":"Espelho","nivel":3,
+        r.push(controle(json!({"t":"tela","id":id,"nome":nome,"nivel":3,
             "pecas":[{"p":"video","id":"tela","w":w,"h":h,"modo":"trackpad"}]})));
         let (Some(enviar), Some(fonte)) = (self.enviar.clone(), (self.abrir_fonte)()) else {
             r.push(controle(json!({"t":"aviso","texto":"Sem permissão para ver a tela"})));

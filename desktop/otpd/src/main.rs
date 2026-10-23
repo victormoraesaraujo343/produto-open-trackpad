@@ -155,7 +155,12 @@ async fn main() {
                 v.push(Box::new(otpd::video::Espelho::novo(if video_teste {
                     Box::new(|| Some(otpd::video::Fonte::Teste))
                 } else {
-                    Box::new(otpd::portal::abrir_tela)
+                    Box::new(|| Some(otpd::video::Fonte::PedirAoPortal))
+                })));
+                v.push(Box::new(otpd::video::Espelho::monitor(if video_teste {
+                    Box::new(|| Some(otpd::video::Fonte::Teste))
+                } else {
+                    Box::new(|| Some(otpd::video::Fonte::PedirMonitorVirtual))
                 })));
                 if let Some(d) = &digitador {
                     v.push(Box::new(ExtensaoTexto::nova(saida.clone(), d.clone())));
