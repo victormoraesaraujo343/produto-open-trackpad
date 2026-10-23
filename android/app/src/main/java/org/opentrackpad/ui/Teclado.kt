@@ -111,7 +111,7 @@ private fun TextoEnviado(historico: String, modifier: Modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             BasicText(
                 text = historico,
-                style = TextStyle(color = Tokens.ink2, fontSize = 15.sp),
+                style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink2, fontSize = 15.sp),
                 maxLines = 1,
                 softWrap = false,
             )
@@ -186,7 +186,7 @@ private fun RowScope.TeclaView(def: TeclaDef, maiuscula: Boolean, aoAcionar: (Te
     ) {
         BasicText(
             text = rotuloVisivel(def, maiuscula),
-            style = TextStyle(
+            style = TextStyle(fontFamily = Tokens.fonte, 
                 color = if (apertada) Tokens.keyInkOn else Tokens.keyInk,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
@@ -196,7 +196,7 @@ private fun RowScope.TeclaView(def: TeclaDef, maiuscula: Boolean, aoAcionar: (Te
             BasicText(
                 text = acento,
                 modifier = Modifier.align(Alignment.TopEnd).padding(top = 3.dp, end = 5.dp),
-                style = TextStyle(color = Tokens.ink3, fontSize = 10.sp),
+                style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink3, fontSize = 10.sp),
             )
         }
         // Shift ligado: barra laranja embaixo além da cor (estado nunca só por cor).

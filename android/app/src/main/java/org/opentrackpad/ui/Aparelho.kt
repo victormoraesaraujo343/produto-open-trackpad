@@ -195,7 +195,7 @@ private fun CabecaApp(l: Laterais?) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icone(l?.iconeApp ?: "computador", 16.dp, Tokens.ink2)
-        BasicText(l?.app ?: "OpenTrackpad", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = TextStyle(color = Tokens.ink2, fontSize = 12.sp))
+        BasicText(l?.app ?: "OpenTrackpad", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink2, fontSize = 12.sp))
     }
 }
 
@@ -276,7 +276,7 @@ private fun IndicadorConexao(estado: EstadoConexao) {
             Box(Modifier.size(8.dp).clip(CircleShape).background(if (ligado) Tokens.led else Tokens.ledOff))
         }
         Spacer(Modifier.width(8.dp))
-        BasicText(texto, maxLines = 1, style = TextStyle(color = Tokens.ink2, fontSize = 12.sp))
+        BasicText(texto, maxLines = 1, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink2, fontSize = 12.sp))
     }
 }
 
@@ -295,7 +295,7 @@ private fun Aviso(texto: String) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Box(Modifier.size(8.dp).clip(CircleShape).background(Tokens.ambar))
-            BasicText(texto, style = TextStyle(color = Tokens.ink, fontSize = 13.sp))
+            BasicText(texto, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 13.sp))
         }
     }
 }
@@ -316,7 +316,7 @@ private fun Parear(motivo: String, aoCodigo: (String) -> Unit, aoQr: () -> Unit)
                     "versao" -> "Atualize o app"
                     else -> "Parear com o computador"
                 },
-                style = TextStyle(color = Tokens.ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
+                style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
             )
             BotaoGrande("qr", "Ler o QR", "Ler o QR do computador", aoQr)
             BasicTextField(
@@ -324,7 +324,7 @@ private fun Parear(motivo: String, aoCodigo: (String) -> Unit, aoQr: () -> Unit)
                 onValueChange = { novo -> codigo = novo.filter(Char::isDigit).take(6) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                textStyle = TextStyle(color = Tokens.ink, fontSize = 28.sp, textAlign = TextAlign.Center, letterSpacing = 6.sp),
+                textStyle = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 28.sp, textAlign = TextAlign.Center, letterSpacing = 6.sp),
                 cursorBrush = SolidColor(Tokens.laranja),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -356,6 +356,6 @@ private fun BotaoGrande(icone: String, rotulo: String, descricao: String, aoToca
     ) {
         Icone(icone, 18.dp, Tokens.keyInk)
         Spacer(Modifier.width(8.dp))
-        BasicText(rotulo, style = TextStyle(color = Tokens.keyInk, fontSize = 14.sp, fontWeight = FontWeight.Medium))
+        BasicText(rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 14.sp, fontWeight = FontWeight.Medium))
     }
 }

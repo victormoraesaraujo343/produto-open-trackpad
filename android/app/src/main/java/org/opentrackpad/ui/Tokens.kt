@@ -2,6 +2,11 @@ package org.opentrackpad.ui
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
+import androidx.compose.ui.text.font.FontWeight
+import org.opentrackpad.R
 
 /**
  * Tokens da identidade metalizada, transpostos de `src/design/tokens.css` (acabamento
@@ -9,6 +14,14 @@ import androidx.compose.ui.graphics.Color
  * Contraste: ink, ink2, ink3, keyLbl e padInk servem para texto; ink4 só para ícone e borda.
  */
 object Tokens {
+    /** Archivo (a fonte da identidade), um arquivo variável com todos os pesos. */
+    @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+    val fonte = FontFamily(
+        listOf(300, 400, 500, 600, 700).map { w ->
+            Font(R.font.archivo, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+        },
+    )
+
     val led = Color(0xFF9BE23F)
     val laranja = Color(0xFFFF4F1F)
     val ambar = Color(0xFFF5A524)

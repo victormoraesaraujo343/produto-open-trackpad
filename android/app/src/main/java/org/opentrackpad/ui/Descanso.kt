@@ -123,8 +123,8 @@ fun TelaDeDescanso(e: EstadoTela) {
         contentAlignment = Alignment.Center,
     ) {
         Column(Modifier.offset(dx, dy), horizontalAlignment = Alignment.CenterHorizontally) {
-            BasicText(hora, style = TextStyle(color = Tokens.ink3, fontSize = 96.sp, fontWeight = FontWeight.Light))
-            BasicText(data, style = TextStyle(color = Tokens.ink3, fontSize = 16.sp))
+            BasicText(hora, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink3, fontSize = 96.sp, fontWeight = FontWeight.Light))
+            BasicText(data, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink3, fontSize = 16.sp))
         }
     }
 }

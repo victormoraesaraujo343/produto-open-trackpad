@@ -123,7 +123,7 @@ fun LerQr(aoLer: (ConviteQr) -> Unit, aoCancelar: () -> Unit, modifier: Modifier
                     .background(Tokens.panelBase)
                     .padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
-                BasicText(texto, style = TextStyle(color = Tokens.ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold))
+                BasicText(texto, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold))
             }
             if (!permitida || semCamera) {
                 Botao(
@@ -258,6 +258,6 @@ private fun Botao(rotulo: String, descricao: String, aoTocar: () -> Unit, modifi
             .padding(horizontal = 18.dp),
         contentAlignment = Alignment.Center,
     ) {
-        BasicText(rotulo, style = TextStyle(color = Tokens.keyInk, fontSize = 15.sp, fontWeight = FontWeight.Medium))
+        BasicText(rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 15.sp, fontWeight = FontWeight.Medium))
     }
 }

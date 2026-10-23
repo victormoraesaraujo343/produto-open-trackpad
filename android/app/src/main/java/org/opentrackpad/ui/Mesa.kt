@@ -70,7 +70,7 @@ fun Mesa(modifier: Modifier, aoCaneta: (Mensagem.Caneta) -> Unit) {
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
-            BasicText(rotulo, style = TextStyle(color = Tokens.keyInk, fontSize = 13.sp, fontWeight = FontWeight.Medium))
+            BasicText(rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 13.sp, fontWeight = FontWeight.Medium))
         }
     }
 }

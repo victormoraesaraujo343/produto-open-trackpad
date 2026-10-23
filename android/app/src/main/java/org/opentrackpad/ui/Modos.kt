@@ -85,7 +85,7 @@ fun TeclaModos(atual: ModoApp?, travado: Boolean, aoAbrir: () -> Unit, aoDestrav
             atual?.nome ?: "Trackpad",
             maxLines = 1,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-            style = TextStyle(color = Tokens.keyInk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+            style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
         )
     }
 }
@@ -133,8 +133,8 @@ private fun Destravar(aoDestravar: () -> Unit) {
     ) {
         Box(Modifier.size(10.dp).clip(CircleShape).background(Tokens.ambar))
         Column {
-            BasicText("Travado", style = TextStyle(color = Tokens.keyInk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold))
-            BasicText(if (progresso > 0f) "continue…" else "segure 3 s", style = TextStyle(color = Tokens.keyLbl, fontSize = 11.sp))
+            BasicText("Travado", style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold))
+            BasicText(if (progresso > 0f) "continue…" else "segure 3 s", style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyLbl, fontSize = 11.sp))
         }
     }
 }
@@ -186,7 +186,7 @@ fun MenuModos(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        BasicText(g, style = TextStyle(color = if (ativo) Tokens.ink else Tokens.ink2, fontSize = 13.sp, fontWeight = if (ativo) FontWeight.SemiBold else FontWeight.Normal))
+                        BasicText(g, style = TextStyle(fontFamily = Tokens.fonte, color = if (ativo) Tokens.ink else Tokens.ink2, fontSize = 13.sp, fontWeight = if (ativo) FontWeight.SemiBold else FontWeight.Normal))
                         if (modos.any { it.grupo == g && it.id == atual }) Box(Modifier.size(8.dp).clip(CircleShape).background(Tokens.led))
                     }
                 }
@@ -222,7 +222,7 @@ private fun AcaoMenu(icone: String, rotulo: String, descricao: String, aoTocar: 
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icone(icone, 18.dp, Tokens.keyInk)
-        BasicText(rotulo, style = TextStyle(color = Tokens.keyInk, fontSize = 13.sp))
+        BasicText(rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 13.sp))
     }
 }
 
@@ -247,7 +247,7 @@ private fun ItemModo(m: ModoApp, ativo: Boolean, livre: Boolean, modifier: Modif
     ) {
         // ink4 só em ícone; texto apagado usa ink3 (contraste AA).
         Icone(m.icone, 24.dp, if (livre) Tokens.keyInk else Tokens.ink4)
-        BasicText(m.nome, style = TextStyle(color = if (livre) Tokens.keyInk else Tokens.ink3, fontSize = 12.sp, fontWeight = FontWeight.Medium))
-        if (!livre) BasicText("conexão fraca", style = TextStyle(color = Tokens.ink3, fontSize = 10.sp))
+        BasicText(m.nome, style = TextStyle(fontFamily = Tokens.fonte, color = if (livre) Tokens.keyInk else Tokens.ink3, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+        if (!livre) BasicText("conexão fraca", style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink3, fontSize = 10.sp))
     }
 }

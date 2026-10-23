@@ -142,7 +142,7 @@ private fun PecaTecla(peca: Peca.Tecla, eventos: EventosPeca, modifier: Modifier
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         peca.icone?.let { Icone(it, 20.dp, cor) }
-        BasicText(peca.rotulo, style = TextStyle(color = cor, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+        BasicText(peca.rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = cor, fontSize = 12.sp, fontWeight = FontWeight.Medium))
     }
 }
 
@@ -173,9 +173,9 @@ private fun PecaTeclaPresa(peca: Peca.TeclaPresa, eventos: EventosPeca, modifier
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             BasicText(
                 peca.rotulo,
-                style = TextStyle(color = if (presa) Tokens.keyInkOn else Tokens.keyInk, fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
+                style = TextStyle(fontFamily = Tokens.fonte, color = if (presa) Tokens.keyInkOn else Tokens.keyInk, fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
             )
-            BasicText(estado, style = TextStyle(color = Tokens.keyLbl, fontSize = 11.sp))
+            BasicText(estado, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyLbl, fontSize = 11.sp))
         }
         Box(
             Modifier
@@ -234,11 +234,11 @@ private fun PecaDeslizante(
             BasicText(
                 rotulo,
                 modifier = Modifier.weight(1f),
-                style = TextStyle(color = Tokens.ink2, fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink2, fontSize = 12.sp, fontWeight = FontWeight.Medium),
             )
             BasicText(
                 texto,
-                style = TextStyle(color = if (mudo) Tokens.ink3 else Tokens.ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+                style = TextStyle(fontFamily = Tokens.fonte, color = if (mudo) Tokens.ink3 else Tokens.ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
             )
         }
         Box(
@@ -330,8 +330,8 @@ private fun PecaSegmentos(peca: Peca.Segmentos, modifier: Modifier) {
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            BasicText(peca.rotulo, style = TextStyle(color = Tokens.ink2, fontSize = 12.sp))
-            BasicText(texto, style = TextStyle(color = Tokens.ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+            BasicText(peca.rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink2, fontSize = 12.sp))
+            BasicText(texto, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
         }
         Row(Modifier.fillMaxWidth().height(12.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
             repeat(10) { i ->
@@ -362,8 +362,8 @@ private fun PecaLed(peca: Peca.Led, modifier: Modifier) {
             Box(Modifier.size(8.dp).clip(CircleShape).background(if (peca.ligado) Tokens.led else Tokens.ledOff))
         }
         Column {
-            BasicText(peca.rotulo, style = TextStyle(color = Tokens.ink2, fontSize = 12.sp))
-            BasicText(texto, style = TextStyle(color = Tokens.ink, fontSize = 14.sp, fontWeight = FontWeight.Medium))
+            BasicText(peca.rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink2, fontSize = 12.sp))
+            BasicText(texto, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 14.sp, fontWeight = FontWeight.Medium))
         }
     }
 }
@@ -375,7 +375,7 @@ private fun PecaTexto(peca: Peca.Texto, modifier: Modifier) {
         Tamanho.M -> 16.sp to Tokens.ink
         Tamanho.G -> 24.sp to Tokens.ink
     }
-    BasicText(peca.texto, modifier, style = TextStyle(color = cor, fontSize = tamanho))
+    BasicText(peca.texto, modifier, style = TextStyle(fontFamily = Tokens.fonte, color = cor, fontSize = tamanho))
 }
 
 /** Ícone de app ou janela: toque manda `acao`. Sem imagem válida, usa o ícone de janelas. */
@@ -401,7 +401,7 @@ private fun PecaIconeApp(peca: Peca.IconeApp, eventos: EventosPeca, modifier: Mo
         } else {
             Icone("janelas", 24.dp, Tokens.keyInk)
         }
-        BasicText(peca.rotulo, style = TextStyle(color = Tokens.keyInk, fontSize = 11.sp))
+        BasicText(peca.rotulo, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.keyInk, fontSize = 11.sp))
     }
 }
 
@@ -474,7 +474,7 @@ private fun PecaPreviaCamera(modifier: Modifier) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icone("camera", 32.dp, Tokens.ink2)
                 Spacer(Modifier.height(8.dp))
-                BasicText(texto, style = TextStyle(color = Tokens.ink, fontSize = 14.sp, fontWeight = FontWeight.Medium))
+                BasicText(texto, style = TextStyle(fontFamily = Tokens.fonte, color = Tokens.ink, fontSize = 14.sp, fontWeight = FontWeight.Medium))
             }
         }
     }
